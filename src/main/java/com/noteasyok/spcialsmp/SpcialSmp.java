@@ -37,11 +37,11 @@ public class SpcialSmp extends JavaPlugin {
 
         // Listeners
         Bukkit.getPluginManager().registerEvents(
-                new CardUseListener(CardRegistry.getCards()), this
+                new CardUseListener(CardRegistry.getCards(), this
         );
 
         Bukkit.getPluginManager().registerEvents(
-                new JoinListener(CardRegistry.getFirstJoinItems()), this
+                new JoinListener(CardRegistry.getFirstJoinItems(), this
         );
 
         Bukkit.getPluginManager().registerEvents(
