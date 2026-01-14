@@ -1,4 +1,4 @@
-package com.noteasyok.spcialsmp;
+⁸package com.noteasyok.spcialsmp;
 
 import com.noteasyok.spcialsmp.command.CardsCommand;
 import com.noteasyok.spcialsmp.listener.CardUseListener;
@@ -37,7 +37,7 @@ public class SpcialSmp extends JavaPlugin {
 
         // Listeners
         Bukkit.getPluginManager().registerEvents(
-                new CardUseListener(CardRegistry.getCards(), this
+                new CardUseListener(CardRegistry.getCards()), this
         );
 
         Bukkit.getPluginManager().registerEvents(
