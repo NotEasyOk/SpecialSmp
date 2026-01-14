@@ -4,6 +4,7 @@ import com.noteasyok.spcialsmp.command.CardsCommand;
 import com.noteasyok.spcialsmp.listener.CardUseListener;
 import com.noteasyok.spcialsmp.listener.DeathListener;
 import com.noteasyok.spcialsmp.listener.JoinListener;
+import com.noteasyok.spcialsmp.listener.CardInventoryInfoListener;
 import com.noteasyok.spcialsmp.listener.UnlimitedCraftListener;
 import com.noteasyok.spcialsmp.manager.CardRegistry;
 import com.noteasyok.spcialsmp.manager.CooldownManager;
@@ -39,7 +40,11 @@ public class SpcialSmp extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(
                 new CardUseListener(CardRegistry.getCards()), this
         );
-
+        
+        Bukkit.getPluginManager().registerEvents(
+                new CardInventoryInfoListener(), this
+       );
+        
         Bukkit.getPluginManager().registerEvents(
                 new JoinListener(CardRegistry.getFirstJoinItems()), this
         );
