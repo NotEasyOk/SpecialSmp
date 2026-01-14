@@ -10,42 +10,50 @@ import java.util.UUID;
 public class PlayerDataManager {
 
     private final File file;
-    private final YamlConfiguration cfg;
+    private final YamlConfiguration data;
 
     public PlayerDataManager(JavaPlugin plugin) {
         file = new File(plugin.getDataFolder(), "playerdata.yml");
+
         if (!file.exists()) {
             try {
-                file.getParentFile().mkdirs();
+                plugin.getDataFolder().mkdirs();
                 file.createNewFile();
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
-        cfg = YamlConfiguration.loadConfiguration(file);
+        data = YamlConfiguration.loadConfiguration(file);
     }
 
-    public boolean gotFirstCard(UUID uuid) {
-        return cfg.getBoolean("players." + uuid + ".first", false);
+    /* ================= FIRST JOIN CARD ================= */
+
+    public boolean hasReceivedFirstCard(UUID uuid) {
+        return data.getBoolean("players." + uuid + ".firstCard", false);
     }
 
-    public void setFirstCard(UUID uuid) {
-        cfg.set("players." + uuid + ".first", true);
+    public void setReceivedFirstCard(UUID uuid, String cardName) {
+        data.set("players." + uuid + ".firstCard", true);
+        data.set("players." + uuid + ".firstCardName", cardName);
         save();
     }
 
-    public boolean unlimitedCrafted(UUID uuid) {
-        return cfg.getBoolean("players." + uuid + ".unlimited", false);
+    /* ================= UNLIMITED CARD ================= */
+
+    public boolean hasUnlimited(UUID uuid) {
+        return data.getBoolean("players." + uuid + ".unlimitedCrafted", false);
     }
 
     public void setUnlimited(UUID uuid) {
-        cfg.set("players." + uuid + ".unlimited", true);
+        data.set("players." + uuid + ".unlimitedCrafted", true);
         save();
     }
 
+    /* ================= SAVE ================= */
+
     private void save() {
         try {
-            cfg.save(file);
+            data.save(file);
         } catch (IOException e) {
             e.printStackTrace();
         }
