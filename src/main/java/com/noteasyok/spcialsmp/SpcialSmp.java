@@ -1,12 +1,18 @@
 package com.noteasyok.spcialsmp;
 
-import com.noteasyok.spcialsmp.listener.*;
-import com.noteasyok.spcialsmp.manager.*;
+import com.noteasyok.spcialsmp.command.CardsCommand;
+import com.noteasyok.spcialsmp.listener.CardUseListener;
+import com.noteasyok.spcialsmp.listener.DeathListener;
+import com.noteasyok.spcialsmp.listener.JoinListener;
+import com.noteasyok.spcialsmp.listener.UnlimitedCraftListener;
+import com.noteasyok.spcialsmp.manager.CardRegistry;
+import com.noteasyok.spcialsmp.manager.CooldownManager;
+import com.noteasyok.spcialsmp.manager.PlayerDataManager;
+import com.noteasyok.spcialsmp.manager.RecipeManager;
+import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.util.List;
-
-public class SpcialSmp extends JavaPlugin {
+public final class SpcialSmp extends JavaPlugin {
 
     private static SpcialSmp instance;
 
@@ -16,33 +22,38 @@ public class SpcialSmp extends JavaPlugin {
     @Override
     public void onEnable() {
         instance = this;
+
         saveDefaultConfig();
 
         // Managers
         cooldownManager = new CooldownManager();
         playerDataManager = new PlayerDataManager(this);
 
-        // Register Cards
+        // Register cards
         CardRegistry.registerAll();
+
+        // Recipes
         RecipeManager.registerUnlimitedRecipe();
-        
+
         // Listeners
-        getServer().getPluginManager().registerEvents(
+        Bukkit.getPluginManager().registerEvents(
                 new CardUseListener(CardRegistry.getCards()), this);
 
-        getServer().getPluginManager().registerEvents(
-                new JoinListener(getFirstJoinCards()), this);
+        Bukkit.getPluginManager().registerEvents(
+                new JoinListener(CardRegistry.getFirstJoinItems()), this);
 
-        getServer().getPluginManager().registerEvents(
+        Bukkit.getPluginManager().registerEvents(
                 new DeathListener(), this);
 
-        getServer().getPluginManager().registerEvents(
+        Bukkit.getPluginManager().registerEvents(
                 new UnlimitedCraftListener(), this);
 
         // Commands
-        getCommand("cards").setExecutor(new CardsCommand());
+        if (getCommand("cards") != null) {
+            getCommand("cards").setExecutor(new CardsCommand());
+        }
 
-        getLogger().info("spcialSmp ENABLED successfully");
+        getLogger().info("spcialSmp Enabled");
     }
 
     public static SpcialSmp get() {
@@ -55,20 +66,5 @@ public class SpcialSmp extends JavaPlugin {
 
     public PlayerDataManager getPlayerDataManager() {
         return playerDataManager;
-    }
-
-    // ❌ Unlimited Card yahan nahi hota
-    private List<String> getFirstJoinCards() {
-        return List.of(
-                "Enderman Card",
-                "Herobrine Card",
-                "Nothing Card",
-                "Zombie Card",
-                "Warden Card",
-                "Creeper Card",
-                "Lighting Card",
-                "Ghost Card",
-                "Ruin Card"
-        );
     }
 }
