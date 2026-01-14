@@ -1,15 +1,9 @@
 package com.noteasyok.spcialsmp;
 
 import com.noteasyok.spcialsmp.command.CardsCommand;
-import com.noteasyok.spcialsmp.listener.CardUseListener;
-import com.noteasyok.spcialsmp.listener.DeathListener;
-import com.noteasyok.spcialsmp.listener.JoinListener;
-import com.noteasyok.spcialsmp.listener.CardInventoryInfoListener;
-import com.noteasyok.spcialsmp.listener.UnlimitedCraftListener;
-import com.noteasyok.spcialsmp.manager.CardRegistry;
-import com.noteasyok.spcialsmp.manager.CooldownManager;
-import com.noteasyok.spcialsmp.manager.PlayerDataManager;
-import com.noteasyok.spcialsmp.manager.RecipeManager;
+import com.noteasyok.spcialsmp.listener.*;
+import com.noteasyok.spcialsmp.manager.*;
+
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -30,31 +24,25 @@ public class SpcialSmp extends JavaPlugin {
         cooldownManager = new CooldownManager(this);
         playerDataManager = new PlayerDataManager(this);
 
-        // Register all cards
+        // Register cards
         CardRegistry.registerAll();
 
-        // Register Unlimited Card recipe
+        // Recipes
         RecipeManager.registerUnlimitedRecipe();
 
-        // Register listeners
+        // Listeners
         Bukkit.getPluginManager().registerEvents(
                 new CardUseListener(CardRegistry.getCards()), this
         );
-                getLogger().info("spcialSmp ENABLE");
-            }
-    
         Bukkit.getPluginManager().registerEvents(
                 new CardInventoryInfoListener(), this
-       );
-        
+        );
         Bukkit.getPluginManager().registerEvents(
                 new JoinListener(CardRegistry.getFirstJoinItems()), this
         );
-
         Bukkit.getPluginManager().registerEvents(
                 new DeathListener(), this
         );
-
         Bukkit.getPluginManager().registerEvents(
                 new UnlimitedCraftListener(), this
         );
@@ -64,7 +52,7 @@ public class SpcialSmp extends JavaPlugin {
             getCommand("cards").setExecutor(new CardsCommand());
         }
 
-        getLogger().info("SpcialSmp plugin ENABLED");
+        getLogger().info("SpcialSmp plugin ENABLED successfully");
     }
 
     @Override
@@ -84,4 +72,3 @@ public class SpcialSmp extends JavaPlugin {
         return playerDataManager;
     }
 }
- 
