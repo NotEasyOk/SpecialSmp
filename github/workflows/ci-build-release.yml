@@ -1,0 +1,64 @@
+name: Build & Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Cache Maven packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-m2-
+
+      - name: Build with Maven
+        run: mvn -B -DskipTests package
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: spcialSmp-jar
+          path: target/*.jar
+
+  release:
+    needs: build
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: spcialSmp-jar
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.ref_name }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Upload JAR to Release
+        uses: actions/upload-release-asset@v1
+        with:
+          upload_url: ${{ steps.release.outputs.upload_url }}
+          asset_path: target/spcialSmp-*.jar
+          asset_name: spcialSmp-${{ github.ref_name }}.jar
+          asset_content_type: application/java-archive
+          
