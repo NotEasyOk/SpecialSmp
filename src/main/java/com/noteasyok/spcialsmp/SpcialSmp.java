@@ -36,6 +36,9 @@ public class SpcialSmp extends JavaPlugin {
         );
         Bukkit.getPluginManager().registerEvents(
                 new CardInventoryInfoListener(), this
+        );  
+         Bukkit.getPluginManager().registerEvents(
+             new ZombieOwnerListener(), this);
         );
         Bukkit.getPluginManager().registerEvents(
                 new JoinListener(CardRegistry.getFirstJoinItems()), this
