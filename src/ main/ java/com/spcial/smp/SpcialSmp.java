@@ -24,7 +24,8 @@ public class SpcialSmp extends JavaPlugin {
 
         // Register Cards
         CardRegistry.registerAll();
-
+        RecipeManager.registerUnlimitedRecipe();
+        
         // Listeners
         getServer().getPluginManager().registerEvents(
                 new CardUseListener(CardRegistry.getCards()), this);
