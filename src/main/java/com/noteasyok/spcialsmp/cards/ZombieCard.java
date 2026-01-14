@@ -2,38 +2,61 @@ package com.noteasyok.spcialsmp.cards;
 
 import com.noteasyok.spcialsmp.SpcialSmp;
 import org.bukkit.Bukkit;
-import org.bukkit.entity.Entity;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Zombie;
-import org.bukkit.event.entity.EntityTargetEvent;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.Material;
+import org.bukkit.metadata.FixedMetadataValue;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 public class ZombieCard implements Card {
 
-    private final Map<UUID, Integer> spawnCount = new HashMap<>();
+    // player -> active zombies count
+    private final Map<UUID, Integer> activeZombies = new HashMap<>();
+
+    @Override
+    public String getName() {
+        return "Zombie Card";
+    }
 
     @Override
     public void leftClick(Player player) {
-
         UUID id = player.getUniqueId();
-        int max = SpcialSmp.get().getConfig().getInt("zombie-card.max-zombies", 2);
 
-        int used = spawnCount.getOrDefault(id, 0);
+        int max = SpcialSmp.get().getConfig()
+                .getInt("zombie-card.max-zombies", 2);
+
+        int duration = SpcialSmp.get().getConfig()
+                .getInt("zombie-card.duration-seconds", 60);
+
+        int used = activeZombies.getOrDefault(id, 0);
+
         if (used >= max) {
-            player.sendMessage("Zombie limit reached");
+            player.sendMessage("§cZombie limit reached");
             return;
         }
 
-        Zombie zombie = player.getWorld().spawn(player.getLocation(), Zombie.class);
+        Zombie zombie = player.getWorld().spawn(
+                player.getLocation(),
+                Zombie.class
+        );
+
         zombie.setBaby(true);
         zombie.setCustomName(player.getName() + "'s Zombie");
         zombie.setCustomNameVisible(false);
         zombie.setTarget(null);
 
+        // Owner metadata (important)
+        zombie.setMetadata(
+                "owner",
+                new FixedMetadataValue(SpcialSmp.get(), id.toString())
+        );
+
+        // Netherite armour
         EntityEquipment eq = zombie.getEquipment();
         if (eq != null) {
             eq.setHelmet(new ItemStack(Material.NETHERITE_HELMET));
@@ -42,21 +65,32 @@ public class ZombieCard implements Card {
             eq.setBoots(new ItemStack(Material.NETHERITE_BOOTS));
         }
 
-        zombie.setMetadata("owner", new org.bukkit.metadata.FixedMetadataValue(
-                SpcialSmp.get(), player.getUniqueId().toString()
-        ));
+        // increase count
+        activeZombies.put(id, used + 1);
 
-        spawnCount.put(id, used + 1);
-
-        Bukkit.getScheduler().runTaskLater(SpcialSmp.get(), () -> {
-            zombie.remove();
-            spawnCount.put(id, spawnCount.get(id) - 1);
-        }, 20L * 10);
+        // auto remove after duration
+        Bukkit.getScheduler().runTaskLater(
+                SpcialSmp.get(),
+                () -> {
+                    if (!zombie.isDead()) {
+                        zombie.remove();
+                    }
+                    activeZombies.put(
+                            id,
+                            Math.max(0, activeZombies.get(id) - 1)
+                    );
+                },
+                duration * 20L
+        );
     }
 
     @Override
-    public void rightClick(Player player) {}
+    public void rightClick(Player player) {
+        // no power
+    }
 
     @Override
-    public void shiftRightClick(Player player) {}
+    public void shiftRightClick(Player player) {
+        // optional future power
+    }
 }
