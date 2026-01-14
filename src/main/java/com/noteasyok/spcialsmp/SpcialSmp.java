@@ -27,7 +27,7 @@ public class SpcialSmp extends JavaPlugin {
         saveDefaultConfig();
 
         // Managers
-        cooldownManager = new CooldownManager();
+        cooldownManager = new CooldownManager(this);
         playerDataManager = new PlayerDataManager(this);
 
         // Register all cards
@@ -40,7 +40,9 @@ public class SpcialSmp extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(
                 new CardUseListener(CardRegistry.getCards()), this
         );
-        
+                getLogger().info("spcialSmp ENABLE");
+            }
+    
         Bukkit.getPluginManager().registerEvents(
                 new CardInventoryInfoListener(), this
        );
