@@ -3,4 +3,10 @@ version: 1.0.0
 main: com.noteasyok.spcialsmp.SpcialSmp
 api-version: 1.21
 author: NotEasyOk
-description: Super Cards SMP Plugin
+description: Super Cards SMP Plugi
+
+commands:
+  cards:
+    description: Cards command
+    usage: /cards
+    
