@@ -3,7 +3,7 @@ package com.noteasyok.spcialsmp;
 import com.noteasyok.spcialsmp.command.CardsCommand;
 import com.noteasyok.spcialsmp.listener.*;
 import com.noteasyok.spcialsmp.manager.*;
-import com.noteasyok.spicialsmp.listener.ZombieOwnerListener
+import com.noteasyok.spicialsmp.listener.ZombieOwnerListener;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
