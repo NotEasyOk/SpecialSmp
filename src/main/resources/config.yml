@@ -4,23 +4,23 @@ cards:
   Enderman:
     cooldown: 60
   Herobrine:
-    cooldown: 60
+    cooldown: 120
   Nothing:
-    cooldown: 60
+    cooldown: 40
   Zombie:
-    cooldown: 60
+    cooldown: 130
   Warden:
-    cooldown: 60
+    cooldown: 50
   Creeper:
-    cooldown: 60
+    cooldown: 100
   Lighting:
-    cooldown: 60
+    cooldown: 40
   Ghost:
-    cooldown: 60
+    cooldown: 45
   Ruin:
-    cooldown: 60
+    cooldown: 20
   Unlimited:
-    cooldown: 60
+    cooldown: 200
 
 first-join:
   give-random-card: true
