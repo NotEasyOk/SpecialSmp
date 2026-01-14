@@ -10,41 +10,38 @@ import java.util.UUID;
 public class CooldownManager {
 
     private final SpcialSmp plugin;
-
-    // player -> (cardName -> endTime)
+    // UUID -> (key -> endTimeMillis)
     private final Map<UUID, Map<String, Long>> cooldowns = new HashMap<>();
 
     public CooldownManager(SpcialSmp plugin) {
         this.plugin = plugin;
     }
 
-    public boolean canUse(Player player, String card) {
+    private String key(String cardName, String action) {
+        return cardName + ":" + action;
+    }
+
+    public boolean canUse(Player player, String cardName, String action) {
         Map<String, Long> map = cooldowns.get(player.getUniqueId());
         if (map == null) return true;
-        if (!map.containsKey(card)) return true;
-
-        return System.currentTimeMillis() >= map.get(card);
+        Long t = map.get(key(cardName, action));
+        if (t == null) return true;
+        return System.currentTimeMillis() >= t;
     }
 
-    public void applyCooldown(Player player, String card) {
-
-        long seconds = plugin.getConfig()
-                .getLong("cooldowns." + card,
-                        plugin.getConfig().getLong("cooldown-seconds", 60));
-
-        long endTime = System.currentTimeMillis() + (seconds * 1000);
-
-        cooldowns
-                .computeIfAbsent(player.getUniqueId(), k -> new HashMap<>())
-                .put(card, endTime);
+    public void applyCooldown(Player player, String cardName, String action) {
+        long seconds = plugin.getConfig().getLong("cooldowns." + cardName + "." + action,
+                plugin.getConfig().getLong("cooldown-seconds", 60));
+        long end = System.currentTimeMillis() + seconds * 1000L;
+        cooldowns.computeIfAbsent(player.getUniqueId(), k -> new HashMap<>()).put(key(cardName, action), end);
     }
 
-    public long getRemainingSeconds(Player player, String card) {
+    public long getRemainingSeconds(Player player, String cardName, String action) {
         Map<String, Long> map = cooldowns.get(player.getUniqueId());
         if (map == null) return 0;
-        if (!map.containsKey(card)) return 0;
-
-        long diff = map.get(card) - System.currentTimeMillis();
-        return Math.max(0, diff / 1000);
+        Long t = map.get(key(cardName, action));
+        if (t == null) return 0;
+        long left = t - System.currentTimeMillis();
+        return Math.max(0, left / 1000);
     }
 }
