@@ -7,15 +7,13 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerInteractEvent;
 
-import java.util.HashMap;
+import java.util.Map;
 
-public class CardUseListener implements Listener {
+private final Map<String, Card> cardMap;
 
-    private final HashMap<String, Card> cardMap;
-
-    public CardUseListener(HashMap<String, Card> cardMap) {
-        this.cardMap = cardMap;
-    }
+public CardUseListener(Map<String, Card> cardMap) {
+    this.cardMap = cardMap;
+}
 
     @EventHandler
     public void onUse(PlayerInteractEvent e) {
