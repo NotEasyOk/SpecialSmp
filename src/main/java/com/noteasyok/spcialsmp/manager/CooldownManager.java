@@ -8,26 +8,40 @@ import java.util.UUID;
 
 public class CooldownManager {
 
+    // Map<UUID, Map<cardName, expireMillis>>
     private final Map<UUID, Map<String, Long>> cooldowns = new HashMap<>();
 
-    // Check cooldown
     public boolean canUse(Player player, String cardName) {
-        UUID uuid = player.getUniqueId();
-
-        if (!cooldowns.containsKey(uuid)) return true;
-        if (!cooldowns.get(uuid).containsKey(cardName)) return true;
-
-        long expireTime = cooldowns.get(uuid).get(cardName);
-        return System.currentTimeMillis() > expireTime;
+        UUID id = player.getUniqueId();
+        if (!cooldowns.containsKey(id)) return true;
+        Map<String, Long> map = cooldowns.get(id);
+        if (!map.containsKey(cardName)) return true;
+        long expire = map.get(cardName);
+        return System.currentTimeMillis() > expire;
     }
 
-    // Apply cooldown (default 60 seconds)
+    // apply default cooldown (from config) or given seconds
     public void applyCooldown(Player player, String cardName) {
-        UUID uuid = player.getUniqueId();
+        int sec = 60; // default
+        try {
+            sec = SpcialSmp.get().getConfig().getInt("cards." + cardName.replace(" Card", "") + ".cooldown", 60);
+        } catch (Exception ignored) {}
+        applyCooldown(player, cardName, sec);
+    }
 
-        cooldowns.putIfAbsent(uuid, new HashMap<>());
+    public void applyCooldown(Player player, String cardName, int seconds) {
+        UUID id = player.getUniqueId();
+        cooldowns.putIfAbsent(id, new HashMap<>());
+        long until = System.currentTimeMillis() + seconds * 1000L;
+        cooldowns.get(id).put(cardName, until);
+    }
 
-        long cooldownTime = System.currentTimeMillis() + (60 * 1000);
-        cooldowns.get(uuid).put(cardName, cooldownTime);
+    public long getRemainingSeconds(Player player, String cardName) {
+        UUID id = player.getUniqueId();
+        if (!cooldowns.containsKey(id)) return 0;
+        Map<String, Long> map = cooldowns.get(id);
+        if (!map.containsKey(cardName)) return 0;
+        long left = map.get(cardName) - System.currentTimeMillis();
+        return Math.max(0, left / 1000);
     }
 }
