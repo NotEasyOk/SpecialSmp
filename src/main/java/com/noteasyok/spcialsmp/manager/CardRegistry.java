@@ -1,9 +1,11 @@
 package com.noteasyok.spcialsmp.manager;
 
 import com.noteasyok.spcialsmp.cards.*;
+import org.bukkit.Material;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class CardRegistry {
 
@@ -30,8 +32,19 @@ public class CardRegistry {
         return CARDS;
     }
 
-    public static Card get(String displayName) {
-        return CARDS.get(displayName);
+    // 🔥 FIRST JOIN ITEMS (Unlimited excluded)
+    public static List<ItemStack> getFirstJoinItems() {
+        List<ItemStack> list = new ArrayList<>();
+
+        for (String name : CARDS.keySet()) {
+            if (name.equalsIgnoreCase("Unlimited Card")) continue;
+
+            ItemStack item = new ItemStack(Material.PAPER);
+            ItemMeta meta = item.getItemMeta();
+            meta.setDisplayName(name);
+            item.setItemMeta(meta);
+            list.add(item);
+        }
+        return list;
     }
 }
-
