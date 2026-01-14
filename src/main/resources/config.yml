@@ -1,26 +1,35 @@
 server-version-supported: "1.21.11"
-cooldown-seconds: 60         # default global cooldown (changeable per-card below)
-cards:
-  Enderman:
-    cooldown: 60
-  Herobrine:
-    cooldown: 120
-  Nothing:
-    cooldown: 40
-  Zombie:
-    cooldown: 130
-  Warden:
-    cooldown: 50
-  Creeper:
-    cooldown: 100
-  Lighting:
-    cooldown: 40
-  Ghost:
-    cooldown: 45
-  Ruin:
-    cooldown: 20
-  Unlimited:
-    cooldown: 200
+cooldown-seconds: 60
+
+cooldowns:
+  Enderman Card:
+    left: 60
+    right: 40
+    shift_right: 90
+  Zombie Card:
+    left: 60
+    right: 40
+    shift_right: 90
+  Creeper Card:
+    left: 60
+    right: 90
+    shift_right: 120
+  Warden Card:
+    left: 60
+    right: 120
+    shift_right: 60
+  Lighting Card:
+    left: 40
+    right: 20
+    shift_right: 60
+  Ghost Card:
+    left: 60
+    right: 40
+    shift_right: 90
+
+zombie-card:
+  max-zombies: 2
+  duration-seconds: 60
 
 first-join:
   give-random-card: true
