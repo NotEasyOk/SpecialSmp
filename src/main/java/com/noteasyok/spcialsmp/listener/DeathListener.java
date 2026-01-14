@@ -14,25 +14,29 @@ public class DeathListener implements Listener {
 
     @EventHandler
     public void onDeath(PlayerDeathEvent e) {
+
         Player victim = e.getEntity();
         Player killer = victim.getKiller();
 
-        boolean dropOnlyIfPlayer = SpcialSmp.get().getConfig()
+        boolean onlyPlayerKill = SpcialSmp.get()
+                .getConfig()
                 .getBoolean("drops.only-player-kill", true);
 
-        // If config requires only player kill, then remove card items from drops when killer == null
-        if (dropOnlyIfPlayer && killer == null) {
-            Iterator<ItemStack> it = e.getDrops().iterator();
-            while (it.hasNext()) {
-                ItemStack item = it.next();
-                if (item == null || !item.hasItemMeta()) continue;
-                String name = item.getItemMeta().getDisplayName();
-                if (name != null && CardRegistry.getCards().containsKey(name)) {
-                    it.remove(); // remove card from drops
-                }
+        if (!onlyPlayerKill) return;
+        if (killer == null) return;
+
+        Iterator<ItemStack> it = e.getDrops().iterator();
+        while (it.hasNext()) {
+            ItemStack item = it.next();
+            if (item == null || !item.hasItemMeta()) continue;
+            if (!item.getItemMeta().hasDisplayName()) continue;
+
+            String name = item.getItemMeta().getDisplayName();
+            if (CardRegistry.getCards().containsKey(name)) {
+                it.remove();
+                victim.getWorld().dropItemNaturally(victim.getLocation(), item);
+                break;
             }
         }
-
-        // If you want to drop card only when killed by player, nothing else needed (cards stay in inventory otherwise)
     }
 }
