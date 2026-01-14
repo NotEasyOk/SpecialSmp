@@ -1,4 +1,4 @@
-⁸package com.noteasyok.spcialsmp;
+package com.noteasyok.spcialsmp;
 
 import com.noteasyok.spcialsmp.command.CardsCommand;
 import com.noteasyok.spcialsmp.listener.CardUseListener;
@@ -29,19 +29,19 @@ public class SpcialSmp extends JavaPlugin {
         cooldownManager = new CooldownManager();
         playerDataManager = new PlayerDataManager(this);
 
-        // Register cards
+        // Register all cards
         CardRegistry.registerAll();
 
-        // Register recipe ✅ (semicolon fixed)
+        // Register Unlimited Card recipe
         RecipeManager.registerUnlimitedRecipe();
 
-        // Listeners
+        // Register listeners
         Bukkit.getPluginManager().registerEvents(
                 new CardUseListener(CardRegistry.getCards()), this
         );
 
         Bukkit.getPluginManager().registerEvents(
-                new JoinListener(CardRegistry.getFirstJoinItems(), this
+                new JoinListener(CardRegistry.getFirstJoinItems()), this
         );
 
         Bukkit.getPluginManager().registerEvents(
@@ -52,12 +52,17 @@ public class SpcialSmp extends JavaPlugin {
                 new UnlimitedCraftListener(), this
         );
 
-        // Commands
+        // Command
         if (getCommand("cards") != null) {
             getCommand("cards").setExecutor(new CardsCommand());
         }
 
-        getLogger().info("spcialSmp ENABLED successfully");
+        getLogger().info("SpcialSmp plugin ENABLED");
+    }
+
+    @Override
+    public void onDisable() {
+        getLogger().info("SpcialSmp plugin DISABLED");
     }
 
     public static SpcialSmp get() {
@@ -72,3 +77,4 @@ public class SpcialSmp extends JavaPlugin {
         return playerDataManager;
     }
 }
+ 
