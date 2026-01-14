@@ -1,0 +1,48 @@
+server-version-supported: "1.21.11"
+cooldown-seconds: 60         # default global cooldown (changeable per-card below)
+cards:
+  Enderman:
+    cooldown: 60
+  Herobrine:
+    cooldown: 60
+  Nothing:
+    cooldown: 60
+  Zombie:
+    cooldown: 60
+  Warden:
+    cooldown: 60
+  Creeper:
+    cooldown: 60
+  Lighting:
+    cooldown: 60
+  Ghost:
+    cooldown: 60
+  Ruin:
+    cooldown: 60
+  Unlimited:
+    cooldown: 60
+
+first-join:
+  give-random-card: true
+  allowed-cards:
+    - Enderman
+    - Herobrine
+    - Nothing
+    - Zombie
+    - Warden
+    - Creeper
+    - Lighting
+    - Ghost
+    - Ruin
+  allow-unlimited-on-join: false
+
+drops:
+  natural-death-drops-card: false
+  drop-only-if-killed-by-player: true
+
+recipes:
+  unlimited-card:
+    enabled: true
+    require-all-9: true
+
+storage-file: playerdata.yml
