@@ -1,27 +1,28 @@
 package com.noteasyok.spcialsmp.listener;
 
 import com.noteasyok.spcialsmp.SpcialSmp;
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Zombie;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.entity.EntityTargetEvent;
+import org.bukkit.event.entity.EntityTargetLivingEntityEvent;
 
 public class ZombieOwnerListener implements Listener {
 
     @EventHandler
-    public void onTarget(EntityTargetEvent e) {
+    public void onTarget(EntityTargetLivingEntityEvent e) {
+        if (!(e.getEntity() instanceof Zombie)) return;
+        if (!(e.getTarget() instanceof Player)) return;
 
-        Entity entity = e.getEntity();
-        if (!(entity instanceof Zombie zombie)) return;
+        Zombie zombie = (Zombie) e.getEntity();
+        Player target = (Player) e.getTarget();
 
         if (!zombie.hasMetadata("owner")) return;
-        if (!(e.getTarget() instanceof Player player)) return;
 
-        String owner = zombie.getMetadata("owner").get(0).asString();
-        if (player.getUniqueId().toString().equals(owner)) {
-            e.setCancelled(true);
+        String ownerId = zombie.getMetadata("owner").get(0).asString();
+
+        if (target.getUniqueId().toString().equals(ownerId)) {
+            e.setCancelled(true); // owner ko attack nahi karega
         }
     }
-            }
+}
