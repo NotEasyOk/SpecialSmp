@@ -1,0 +1,6 @@
+name: spcialSmp
+version: 1.0.0
+main: com.noteasyok.spcialsmp.SpcialSmp
+api-version: 1.21
+author: NotEasyOk
+
