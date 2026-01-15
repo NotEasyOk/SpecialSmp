@@ -4,41 +4,42 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Enderman;
 import org.bukkit.entity.Player;
-import org.bukkit.util.Vector;
-
-import java.util.List;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 
 public class EndermanCard implements Card {
 
     @Override
-    public String getName() { return "Enderman Card"; }
+    public String getName() {
+        return "Enderman Card";
+    }
 
     @Override
     public void leftClick(Player p) {
-        Location target = p.getTargetBlockExact(60) != null ? p.getTargetBlockExact(60).getLocation().add(0,1,0) : p.getLocation();
-        p.teleport(target);
+        Location t = p.getTargetBlockExact(50) != null
+                ? p.getTargetBlockExact(50).getLocation().add(0,1,0)
+                : p.getLocation();
+        p.teleport(t);
     }
 
     @Override
     public void rightClick(Player p) {
-        List<Player> online = Bukkit.getOnlinePlayers().stream().toList();
-        if (online.size() <= 1) {
-            p.sendMessage("No other players");
-            return;
-        }
-        Player rand = online.stream().filter(pl -> !pl.equals(p)).findAny().orElse(null);
-        if (rand != null) {
-            p.teleport(rand.getLocation().add(1,0,0));
-            p.addPotionEffect(new org.bukkit.potion.PotionEffect(org.bukkit.potion.PotionEffectType.INVISIBILITY, 10*20, 0, false, false));
-        }
+        Player any = Bukkit.getOnlinePlayers().stream()
+                .filter(pl -> !pl.equals(p))
+                .findAny().orElse(null);
+
+        if (any == null) return;
+
+        p.teleport(any.getLocation());
+        p.addPotionEffect(new PotionEffect(
+                PotionEffectType.INVISIBILITY, 200, 0));
     }
 
     @Override
     public void shiftRightClick(Player p) {
-        for (int i=0;i<3;i++) {
-            Enderman e = p.getWorld().spawn(p.getLocation().add((i-1),0,0), Enderman.class);
+        for (int i = 0; i < 3; i++) {
+            Enderman e = p.getWorld().spawn(p.getLocation(), Enderman.class);
             e.setTarget(null);
-            Bukkit.getScheduler().runTaskLater(org.bukkit.Bukkit.getPluginManager().getPlugin("spcialSmp"), e::remove, 20L*10);
         }
     }
 }
