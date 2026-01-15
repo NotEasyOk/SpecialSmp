@@ -1,4 +1,4 @@
-package com.noteasyok.spcialsmp.cards;
+thankpackage com.noteasyok.spcialsmp.cards;
 
 import com.noteasyok.spcialsmp.SpcialSmp;
 import org.bukkit.Bukkit;
@@ -86,7 +86,9 @@ public class CreeperCard implements Card, Listener {
 
         Location center = r.getHitPosition().toLocation(p.getWorld());
         World w = p.getWorld();
-
+        
+       AtomicInteger taskId = new AtomicInteger();
+        
         int taskId = Bukkit.getScheduler().runTaskTimer(
         SpcialSmp.get(),
                 new Runnable() {
