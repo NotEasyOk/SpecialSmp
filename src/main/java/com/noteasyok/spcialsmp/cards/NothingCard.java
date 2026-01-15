@@ -8,7 +8,7 @@ public class NothingCard implements Card {
 
     @Override
     public String getName() {
-        return "Nothing";
+        return "Nothing Card";
     }
 
     @Override
