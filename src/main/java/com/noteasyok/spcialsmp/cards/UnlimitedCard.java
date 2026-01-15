@@ -111,7 +111,7 @@ public void shiftRightClick(Player p) {
 
     // DROP ANIMATION
     Bukkit.getScheduler().runTaskTimer(
-            SpicialSmp.get(),
+            SpcialSmp.get(),
             new Runnable() {
                 int ticks = 0;
 
