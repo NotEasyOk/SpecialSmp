@@ -7,7 +7,7 @@ import org.bukkit.potion.PotionEffectType;
 
 public class HerobrineCard implements Card {
 
-    public String getName() { return "Herobrine"; }
+    public String getName() { return "Herobrine Card"; }
 
     public void leftClick(Player p) {
         World w = p.getWorld();
