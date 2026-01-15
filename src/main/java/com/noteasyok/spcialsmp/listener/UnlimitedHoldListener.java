@@ -44,8 +44,8 @@ public class UnlimitedHoldListener implements Listener {
                 || !newItem.getItemMeta().getDisplayName().equals("Unlimited Card")) {
 
             // 🔥 1 second baad sab effects remove
-            SpicialSmp.get().getServer().getScheduler().runTaskLater(
-                    SpicialSmp.get(),
+            SpcialSmp.get().getServer().getScheduler().runTaskLater(
+                    SpcialSmp.get(),
                     () -> GOOD_EFFECTS.forEach(p::removePotionEffect),
                     20L
             );
