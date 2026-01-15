@@ -1,5 +1,6 @@
 package com.noteasyok.spcialsmp.cards;
 
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Entity;
 import com.noteasyok.spcialsmp.SpcialSmp;
 import org.bukkit.*;
