@@ -15,21 +15,23 @@ import java.util.Set;
 public class UnlimitedHoldListener implements Listener {
 
     // ✅ Only GOOD potion effects
-    private static final Set<PotionEffectType> GOOD_EFFECTS = EnumSet.of(
-            PotionEffectType.SPEED,
-            PotionEffectType.HASTE,
-            PotionEffectType.STRENGTH,
-            PotionEffectType.JUMP_BOOST,
-            PotionEffectType.REGENERATION,
-            PotionEffectType.RESISTANCE,
-            PotionEffectType.FIRE_RESISTANCE,
-            PotionEffectType.WATER_BREATHING,
-            PotionEffectType.NIGHT_VISION,
-            PotionEffectType.ABSORPTION,
-            PotionEffectType.HEALTH_BOOST,
-            PotionEffectType.SATURATION,
-            PotionEffectType.LUCK
-    );
+    private static final Set<PotionEffectType> GOOD_EFFECTS = new HashSet<>();
+    
+    static {
+        GOOD_EFFECTS.add(PotionEffectType.SPEED);
+        GOOD_EFFECTS.add(PotionEffectType.HASTE);
+        GOOD_EFFECTS.add(PotionEffectType.STRENGTH);
+        GOOD_EFFECTS.add(PotionEffectType.JUMP_BOOST);
+        GOOD_EFFECTS.add(PotionEffectType.REGENERATION);
+        GOOD_EFFECTS.add(PotionEffectType.DAMAGE_RESISTANCE);
+        GOOD_EFFECTS.add(PotionEffectType.FIRE_RESISTANCE);
+        GOOD_EFFECTS.add(PotionEffectType.WATER_BREATHING);
+        GOOD_EFFECTS.add(PotionEffectType.NIGHT_VISION);
+        GOOD_EFFECTS.add(PotionEffectType.ABSORPTION);
+        GOOD_EFFECTS.add(PotionEffectType.HEALTH_BOOST);
+        GOOD_EFFECTS.add(PotionEffectType.SATURATION);
+        GOOD_EFFECTS.add(PotionEffectType.LUCK);
+         }
 
     @EventHandler
     public void onItemSwitch(PlayerItemHeldEvent e) {
