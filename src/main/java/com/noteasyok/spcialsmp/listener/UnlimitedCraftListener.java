@@ -1,7 +1,8 @@
 package com.noteasyok.spcialsmp.listener;
 
 import com.noteasyok.spcialsmp.SpcialSmp;
-import org.bukkit.Material;
+import org.bukkit.*;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.CraftItemEvent;
@@ -11,24 +12,26 @@ public class UnlimitedCraftListener implements Listener {
 
     @EventHandler
     public void onCraft(CraftItemEvent e) {
-        if (e.getRecipe() == null || e.getCurrentItem() == null) return;
+        if (!(e.getWhoClicked() instanceof Player p)) return;
 
         ItemStack result = e.getRecipe().getResult();
-
         if (!result.hasItemMeta()) return;
-        if (!result.getItemMeta().getDisplayName().equals("Unlimited Card")) return;
+        if (!"Unlimited Card".equals(result.getItemMeta().getDisplayName())) return;
 
-        var p = (org.bukkit.entity.Player) e.getWhoClicked();
-        var data = SpcialSmp.get().getPlayerDataManager();
+        Location loc = p.getLocation();
 
-        if (data.hasUnlimited(p.getUniqueId())) {
-            e.setCancelled(true);
-            p.sendMessage("§cUnlimited Card sirf ek baar craft ho sakta hai!");
-            return;
+        e.setCancelled(true);
+
+        p.getInventory().addItem(result);
+
+        World w = p.getWorld();
+
+        for (int i = 0; i < 30; i++) {
+            int delay = i;
+            Bukkit.getScheduler().runTaskLater(SpcialSmp.get(), () -> {
+                w.spawnParticle(Particle.PORTAL, loc, 40, 0.8, 1, 0.8);
+                w.playSound(loc, Sound.BLOCK_BEACON_POWER_SELECT, 1f, 1.5f);
+            }, delay * 2L);
         }
-
-        data.setUnlimited(p.getUniqueId());
-        p.sendMessage("§aUnlimited Card successfully crafted!");
     }
 }
-
