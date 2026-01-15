@@ -1,6 +1,6 @@
 package com.noteasyok.spcialsmp.listener;
 
-import com.noteasyok.spcialsmp.SpicialSmp;
+import com.noteasyok.spcialsmp.SpcialSmp;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
