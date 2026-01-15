@@ -58,7 +58,7 @@ public class LightingCard implements Card {
         long end = System.currentTimeMillis() + 5000;
 
         Bukkit.getScheduler().runTaskTimer(
-                SpicialSmp.get(),
+                SpcialSmp.get(),
                 task -> {
 
                     if (!p.isOnline() || System.currentTimeMillis() > end) {
