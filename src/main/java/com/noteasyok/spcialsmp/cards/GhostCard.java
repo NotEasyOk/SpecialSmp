@@ -36,7 +36,7 @@ public class GhostCard implements Card {
         p.setFlying(true);
 
         Bukkit.getScheduler().runTaskLater(
-                SpicialSmp.get(),
+                SpcialSmp.get(),
                 () -> {
                     if (!p.isOnline()) return;
 
@@ -66,7 +66,7 @@ public class GhostCard implements Card {
         ));
 
         Bukkit.getScheduler().runTaskLater(
-                SpicialSmp.get(),
+                SpcialSmp.get(),
                 () -> {
                     if (!p.isOnline()) return;
 
