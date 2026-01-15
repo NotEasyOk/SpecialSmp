@@ -43,4 +43,30 @@ public class PlayerDataManager {
         return data.getBoolean("players." + uuid + ".firstCard", false);
     }
 
-    public void setReceived
+    public void setReceivedFirstCard(UUID uuid, String cardName) {
+        data.set("players." + uuid + ".firstCard", true);
+        data.set("players." + uuid + ".firstCardName", cardName);
+        save();
+    }
+
+    /* ================= UNLIMITED CARD ================= */
+
+    public boolean hasUnlimited(UUID uuid) {
+        return data.getBoolean("players." + uuid + ".unlimitedCrafted", false);
+    }
+
+    public void setUnlimited(UUID uuid) {
+        data.set("players." + uuid + ".unlimitedCrafted", true);
+        save();
+    }
+
+    /* ================= SAVE ================= */
+
+    private void save() {
+        try {
+            data.save(file);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
