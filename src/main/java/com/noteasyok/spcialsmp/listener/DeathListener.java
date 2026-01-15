@@ -1,5 +1,6 @@
 package com.noteasyok.spcialsmp.listener;
 
+import com.noteasyok.spcialsmp.SpcialSmp;
 import com.noteasyok.spcialsmp.manager.CardRegistry;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
