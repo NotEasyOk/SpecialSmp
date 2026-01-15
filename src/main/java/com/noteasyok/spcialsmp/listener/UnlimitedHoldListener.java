@@ -23,7 +23,7 @@ public class UnlimitedHoldListener implements Listener {
         GOOD_EFFECTS.add(PotionEffectType.STRENGTH);
         GOOD_EFFECTS.add(PotionEffectType.JUMP_BOOST);
         GOOD_EFFECTS.add(PotionEffectType.REGENERATION);
-        GOOD_EFFECTS.add(PotionEffectType.DAMAGE_RESISTANCE);
+        GOOD_EFFECTS.add(PotionEffectType.RESISTANCE);
         GOOD_EFFECTS.add(PotionEffectType.FIRE_RESISTANCE);
         GOOD_EFFECTS.add(PotionEffectType.WATER_BREATHING);
         GOOD_EFFECTS.add(PotionEffectType.NIGHT_VISION);
