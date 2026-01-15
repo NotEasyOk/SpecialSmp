@@ -5,6 +5,7 @@ import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -22,15 +23,18 @@ public class UnlimitedCard implements Card {
         return "Unlimited Card";
     }
 
-    /* ---------------- LEFT CLICK ---------------- */
+    /* ================= LEFT CLICK ================= */
     @Override
     public void leftClick(Player p) {
-        p.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 20 * 20, 2));
-        p.setFireTicks(0);
+
+        p.addPotionEffect(new PotionEffect(
+                PotionEffectType.SPEED, 20 * 20, 2, false, false
+        ));
 
         long end = System.currentTimeMillis() + (20_000);
 
         Bukkit.getScheduler().runTaskTimer(SpcialSmp.get(), task -> {
+
             if (!p.isOnline() || System.currentTimeMillis() > end) {
                 task.cancel();
                 return;
@@ -46,61 +50,82 @@ public class UnlimitedCard implements Card {
                 Location hit = r.getHitPosition().toLocation(p.getWorld());
                 p.getWorld().strikeLightningEffect(hit);
             }
+
         }, 0L, 5L);
     }
 
-    /* ---------------- RIGHT CLICK ---------------- */
+    /* ================= RIGHT CLICK ================= */
     @Override
     public void rightClick(Player p) {
+
         RayTraceResult r = p.getWorld().rayTraceBlocks(
                 p.getEyeLocation(),
                 p.getEyeLocation().getDirection(),
                 80
         );
-
         if (r == null || r.getHitPosition() == null) return;
 
         Location hit = r.getHitPosition().toLocation(p.getWorld());
         Location spawn = hit.clone().add(0, 40, 0);
 
         ItemStack sword = new ItemStack(Material.DIAMOND_SWORD);
-        p.getWorld().dropItem(spawn, sword).setVelocity(new Vector(0, -2, 0));
+        p.getWorld().dropItem(spawn, sword)
+                .setVelocity(new Vector(0, -2.2, 0));
 
-        p.getWorld().getNearbyEntities(hit, 6, 6, 6).forEach(e -> {
+        p.getWorld().spawnParticle(
+                Particle.EXPLOSION_LARGE,
+                hit, 8, 1.5, 1.5, 1.5
+        );
+
+        p.getWorld().playSound(
+                hit, Sound.ENTITY_GENERIC_EXPLODE, 3f, 0.6f
+        );
+
+        p.getNearbyEntities(7, 7, 7).forEach(e -> {
             if (e instanceof Player target && !target.equals(p)) {
-                target.damage(20, p);
+                target.damage(30, p);
             }
         });
-
-        p.getWorld().playSound(hit, Sound.ENTITY_GENERIC_EXPLODE, 2f, 0.6f);
     }
 
-    /* ---------------- SHIFT + RIGHT ---------------- */
+    /* ================= SHIFT + RIGHT ================= */
     @Override
     public void shiftRightClick(Player p) {
+
         World w = p.getWorld();
         boolean isDay = w.getTime() < 12300 || w.getTime() > 23850;
-
         double size = isDay ? 1.6 : 0.6;
 
-        p.getAttribute(Attribute.GENERIC_SCALE).setBaseValue(size);
+        if (p.getAttribute(Attribute.GENERIC_SCALE) != null) {
+            p.getAttribute(Attribute.GENERIC_SCALE)
+                    .setBaseValue(size);
+        }
 
-        Bukkit.getScheduler().runTaskLater(SpcialSmp.get(), () -> {
-            if (p.isOnline()) {
-                p.getAttribute(Attribute.GENERIC_SCALE).setBaseValue(1.0);
-            }
-        }, 20L * 30);
+        Bukkit.getScheduler().runTaskLater(
+                SpcialSmp.get(),
+                () -> {
+                    if (p.isOnline() &&
+                        p.getAttribute(Attribute.GENERIC_SCALE) != null) {
+                        p.getAttribute(Attribute.GENERIC_SCALE)
+                                .setBaseValue(1.0);
+                    }
+                },
+                20L * 30
+        );
     }
 
-    /* ---------------- ORBIT EFFECT ---------------- */
+    /* ================= ORBIT EFFECT ================= */
     public void startOrbit(Player p) {
+
         if (orbiting.containsKey(p.getUniqueId())) return;
 
         List<ArmorStand> stands = new ArrayList<>();
         orbiting.put(p.getUniqueId(), stands);
 
         for (int i = 0; i < 9; i++) {
-            ArmorStand as = p.getWorld().spawn(p.getLocation(), ArmorStand.class);
+            ArmorStand as = p.getWorld().spawn(
+                    p.getLocation(), ArmorStand.class
+            );
             as.setInvisible(true);
             as.setMarker(true);
             as.setSmall(true);
@@ -109,30 +134,39 @@ public class UnlimitedCard implements Card {
             stands.add(as);
         }
 
-        Bukkit.getScheduler().runTaskTimer(SpcialSmp.get(), task -> {
-            if (!p.isOnline() || !p.getInventory().getItemInMainHand().hasItemMeta()
-                    || !getName().equals(p.getInventory().getItemInMainHand()
-                    .getItemMeta().getDisplayName())) {
+        Bukkit.getScheduler().runTaskTimer(
+                SpcialSmp.get(),
+                task -> {
 
-                stands.forEach(ArmorStand::remove);
-                orbiting.remove(p.getUniqueId());
-                task.cancel();
-                return;
-            }
+                    if (!p.isOnline()
+                            || !p.getInventory().getItemInMainHand().hasItemMeta()
+                            || !getName().equals(
+                            p.getInventory()
+                                    .getItemInMainHand()
+                                    .getItemMeta()
+                                    .getDisplayName()
+                    )) {
+                        stands.forEach(Entity::remove);
+                        orbiting.remove(p.getUniqueId());
+                        task.cancel();
+                        return;
+                    }
 
-            double radius = 1.8;
-            double angleStep = (2 * Math.PI) / stands.size();
-            double time = System.currentTimeMillis() / 400.0;
+                    double radius = 1.8;
+                    double step = (2 * Math.PI) / stands.size();
+                    double time = System.currentTimeMillis() / 400.0;
 
-            for (int i = 0; i < stands.size(); i++) {
-                double angle = time + (i * angleStep);
-                Location loc = p.getLocation().add(
-                        Math.cos(angle) * radius,
-                        1.2,
-                        Math.sin(angle) * radius
-                );
-                stands.get(i).teleport(loc);
-            }
-        }, 0L, 2L);
+                    for (int i = 0; i < stands.size(); i++) {
+                        double angle = time + (i * step);
+                        Location loc = p.getLocation().add(
+                                Math.cos(angle) * radius,
+                                1.2,
+                                Math.sin(angle) * radius
+                        );
+                        stands.get(i).teleport(loc);
+                    }
+
+                }, 0L, 2L
+        );
     }
 }
