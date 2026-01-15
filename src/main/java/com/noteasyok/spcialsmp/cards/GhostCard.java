@@ -1,6 +1,6 @@
 package com.noteasyok.spcialsmp.cards;
 
-import com.noteasyok.spcialsmp.SpicialSmp;
+import com.noteasyok.spcialsmp.SpcialSmp;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
