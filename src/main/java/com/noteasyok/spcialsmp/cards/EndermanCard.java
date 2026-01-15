@@ -93,7 +93,7 @@ public class EndermanCard implements Card {
         cloud.setWaitTime(0);
         cloud.setParticle(org.bukkit.Particle.DRAGON_BREATH);
         cloud.addCustomEffect(
-                new PotionEffect(PotionEffectType.HARM, 40, 1),
+                new PotionEffect(PotionEffectType.INSTANT_DAMAGE, 40, 1),
                 true
         );
         cloud.setSource(p);
