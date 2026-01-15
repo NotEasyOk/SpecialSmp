@@ -42,7 +42,11 @@ public class CardUseListener implements Listener {
         Player p = e.getPlayer();
         Card card = cards.get(display);
         CooldownManager cd = SpcialSmp.get().getCooldownManager();
-
+        
+        if (card instanceof UnlimitedCard uc) {
+           uc.startOrbit(p);
+        }
+        
         e.setCancelled(true);
 
         String actionKey;
