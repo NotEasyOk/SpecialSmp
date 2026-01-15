@@ -1,5 +1,6 @@
 package com.noteasyok.spcialsmp.cards;
 
+import com.noteasyok.spcialsmp.SpcialSmp;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Silverfish;
 import org.bukkit.potion.PotionEffect;
