@@ -26,36 +26,21 @@ public class PlayerDataManager {
         data = YamlConfiguration.loadConfiguration(file);
     }
 
+    /* ================= JOIN TRACKING ================= */
+
+    public boolean hasJoinedBefore(UUID uuid) {
+        return data.getBoolean("players." + uuid + ".joined", false);
+    }
+
+    public void setJoinedBefore(UUID uuid, boolean value) {
+        data.set("players." + uuid + ".joined", value);
+        save();
+    }
+
     /* ================= FIRST JOIN CARD ================= */
 
     public boolean hasReceivedFirstCard(UUID uuid) {
         return data.getBoolean("players." + uuid + ".firstCard", false);
     }
 
-    public void setReceivedFirstCard(UUID uuid, String cardName) {
-        data.set("players." + uuid + ".firstCard", true);
-        data.set("players." + uuid + ".firstCardName", cardName);
-        save();
-    }
-
-    /* ================= UNLIMITED CARD ================= */
-
-    public boolean hasUnlimited(UUID uuid) {
-        return data.getBoolean("players." + uuid + ".unlimitedCrafted", false);
-    }
-
-    public void setUnlimited(UUID uuid) {
-        data.set("players." + uuid + ".unlimitedCrafted", true);
-        save();
-    }
-
-    /* ================= SAVE ================= */
-
-    private void save() {
-        try {
-            data.save(file);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-}
+    public void setReceived
