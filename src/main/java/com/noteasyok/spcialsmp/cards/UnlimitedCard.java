@@ -91,29 +91,69 @@ public class UnlimitedCard implements Card {
 
     /* ================= SHIFT + RIGHT ================= */
     @Override
-    public void shiftRightClick(Player p) {
+public void shiftRightClick(Player p) {
 
-        World w = p.getWorld();
-        boolean isDay = w.getTime() < 12300 || w.getTime() > 23850;
-        double size = isDay ? 1.6 : 0.6;
+    Location start = p.getEyeLocation();
+    Vector dir = start.getDirection().normalize();
 
-        if (p.getAttribute(Attribute.GENERIC_SCALE) != null) {
-            p.getAttribute(Attribute.GENERIC_SCALE)
-                    .setBaseValue(size);
-        }
+    Location spawn = start.clone().add(dir.multiply(12)).add(0, 20, 0);
 
-        Bukkit.getScheduler().runTaskLater(
-                SpcialSmp.get(),
-                () -> {
-                    if (p.isOnline() &&
-                        p.getAttribute(Attribute.GENERIC_SCALE) != null) {
-                        p.getAttribute(Attribute.GENERIC_SCALE)
-                                .setBaseValue(1.0);
+    ArmorStand sword = p.getWorld().spawn(spawn, ArmorStand.class);
+    sword.setInvisible(true);
+    sword.setMarker(true);
+    sword.setGravity(false);
+    sword.setInvulnerable(true);
+
+    sword.getEquipment().setItemInMainHand(
+            new ItemStack(Material.DIAMOND_SWORD)
+    );
+
+    // DROP ANIMATION
+    Bukkit.getScheduler().runTaskTimer(
+            SpicialSmp.get(),
+            new Runnable() {
+                int ticks = 0;
+
+                @Override
+                public void run() {
+
+                    if (ticks > 100 || sword.isDead()) {
+                        sword.remove();
+                        return;
                     }
-                },
-                20L * 30
-        );
-    }
+
+                    Location l = sword.getLocation().add(0, -0.6, 0);
+                    sword.teleport(l);
+
+                    // DAMAGE + AREA DAMAGE
+                    for (Entity e : sword.getWorld().getNearbyEntities(l, 5, 6, 5)) {
+                        if (e instanceof LivingEntity le && le != p) {
+                            le.damage(35, p);
+                        }
+                    }
+
+                    // HIT GROUND
+                    if (l.getBlock().getType().isSolid()) {
+
+                        sword.getWorld().createExplosion(
+                                l,
+                                8f,
+                                false,
+                                false,
+                                p
+                        );
+
+                        sword.remove();
+                        return;
+                    }
+
+                    ticks++;
+                }
+            },
+            0L,
+            1L
+    );
+}
 
     /* ================= ORBIT EFFECT ================= */
     public void startOrbit(Player p) {
