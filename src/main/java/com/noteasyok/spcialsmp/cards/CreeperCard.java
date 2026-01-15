@@ -1,4 +1,4 @@
-thankpackage com.noteasyok.spcialsmp.cards;
+package com.noteasyok.spcialsmp.cards;
 
 import com.noteasyok.spcialsmp.SpcialSmp;
 import org.bukkit.Bukkit;
