@@ -83,7 +83,7 @@ public class WardenCard implements Card {
     public void shiftRightClick(Player p) {
 
         p.addPotionEffect(new PotionEffect(
-                PotionEffectType.STRENGHT,
+                PotionEffectType.STRENGTH,
                 20 * 15,
                 3
         ));
