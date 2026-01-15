@@ -1,24 +1,21 @@
 package com.noteasyok.spcialsmp.manager;
 
-import org.bukkit.Bukkit;
-import org.bukkit.Material;
-import org.bukkit.NamespacedKey;
-import org.bukkit.inventory.ShapedRecipe;
+import com.noteasyok.spcialsmp.SpcialSmp;
+import org.bukkit.*;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.inventory.meta.ItemMeta;
 
 public class RecipeManager {
 
-    public static void registerUnlimitedRecipe() {
+    public static void registerUnlimitedRecipe(SpcialSmp plugin) {
 
         ItemStack unlimited = new ItemStack(Material.NETHER_STAR);
         ItemMeta meta = unlimited.getItemMeta();
         meta.setDisplayName("Unlimited Card");
         unlimited.setItemMeta(meta);
 
-        NamespacedKey key = new NamespacedKey(
-                Bukkit.getPluginManager().getPlugin("spcialSmp"),
-                "unlimited_card");
+        NamespacedKey key = new NamespacedKey(plugin, "unlimited_card");
 
         ShapedRecipe recipe = new ShapedRecipe(key, unlimited);
         recipe.shape("ABC", "DEF", "GHI");
@@ -35,5 +32,4 @@ public class RecipeManager {
 
         Bukkit.addRecipe(recipe);
     }
-  }
-
+}
