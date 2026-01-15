@@ -1,12 +1,16 @@
 package com.noteasyok.spcialsmp.cards;
 
-import com.noteasyok.spcialsmp.SpcialSmp;
+import com.noteasyok.spcialsmp.SpicialSmp;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.Particle;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
+import org.bukkit.util.Vector;
 
 public class WardenCard implements Card {
 
@@ -15,31 +19,79 @@ public class WardenCard implements Card {
         return "Warden Card";
     }
 
+    /* ---------------- LEFT CLICK ---------------- */
     @Override
     public void leftClick(Player p) {
-        for (Entity e : p.getNearbyEntities(10,10,10)) {
-            if (e instanceof Player pl && !pl.equals(p)) {
-                pl.addPotionEffect(new PotionEffect(
-                        PotionEffectType.DARKNESS, 200, 1));
-            }
-        }
+
+        double baseMax = p.getAttribute(Attribute.GENERIC_MAX_HEALTH).getBaseValue();
+
+        p.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(100.0);
+        p.setHealth(100.0);
+
+        Bukkit.getScheduler().runTaskLater(
+                SpicialSmp.get(),
+                () -> {
+                    if (!p.isOnline()) return;
+
+                    p.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(baseMax);
+                    if (p.getHealth() > baseMax) {
+                        p.setHealth(baseMax);
+                    }
+                },
+                20L * 10
+        );
     }
 
+    /* ---------------- RIGHT CLICK (SONIC BOOM) ---------------- */
     @Override
     public void rightClick(Player p) {
-        p.getWorld().createExplosion(
-                p.getLocation().add(p.getLocation().getDirection().multiply(3)),
-                4f, false, false);
+
+        Location start = p.getEyeLocation();
+        Vector dir = start.getDirection().normalize();
+
+        for (int i = 1; i <= 20; i++) {
+
+            Location point = start.clone().add(dir.clone().multiply(i));
+
+            p.getWorld().spawnParticle(
+                    Particle.SONIC_BOOM,
+                    point,
+                    1,
+                    0, 0, 0,
+                    0
+            );
+
+            for (Entity e : p.getWorld().getNearbyEntities(point, 1.5, 1.5, 1.5)) {
+                if (e instanceof LivingEntity le && e != p) {
+
+                    le.damage(12, p);
+                    le.setVelocity(dir.clone().multiply(1.5));
+                }
+            }
+        }
+
+        p.getWorld().playSound(
+                p.getLocation(),
+                "entity.warden.sonic_boom",
+                3f,
+                1f
+        );
     }
 
+    /* ---------------- SHIFT + RIGHT ---------------- */
     @Override
     public void shiftRightClick(Player p) {
-        double base = p.getAttribute(Attribute.GENERIC_MAX_HEALTH).getBaseValue();
-        p.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(100.0);
 
-        Bukkit.getScheduler().runTaskLater(SpcialSmp.get(), () -> {
-            p.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(base);
-            if (p.getHealth() > base) p.setHealth(base);
-        }, 20L * 15);
+        p.addPotionEffect(new PotionEffect(
+                PotionEffectType.INCREASE_DAMAGE,
+                20 * 15,
+                3
+        ));
+
+        p.addPotionEffect(new PotionEffect(
+                PotionEffectType.DAMAGE_RESISTANCE,
+                20 * 15,
+                3
+        ));
     }
 }
