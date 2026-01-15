@@ -19,7 +19,7 @@ public class UnlimitedHoldListener implements Listener {
             PotionEffectType.SPEED,
             PotionEffectType.HASTE,
             PotionEffectType.STRENGTH,
-            PotionEffectType.JUMP,
+            PotionEffectType.JUMP_BOOST,
             PotionEffectType.REGENERATION,
             PotionEffectType.RESISTANCE,
             PotionEffectType.FIRE_RESISTANCE,
