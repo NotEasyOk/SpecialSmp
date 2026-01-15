@@ -15,8 +15,7 @@ import java.util.UUID;
 
 public class ZombieCard implements Card {
 
-    // player -> active zombies count
-    private final Map<UUID, Integer> activeZombies = new HashMap<>();
+    private final Map<UUID, Integer> active = new HashMap<>();
 
     @Override
     public String getName() {
@@ -24,40 +23,22 @@ public class ZombieCard implements Card {
     }
 
     @Override
-    public void leftClick(Player player) {
-        UUID id = player.getUniqueId();
+    public void leftClick(Player p) {
+        int max = SpcialSmp.get().getConfig().getInt("zombie-card.max-zombies", 2);
+        int time = SpcialSmp.get().getConfig().getInt("zombie-card.duration-seconds", 60);
 
-        int max = SpcialSmp.get().getConfig()
-                .getInt("zombie-card.max-zombies", 2);
-
-        int duration = SpcialSmp.get().getConfig()
-                .getInt("zombie-card.duration-seconds", 60);
-
-        int used = activeZombies.getOrDefault(id, 0);
-
-        if (used >= max) {
-            player.sendMessage("§cZombie limit reached");
+        int count = active.getOrDefault(p.getUniqueId(), 0);
+        if (count >= max) {
+            p.sendMessage("Zombie limit reached");
             return;
         }
 
-        Zombie zombie = player.getWorld().spawn(
-                player.getLocation(),
-                Zombie.class
-        );
+        Zombie z = p.getWorld().spawn(p.getLocation(), Zombie.class);
+        z.setBaby(true);
+        z.setTarget(null);
+        z.setMetadata("owner", new FixedMetadataValue(SpcialSmp.get(), p.getUniqueId().toString()));
 
-        zombie.setBaby(true);
-        zombie.setCustomName(player.getName() + "'s Zombie");
-        zombie.setCustomNameVisible(false);
-        zombie.setTarget(null);
-
-        // Owner metadata (important)
-        zombie.setMetadata(
-                "owner",
-                new FixedMetadataValue(SpcialSmp.get(), id.toString())
-        );
-
-        // Netherite armour
-        EntityEquipment eq = zombie.getEquipment();
+        EntityEquipment eq = z.getEquipment();
         if (eq != null) {
             eq.setHelmet(new ItemStack(Material.NETHERITE_HELMET));
             eq.setChestplate(new ItemStack(Material.NETHERITE_CHESTPLATE));
@@ -65,32 +46,15 @@ public class ZombieCard implements Card {
             eq.setBoots(new ItemStack(Material.NETHERITE_BOOTS));
         }
 
-        // increase count
-        activeZombies.put(id, used + 1);
+        active.put(p.getUniqueId(), count + 1);
 
-        // auto remove after duration
-        Bukkit.getScheduler().runTaskLater(
-                SpcialSmp.get(),
-                () -> {
-                    if (!zombie.isDead()) {
-                        zombie.remove();
-                    }
-                    activeZombies.put(
-                            id,
-                            Math.max(0, activeZombies.get(id) - 1)
-                    );
-                },
-                duration * 20L
-        );
+        Bukkit.getScheduler().runTaskLater(SpcialSmp.get(), () -> {
+            z.remove();
+            active.put(p.getUniqueId(),
+                    Math.max(0, active.get(p.getUniqueId()) - 1));
+        }, time * 20L);
     }
 
-    @Override
-    public void rightClick(Player player) {
-        // no power
-    }
-
-    @Override
-    public void shiftRightClick(Player player) {
-        // optional future power
-    }
+    @Override public void rightClick(Player p) {}
+    @Override public void shiftRightClick(Player p) {}
 }
