@@ -2,28 +2,33 @@ package com.noteasyok.spcialsmp.cards;
 
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Silverfish;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 
 public class RuinCard implements Card {
 
     @Override
     public String getName() {
-        return "Ruin";
+        return "Ruin Card";
     }
 
     @Override
     public void leftClick(Player p) {
-        p.sendMessage("Ruin area activated");
-    }
-
-    @Override
-    public void rightClick(Player p) {
         for (int i = 0; i < 10; i++) {
             p.getWorld().spawn(p.getLocation(), Silverfish.class);
         }
     }
 
     @Override
+    public void rightClick(Player p) {}
+
+    @Override
     public void shiftRightClick(Player p) {
-        p.sendMessage("Enemies poisoned");
+        p.getNearbyEntities(6,6,6).forEach(e -> {
+            if (e instanceof Player pl && !pl.equals(p)) {
+                pl.addPotionEffect(new PotionEffect(
+                        PotionEffectType.POISON, 200, 1));
+            }
+        }
     }
-              }
+}
