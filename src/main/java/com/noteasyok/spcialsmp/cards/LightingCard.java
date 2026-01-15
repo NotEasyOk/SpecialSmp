@@ -35,7 +35,7 @@ public class LightingCard implements Card {
 
         // Strength II for 15 seconds
         p.addPotionEffect(new PotionEffect(
-                PotionEffectType.INCREASE_DAMAGE,
+                PotionEffectType.STRENGTH,
                 20 * 15,
                 1
         ));
