@@ -13,32 +13,21 @@ public class LightingCard implements Card {
 
     @Override
     public void leftClick(Player p) {
-        strikeWhereLooking(p);
+        RayTraceResult r = p.getWorld().rayTraceBlocks(
+                p.getEyeLocation(),
+                p.getEyeLocation().getDirection(),
+                50
+        );
+        if (r == null || r.getHitPosition() == null) return;
+
+        Location hit = r.getHitPosition().toLocation(p.getWorld());
+        p.getWorld().strikeLightning(hit);
     }
 
     @Override
     public void rightClick(Player p) {
-        boolean storm = p.getWorld().hasStorm();
-        p.getWorld().setStorm(!storm);
+        p.getWorld().setStorm(!p.getWorld().hasStorm());
     }
 
-    @Override
-    public void shiftRightClick(Player p) {
-        p.sendMessage("Lightning trail enabled (no damage)");
-    }
-
-    private void strikeWhereLooking(Player p) {
-        Location eye = p.getEyeLocation();
-
-        RayTraceResult result = p.getWorld().rayTraceBlocks(
-                eye,
-                eye.getDirection(),
-                50
-        );
-
-        if (result == null || result.getHitPosition() == null) return;
-
-        Location hit = result.getHitPosition().toLocation(p.getWorld());
-        p.getWorld().strikeLightning(hit);
-    }
+    @Override public void shiftRightClick(Player p) {}
 }
