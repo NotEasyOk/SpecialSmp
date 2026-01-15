@@ -15,7 +15,9 @@ public class JoinListener implements Listener {
 
     private final List<ItemStack> cards;
 
-    public JoinListener() {}
+    public JoinListener() {
+        
+    }
 
     @EventHandler
     public void onJoin(PlayerJoinEvent e) {
