@@ -54,7 +54,7 @@ public class CreeperCard implements Card, Listener {
 
         // Ground touch detector
         Bukkit.getScheduler().runTaskTimer(
-                Bukkit.getPluginManager().getPlugin("SpecialSmp"),
+        SpcialSmp.get(),
                 task -> {
                     if (tnt.isDead() || !tnt.isValid()) {
                         task.cancel();
@@ -88,7 +88,7 @@ public class CreeperCard implements Card, Listener {
         World w = p.getWorld();
 
         int taskId = Bukkit.getScheduler().runTaskTimer(
-                Bukkit.getPluginManager().getPlugin("SpecialSmp"),
+        SpcialSmp.get(),
                 new Runnable() {
                     int ticks = 0;
 
