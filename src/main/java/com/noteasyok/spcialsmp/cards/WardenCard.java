@@ -29,7 +29,7 @@ public class WardenCard implements Card {
         p.setHealth(100.0);
 
         Bukkit.getScheduler().runTaskLater(
-                SpicialSmp.get(),
+                SpcialSmp.get(),
                 () -> {
                     if (!p.isOnline()) return;
 
