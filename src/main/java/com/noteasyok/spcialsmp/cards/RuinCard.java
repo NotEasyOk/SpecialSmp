@@ -20,15 +20,18 @@ public class RuinCard implements Card {
     }
 
     @Override
-    public void rightClick(Player p) {}
+    public void rightClick(Player p) {
+        // no power
+    }
 
     @Override
     public void shiftRightClick(Player p) {
-        p.getNearbyEntities(6,6,6).forEach(e -> {
-            if (e instanceof Player pl && !pl.equals(p)) {
-                pl.addPotionEffect(new PotionEffect(
-                        PotionEffectType.POISON, 200, 1));
+        p.getNearbyEntities(6, 6, 6).forEach(entity -> {
+            if (entity instanceof Player target && !target.equals(p)) {
+                target.addPotionEffect(
+                        new PotionEffect(PotionEffectType.POISON, 200, 1)
+                );
             }
-        }
+        });
     }
 }
