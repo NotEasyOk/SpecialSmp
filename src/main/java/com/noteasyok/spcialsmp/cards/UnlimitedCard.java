@@ -1,5 +1,6 @@
 package com.noteasyok.spcialsmp.cards;
 
+import org.bukkit.entity.entity;
 import com.noteasyok.spcialsmp.SpcialSmp;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
@@ -73,7 +74,7 @@ public class UnlimitedCard implements Card {
                 .setVelocity(new Vector(0, -2.2, 0));
 
         p.getWorld().spawnParticle(
-                Particle.EXPLOSION_LARGE,
+                Particle.EXPLOSION,
                 hit, 8, 1.5, 1.5, 1.5
         );
 
