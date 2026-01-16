@@ -58,8 +58,8 @@ public class CardRegistry {
                 "Right: Summon 10 Silverfish",
                 "Shift+Right: Poison nearby enemies 10s"
         ));
-        register(new UnlimitedCard(), List.of(
-                "Craft-only unlimited powers"
+        register(new UltimateCard(), List.of(
+                "Craft-only Ultimate powers"
         ));
     }
 
