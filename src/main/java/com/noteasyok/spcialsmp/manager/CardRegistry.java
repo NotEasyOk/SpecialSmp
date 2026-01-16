@@ -16,7 +16,7 @@ public class CardRegistry {
         register(new EndermanCard(), List.of(
                 "Left: Teleport where you look",
                 "Right: Teleport near random player + invis 10s",
-                "Shift+Right: Summon 3 loyal Endermen (10s)"
+                "Shift+Right: Summon dragon Ball (10s)"
         ));
         register(new HerobrineCard(), List.of(
                 "Left: Lightning non-stop 5s",
@@ -76,4 +76,13 @@ public class CardRegistry {
     public static List<String> getDescriptionLore(String key) {
         return DESC.getOrDefault(key, List.of("No description"));
     }
+
+    public static ItemStack getRandomCard() {
+        if (CARDS.isEmpty()) retrun null;
+
+        card card = new ArrayList<>(CARDS.values())
+            .get(new Random().nextInt(CARDS.size());
+
+         return card.createItem();                            
+     }
 }
