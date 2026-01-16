@@ -16,13 +16,13 @@ import org.bukkit.util.Vector;
 
 import java.util.*;
 
-public class UnlimitedCard implements Card {
+public class UltimateCard implements Card {
 
     private final Map<UUID, List<ArmorStand>> orbiting = new HashMap<>();
 
     @Override
     public String getName() {
-        return "Unlimited Card";
+        return "Ultimate Card";
     }
 
     /* ================= LEFT CLICK ================= */
