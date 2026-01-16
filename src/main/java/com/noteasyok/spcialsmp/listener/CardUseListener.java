@@ -1,6 +1,6 @@
 package com.noteasyok.spcialsmp.listener;
 
-import com.noteasyok.spcialsmp.cards.UnlimitedCard;
+import com.noteasyok.spcialsmp.cards.UltimateCard;
 import com.noteasyok.spcialsmp.SpcialSmp;
 import com.noteasyok.spcialsmp.cards.Card;
 import com.noteasyok.spcialsmp.manager.CooldownManager;
@@ -44,7 +44,7 @@ public class CardUseListener implements Listener {
         Card card = cards.get(display);
         CooldownManager cd = SpcialSmp.get().getCooldownManager();
         
-        if (card instanceof UnlimitedCard uc) {
+        if (card instanceof UltimateCard uc) {
            uc.startOrbit(p);
         }
         
