@@ -16,7 +16,7 @@ import org.bukkit.util.Vector;
 
 import java.util.*;
 
-public class UltimateCard implements BaseCard {
+public class UltimateCard extends BaseCard {
 
     private final Map<UUID, List<ArmorStand>> orbiting = new HashMap<>();
 
