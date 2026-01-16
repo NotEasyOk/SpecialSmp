@@ -61,8 +61,7 @@ public class CardRegistry {
         register(new UltimateCard(), List.of(
                 "Craft-only Ultimate powers"
         ));
-    }
-
+    
     private static void register(Card card, List<String> description) {
         String key = card.getName(); // make sure getName returns e.g. "Enderman Card"
         CARDS.put(key, card);
