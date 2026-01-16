@@ -12,7 +12,7 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
 
-public class WardenCard implements Card {
+public class WardenCard implements BaseCard {
 
     @Override
     public String getName() {
