@@ -8,7 +8,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.CraftItemEvent;
 import org.bukkit.inventory.ItemStack;
 
-public class UnlimitedCraftListener implements Listener {
+public class UltimateCraftListener implements Listener {
 
     @EventHandler
     public void onCraft(CraftItemEvent e) {
