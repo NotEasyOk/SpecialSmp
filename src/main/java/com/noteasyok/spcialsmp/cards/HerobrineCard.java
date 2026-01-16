@@ -6,7 +6,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
-public class HerobrineCard implements Card {
+public class HerobrineCard implements BaseCard {
 
     public String getName() { return "Herobrine Card"; }
 
