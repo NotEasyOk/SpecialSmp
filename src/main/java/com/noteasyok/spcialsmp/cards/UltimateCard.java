@@ -51,6 +51,7 @@ public class UltimateCard extends BaseCard {
             if (r != null && r.getHitPosition() != null) {
                 
                 Location hit = r.getHitPosition().toLocation(p.getWorld());
+                
                 p.getWorld().strikeLightningEffect(hit);
             }
                p.getWorld().getNearbyEntities(hit, 4, 4, 4).forEach(e -> {
