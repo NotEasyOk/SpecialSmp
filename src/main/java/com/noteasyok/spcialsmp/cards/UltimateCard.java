@@ -16,7 +16,7 @@ import org.bukkit.util.Vector;
 
 import java.util.*;
 
-public class UltimateCard implements Card {
+public class UltimateCard implements BaseCard {
 
     private final Map<UUID, List<ArmorStand>> orbiting = new HashMap<>();
 
@@ -49,6 +49,7 @@ public class UltimateCard implements Card {
             );
 
             if (r != null && r.getHitPosition() != null) {
+                
                 Location hit = r.getHitPosition().toLocation(p.getWorld());
                 p.getWorld().strikeLightningEffect(hit);
             }
