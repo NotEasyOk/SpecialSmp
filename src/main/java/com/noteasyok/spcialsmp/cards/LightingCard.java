@@ -8,7 +8,7 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.RayTraceResult;
 
-public class LightingCard implements BaseCard {
+public class LightingCard extends BaseCard {
 
     @Override
     public String getName() {
