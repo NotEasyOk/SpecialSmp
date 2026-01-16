@@ -57,9 +57,10 @@ public class UltimateCard extends BaseCard {
           p.getWorld().getNearbyEntities(hit, 4, 4, 4).forEach(e -> {
            if (e instanceof LivingEntity le && !le.equals(p)) {
               le.damage(20.0, p);
-         }
-   });
-
+          }
+     });
+ }
+                                           
     /* ================= RIGHT CLICK ================= */
     @Override
     public void rightClick(Player p) {
