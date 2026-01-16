@@ -7,4 +7,5 @@ public interface Card {
     void leftClick(Player p);
     void rightClick(Player p);
     void shiftRightClick(Player p);
-}
+    ItemStack createItem();
+ }
