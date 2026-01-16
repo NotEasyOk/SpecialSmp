@@ -49,20 +49,16 @@ public class UltimateCard extends BaseCard {
                     50
             );
 
-            Location hit = null;
+            if (r != null && r.getHitPosition() != null) {
+            Location hit = r.getHitPosition().toLocation(p.getWorld());
+            p.getWorld().strikeLightningEffect(hit);
+       }
 
-if (r != null && r.getHitPosition() != null) {
-    hit = r.getHitPosition().toLocation(p.getWorld());
-    p.getWorld().strikeLightningEffect(hit);
-}
-
-if (hit != null) {
-    p.getWorld().getNearbyEntities(hit, 4, 4, 4).forEach(e -> {
-        if (e instanceof LivingEntity le && le != p) {
-            le.damage(20.0, p); // 10 hearts damage
-        }
-    });
-}
+          p.getWorld().getNearbyEntities(hit, 4, 4, 4).forEach(e -> {
+           if (e instanceof LivingEntity le && !le.equals(p)) {
+              le.damage(20.0, p);
+         }
+   });
 
     /* ================= RIGHT CLICK ================= */
     @Override
