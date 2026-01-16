@@ -49,14 +49,14 @@ public class PlayerDataManager {
         save();
     }
 
-    /* ================= UNLIMITED CARD ================= */
+    /* ================= ULIIMATE CARD ================= */
 
-    public boolean hasUnlimited(UUID uuid) {
-        return data.getBoolean("players." + uuid + ".unlimitedCrafted", false);
+    public boolean hasUltimate(UUID uuid) {
+        return data.getBoolean("players." + uuid + ".ultimateCrafted", false);
     }
 
-    public void setUnlimited(UUID uuid) {
-        data.set("players." + uuid + ".unlimitedCrafted", true);
+    public void setUltimate(UUID uuid) {
+        data.set("players." + uuid + ".ultimateCrafted", true);
         save();
     }
 
