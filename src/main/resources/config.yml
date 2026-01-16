@@ -1,4 +1,4 @@
-server-version-supported: "1.21.11"
+server-version-supported: "1.21x"
 cooldown-seconds: 60
 
 cooldowns:
@@ -43,14 +43,14 @@ first-join:
     - Lighting
     - Ghost
     - Ruin
-  allow-unlimited-on-join: false
+  allow-ultimate-on-join: false
 
 drops:
   natural-death-drops-card: false
   drop-only-if-killed-by-player: true
 
 recipes:
-  unlimited-card:
+  ultimate-card:
     enabled: true
     require-all-9: true
 
