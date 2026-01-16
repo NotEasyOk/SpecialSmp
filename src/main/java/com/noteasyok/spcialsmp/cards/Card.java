@@ -4,12 +4,12 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 public interface Card {
-    
+
     String getName();
-    
-    void leftClick(Player p);
-    void rightClick(Player p);
-    void shiftRightClick(Player p);
-    
-    ItemStack createItem();
- }
+
+    ItemStack createItem(); 
+
+    default void leftClick(Player p) {}
+    default void rightClick(Player p) {}
+    default void shiftRightClick(Player p) {}
+}
