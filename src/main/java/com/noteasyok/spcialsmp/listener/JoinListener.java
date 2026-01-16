@@ -8,30 +8,41 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.inventory.ItemStack;
 
-import java.util.Random;
-
 public class JoinListener implements Listener {
 
     @EventHandler
     public void onJoin(PlayerJoinEvent e) {
         Player p = e.getPlayer();
 
+        // Player data manager se check karna
         var data = SpcialSmp.get().getPlayerDataManager();
 
-        // ✅ already received → return
-        if (data.hasReceivedFirstCard(p.getUniqueId())) return;
+        // 1. Agar player pehle hi card le chuka hai toh ruk jao
+        if (data.hasReceivedFirstCard(p.getUniqueId())) {
+            return;
+        }
 
-        // ✅ random card from registry
+        // 2. Registry se random card lena
         ItemStack card = CardRegistry.getRandomCard();
-        if (card == null) return;
 
+        // YAHAN MISTAKE THI: Agar card null hai, toh plugin kuch nahi karta
+        if (card == null) {
+            // Debug ke liye console mein message (optional)
+            SpcialSmp.get().getLogger().warning("CardRegistry returned null for player: " + p.getName());
+            return;
+        }
+
+        // 3. Inventory mein add karna
         p.getInventory().addItem(card);
 
-        data.setReceivedFirstCard(
-                p.getUniqueId(),
-                card.getItemMeta().getDisplayName()
-        );
+        // 4. Data save karna taki dobara na mile
+        String cardName = card.hasItemMeta() && card.getItemMeta().hasDisplayName() 
+                          ? card.getItemMeta().getDisplayName() 
+                          : "Unknown Card";
+        
+        data.setReceivedFirstCard(p.getUniqueId(), cardName);
 
+        // 5. Player ko message bhejna
         p.sendMessage("§aYou received your first card!");
     }
 }
