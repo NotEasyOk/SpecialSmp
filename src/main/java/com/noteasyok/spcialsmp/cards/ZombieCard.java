@@ -13,7 +13,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-public class ZombieCard implements Card {
+public class ZombieCard implements BaseCard {
 
     private final Map<UUID, Integer> active = new HashMap<>();
 
