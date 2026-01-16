@@ -7,7 +7,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
-public class GhostCard implements BaseCard {
+public class GhostCard extends BaseCard {
 
     @Override
     public String getName() {
