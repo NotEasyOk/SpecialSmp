@@ -60,7 +60,7 @@ public class CreeperCard implements Card {
             @Override
             public void run() {
                 if (!tnt.isValid()) {
-                    cancel();
+                  this.cancel();
                     return;
                 }
                 if (tnt.isOnGround()) {
@@ -78,7 +78,7 @@ public class CreeperCard implements Card {
      */
     @Override
     public void shiftRightClick(Player p) {
-TT
+
         RayTraceResult r = p.getWorld().rayTraceBlocks(
                 p.getEyeLocation(),
                 p.getEyeLocation().getDirection(),
@@ -118,7 +118,7 @@ TT
                     @Override
                     public void run() {
                         if (!tnt.isValid()) {
-                            cancel();
+                            this.cancel();
                             return;
                         }
                         if (tnt.isOnGround()) {
