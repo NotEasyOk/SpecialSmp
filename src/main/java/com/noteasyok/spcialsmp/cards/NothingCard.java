@@ -5,7 +5,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
-public class NothingCard implements BaseCard {
+public class NothingCard extends BaseCard {
 
     @Override
     public String getName() {
