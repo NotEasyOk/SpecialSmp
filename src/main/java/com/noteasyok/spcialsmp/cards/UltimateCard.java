@@ -74,6 +74,7 @@ public class UltimateCard extends BaseCard {
         if (r == null || r.getHitPosition() == null) return;
 
         Location hit = r.getHitPosition().toLocation(p.getWorld());
+        
         Location spawn = hit.clone().add(0, 40, 0);
 
         ItemStack sword = new ItemStack(Material.DIAMOND_SWORD);
