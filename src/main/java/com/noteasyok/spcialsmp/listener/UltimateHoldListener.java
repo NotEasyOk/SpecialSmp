@@ -43,7 +43,7 @@ public class UltimateHoldListener implements Listener {
         if (newItem == null
                 || !newItem.hasItemMeta()
                 || !newItem.getItemMeta().hasDisplayName()
-                || !newItem.getItemMeta().getDisplayName().equals("UltimateCard")) {
+                || !newItem.getItemMeta().getDisplayName().equals("Ultimate Card")) {
 
             // 🔥 1 second baad sab effects remove
             SpcialSmp.get().getServer().getScheduler().runTaskLater(
