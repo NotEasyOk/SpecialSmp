@@ -6,7 +6,7 @@ import org.bukkit.entity.Silverfish;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
-public class RuinCard implements Card {
+public class RuinCard implements BaseCard {
 
     @Override
     public String getName() {
