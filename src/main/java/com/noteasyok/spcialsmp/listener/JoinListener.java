@@ -24,7 +24,7 @@ public class JoinListener implements Listener {
 
             p.sendMessage("§aWelcome to Special SMP!");
             p.sendMessage("§eCards can be obtained by crafting.");
-            p.sendMessage("§cUnlimited Card can ONLY be crafted using all 9 cards.");
+            p.sendMessage("§cUltimate Card can ONLY be crafted using all 9 cards.");
         }
     }
 }
