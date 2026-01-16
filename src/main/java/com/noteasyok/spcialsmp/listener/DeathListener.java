@@ -1,7 +1,7 @@
 package com.noteasyok.spcialsmp.listener;
 
-import com.noteasyok.spcialsmp.SpcialSmp;
 import com.noteasyok.spcialsmp.manager.CardRegistry;
+import org.bukkit.ChatColor; // Ise import karna zaroori hai
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -17,12 +17,12 @@ public class DeathListener implements Listener {
         Player dead = e.getEntity();
         Player killer = dead.getKiller();
 
-        // ✅ Agar player ne player ko maara → allow card drop
+        // ✅ Agar killer player hai toh cards drop hone do
         if (killer != null) {
             return;
         }
 
-        // ❌ Natural death → REMOVE ALL CARD DROPS
+        // ❌ Natural death (killer == null) -> Saare cards remove karo
         Iterator<ItemStack> it = e.getDrops().iterator();
 
         while (it.hasNext()) {
@@ -31,10 +31,12 @@ public class DeathListener implements Listener {
             if (item == null || !item.hasItemMeta()) continue;
             if (!item.getItemMeta().hasDisplayName()) continue;
 
-            String name = item.getItemMeta().getDisplayName();
+            // ChatColor.stripColor use kiya taaki '§6Ultimate Card' sirf 'Ultimate Card' ban jaye
+            String displayName = item.getItemMeta().getDisplayName();
+            String cleanName = ChatColor.stripColor(displayName);
 
-            // Agar item card hai → remove
-            if (CardRegistry.getCards().containsKey(name)) {
+            // Ab Registry se check karo
+            if (CardRegistry.getCards().containsKey(cleanName)) {
                 it.remove();
             }
         }
