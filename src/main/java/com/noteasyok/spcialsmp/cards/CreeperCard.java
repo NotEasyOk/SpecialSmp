@@ -13,7 +13,7 @@ import org.bukkit.util.RayTraceResult;
 import org.bukkit.util.Vector;
 import org.bukkit.scheduler.BukkitRunnable;
 
-public class CreeperCard implements Card {
+public class CreeperCard implements BaseCard {
 
     @Override
     public String getName() {
