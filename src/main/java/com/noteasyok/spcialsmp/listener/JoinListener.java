@@ -1,16 +1,16 @@
 package com.noteasyok.spcialsmp.listener;
 
 import com.noteasyok.spcialsmp.SpcialSmp;
+import com.noteasyok.spcialsmp.manager.CardRegistry;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.inventory.ItemStack;
+
+import java.util.Random;
 
 public class JoinListener implements Listener {
-
-    public JoinListener() {
-        // No cards needed here
-    }
 
     @EventHandler
     public void onJoin(PlayerJoinEvent e) {
@@ -18,13 +18,20 @@ public class JoinListener implements Listener {
 
         var data = SpcialSmp.get().getPlayerDataManager();
 
-        // first time join check
-        if (!data.hasJoinedBefore(p.getUniqueId())) {
-            data.setJoinedBefore(p.getUniqueId(), true);
+        // ✅ already received → return
+        if (data.hasReceivedFirstCard(p.getUniqueId())) return;
 
-            p.sendMessage("§aWelcome to Special SMP!");
-            p.sendMessage("§eCards can be obtained by crafting.");
-            p.sendMessage("§cUltimate Card can ONLY be crafted using all 9 cards.");
-        }
+        // ✅ random card from registry
+        ItemStack card = CardRegistry.getRandomCard();
+        if (card == null) return;
+
+        p.getInventory().addItem(card);
+
+        data.setReceivedFirstCard(
+                p.getUniqueId(),
+                card.getItemMeta().getDisplayName()
+        );
+
+        p.sendMessage("§aYou received your first card!");
     }
 }
