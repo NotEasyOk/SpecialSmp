@@ -28,7 +28,7 @@ public class SpcialSmp extends JavaPlugin {
         CardRegistry.registerAll();
 
         // Recipes
-        RecipeManager.registerUnlimitedRecipe(this);
+        RecipeManager.registerUltimateRecipe(this);
 
         // Listeners
         Bukkit.getPluginManager().registerEvents(
@@ -38,7 +38,7 @@ public class SpcialSmp extends JavaPlugin {
               new ZombieOwnerListener(), this
         );    
         Bukkit.getPluginManager().registerEvents(
-              new UnlimitedHoldListener(),this    
+              new UltimateHoldListener(),this    
         );
         Bukkit.getPluginManager().registerEvents(
               new JoinListener(), this
@@ -47,7 +47,7 @@ public class SpcialSmp extends JavaPlugin {
               new DeathListener(), this
         );
         Bukkit.getPluginManager().registerEvents(
-              new UnlimitedCraftListener(), this
+              new UltimateCraftListener(), this
         );
 
         // Command
