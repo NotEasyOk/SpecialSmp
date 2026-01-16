@@ -8,16 +8,16 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 public class RecipeManager {
 
-    public static void registerUnlimitedRecipe(SpcialSmp plugin) {
+    public static void registerUltimateRecipe(SpcialSmp plugin) {
 
-        ItemStack unlimited = new ItemStack(Material.NETHER_STAR);
-        ItemMeta meta = unlimited.getItemMeta();
-        meta.setDisplayName("Unlimited Card");
-        unlimited.setItemMeta(meta);
+        ItemStack Ultimate = new ItemStack(Material.NETHER_STAR);
+        ItemMeta meta = Ultimate.getItemMeta();
+        meta.setDisplayName("Ultimate Card");
+        ultimate.setItemMeta(meta);
 
-        NamespacedKey key = new NamespacedKey(plugin, "unlimited_card");
+        NamespacedKey key = new NamespacedKey(plugin, "Ultimate_Card");
 
-        ShapedRecipe recipe = new ShapedRecipe(key, unlimited);
+        ShapedRecipe recipe = new ShapedRecipe(key, Ultimate);
         recipe.shape("ABC", "DEF", "GHI");
 
         recipe.setIngredient('A', Material.PAPER);
