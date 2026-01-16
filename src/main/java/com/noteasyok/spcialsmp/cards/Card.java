@@ -1,6 +1,7 @@
 package com.noteasyok.spcialsmp.cards;
 
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 
 public interface Card {
     String getName();
