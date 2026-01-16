@@ -12,7 +12,7 @@ import org.bukkit.potion.PotionEffectType;
 import java.util.HashSet;
 import java.util.Set;
 
-public class UnlimitedHoldListener implements Listener {
+public class UltimateHoldListener implements Listener {
 
     // ✅ Only GOOD potion effects
     private static final Set<PotionEffectType> GOOD_EFFECTS = new HashSet<>();
@@ -39,11 +39,11 @@ public class UnlimitedHoldListener implements Listener {
 
         ItemStack newItem = p.getInventory().getItem(e.getNewSlot());
 
-        // ❌ Agar Unlimited Card haat me NAHI hai
+        // ❌ Agar Ultimate Card haat me NAHI hai
         if (newItem == null
                 || !newItem.hasItemMeta()
                 || !newItem.getItemMeta().hasDisplayName()
-                || !newItem.getItemMeta().getDisplayName().equals("Unlimited Card")) {
+                || !newItem.getItemMeta().getDisplayName().equals("Ultimate Card")) {
 
             // 🔥 1 second baad sab effects remove
             SpcialSmp.get().getServer().getScheduler().runTaskLater(
@@ -54,7 +54,7 @@ public class UnlimitedHoldListener implements Listener {
             return;
         }
 
-        // ✅ Unlimited Card haat me hai → effects lagao
+        // ✅ Ultimate Card haat me hai → effects lagao
         for (PotionEffectType type : GOOD_EFFECTS) {
             p.addPotionEffect(
                     new PotionEffect(type, 40, 1, false, false, true)
