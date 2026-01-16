@@ -12,6 +12,8 @@ import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.util.RayTraceResult;
 import org.bukkit.util.Vector;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 public class CreeperCard implements Card, Listener {
 
     @Override
