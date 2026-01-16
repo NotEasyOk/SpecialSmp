@@ -1,19 +1,18 @@
 package com.noteasyok.spcialsmp.cards;
 
-import org.bukkit.Material;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 
-public abstract class BaseCard implements Card {
+public abstract class BaseCard {
 
-    @Override
+    public abstract String getName();
+
+    public void leftClick(Player p) {}
+    public void rightClick(Player p) {}
+    public void shiftRightClick(Player p) {}
+
+    // agar registry use kar raha hai
     public ItemStack createItem() {
-        ItemStack item = new ItemStack(Material.PAPER);
-        ItemMeta meta = item.getItemMeta();
-
-        meta.setDisplayName(getName());
-        item.setItemMeta(meta);
-
-        return item;
+        return null;
     }
 }
