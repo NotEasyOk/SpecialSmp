@@ -13,7 +13,7 @@ public class RecipeManager {
         ItemStack Ultimate = new ItemStack(Material.NETHER_STAR);
         ItemMeta meta = Ultimate.getItemMeta();
         meta.setDisplayName("Ultimate Card");
-        ultimate.setItemMeta(meta);
+        Ultimate.setItemMeta(meta);
 
         NamespacedKey key = new NamespacedKey(plugin, "Ultimate_Card");
 
