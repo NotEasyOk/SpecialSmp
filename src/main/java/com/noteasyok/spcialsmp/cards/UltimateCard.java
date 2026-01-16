@@ -13,7 +13,7 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.RayTraceResult;
 import org.bukkit.util.Vector;
-import org.bukkit.location;
+import org.bukkit.Location; // Fixed: Capital 'L'
 
 import java.util.*;
 
@@ -43,24 +43,27 @@ public class UltimateCard extends BaseCard {
                 return;
             }
 
-            RayTraceResult r = p.getWorld().rayTraceBlocks{
+            // Fixed: changed '{' to '(' and properly closed the call
+            RayTraceResult r = p.getWorld().rayTraceBlocks(
                     p.getEyeLocation(),
                     p.getEyeLocation().getDirection(),
                     50
-         });
+            );
 
             if (r != null && r.getHitPosition() != null) {
-            Location hit = r.getHitPosition().toLocation(p.getWorld());
-            p.getWorld().strikeLightningEffect(hit);
-       });
+                Location hit = r.getHitPosition().toLocation(p.getWorld());
+                p.getWorld().strikeLightningEffect(hit);
 
-          p.getWorld().getNearbyEntities(hit, 4, 4, 4).forEach(e -> {
-           if (e instanceof LivingEntity le && !le.equals(p)) {
-              le.damage(20.0, p);
-          }
-     });
- }
-                                           
+                // Fixed: Moved this inside the if block because 'hit' is defined here
+                p.getWorld().getNearbyEntities(hit, 4, 4, 4).forEach(e -> {
+                    if (e instanceof LivingEntity le && !le.equals(p)) {
+                        le.damage(20.0, p);
+                    }
+                });
+            }
+        }, 0L, 20L); // Added timer period (e.g., 20 ticks = 1 second)
+    }
+
     /* ================= RIGHT CLICK ================= */
     @Override
     public void rightClick(Player p) {
@@ -98,69 +101,69 @@ public class UltimateCard extends BaseCard {
 
     /* ================= SHIFT + RIGHT ================= */
     @Override
-public void shiftRightClick(Player p) {
+    public void shiftRightClick(Player p) {
 
-    Location start = p.getEyeLocation();
-    Vector dir = start.getDirection().normalize();
+        Location start = p.getEyeLocation();
+        Vector dir = start.getDirection().normalize();
 
-    Location spawn = start.clone().add(dir.multiply(12)).add(0, 20, 0);
+        Location spawn = start.clone().add(dir.multiply(12)).add(0, 20, 0);
 
-    ArmorStand sword = p.getWorld().spawn(spawn, ArmorStand.class);
-    sword.setInvisible(true);
-    sword.setMarker(true);
-    sword.setGravity(false);
-    sword.setInvulnerable(true);
+        ArmorStand sword = p.getWorld().spawn(spawn, ArmorStand.class);
+        sword.setInvisible(true);
+        sword.setMarker(true);
+        sword.setGravity(false);
+        sword.setInvulnerable(true);
 
-    sword.getEquipment().setItemInMainHand(
-            new ItemStack(Material.DIAMOND_SWORD)
-    );
+        sword.getEquipment().setItemInMainHand(
+                new ItemStack(Material.DIAMOND_SWORD)
+        );
 
-    // DROP ANIMATION
-    Bukkit.getScheduler().runTaskTimer(
-            SpcialSmp.get(),
-            new Runnable() {
-                int ticks = 0;
+        // DROP ANIMATION
+        Bukkit.getScheduler().runTaskTimer(
+                SpcialSmp.get(),
+                new Runnable() {
+                    int ticks = 0;
 
-                @Override
-                public void run() {
+                    @Override
+                    public void run() {
 
-                    if (ticks > 100 || sword.isDead()) {
-                        sword.remove();
-                        return;
-                    }
-
-                    Location l = sword.getLocation().add(0, -0.6, 0);
-                    sword.teleport(l);
-
-                    // DAMAGE + AREA DAMAGE
-                    for (Entity e : sword.getWorld().getNearbyEntities(l, 5, 6, 5)) {
-                        if (e instanceof LivingEntity le && le != p) {
-                            le.damage(35, p);
+                        if (ticks > 100 || sword.isDead()) {
+                            sword.remove();
+                            return;
                         }
+
+                        Location l = sword.getLocation().add(0, -0.6, 0);
+                        sword.teleport(l);
+
+                        // DAMAGE + AREA DAMAGE
+                        for (Entity e : sword.getWorld().getNearbyEntities(l, 5, 6, 5)) {
+                            if (e instanceof LivingEntity le && le != p) {
+                                le.damage(35, p);
+                            }
+                        }
+
+                        // HIT GROUND
+                        if (l.getBlock().getType().isSolid()) {
+
+                            sword.getWorld().createExplosion(
+                                    l,
+                                    8f,
+                                    false,
+                                    false,
+                                    p
+                            );
+
+                            sword.remove();
+                            return;
+                        }
+
+                        ticks++;
                     }
-
-                    // HIT GROUND
-                    if (l.getBlock().getType().isSolid()) {
-
-                        sword.getWorld().createExplosion(
-                                l,
-                                8f,
-                                false,
-                                false,
-                                p
-                        );
-
-                        sword.remove();
-                        return;
-                    }
-
-                    ticks++;
-                }
-            },
-            0L,
-            1L
-    );
-}
+                },
+                0L,
+                1L
+        );
+    }
 
     /* ================= ORBIT EFFECT ================= */
     public void startOrbit(Player p) {
@@ -177,8 +180,7 @@ public void shiftRightClick(Player p) {
             as.setInvisible(true);
             as.setMarker(true);
             as.setSmall(true);
-            as.setItem(EquipmentSlot.HEAD,
-                    new ItemStack(Material.NETHER_STAR));
+            as.getEquipment().setItemInMainHand(new ItemStack(Material.NETHER_STAR));
             stands.add(as);
         }
 
@@ -187,6 +189,7 @@ public void shiftRightClick(Player p) {
                 task -> {
 
                     if (!p.isOnline()
+                            || p.getInventory().getItemInMainHand() == null
                             || !p.getInventory().getItemInMainHand().hasItemMeta()
                             || !getName().equals(
                             p.getInventory()
@@ -217,4 +220,4 @@ public void shiftRightClick(Player p) {
                 }, 0L, 2L
         );
     }
-}
+                }
