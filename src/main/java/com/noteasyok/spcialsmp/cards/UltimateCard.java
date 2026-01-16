@@ -52,9 +52,13 @@ public class UltimateCard implements Card {
                 Location hit = r.getHitPosition().toLocation(p.getWorld());
                 p.getWorld().strikeLightningEffect(hit);
             }
-
-        }, 0L, 5L);
-    }
+               p.getWorld().getNearbyEntities(hit, 4, 4, 4).forEach(e -> {
+               if (e instanceof org.bukkit.entity.LivingEntity le && !le.equals(p)) {
+               le.damage(20.0, p); // 10 hearts
+            }
+        });
+    }, 0L, 5L);
+ }
 
     /* ================= RIGHT CLICK ================= */
     @Override
