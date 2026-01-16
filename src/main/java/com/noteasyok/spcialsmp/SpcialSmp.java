@@ -32,25 +32,22 @@ public class SpcialSmp extends JavaPlugin {
 
         // Listeners
         Bukkit.getPluginManager().registerEvents(
-                new CardUseListener(CardRegistry.getCards()), this
-        );
-        Bukkit.getPluginManager().registerEvents(
-                new CardInventoryInfoListener(), this
+              new CardUseListener(CardRegistry.getCards()), this
         );  
          Bukkit.getPluginManager().registerEvents(
-             new ZombieOwnerListener(), this
+              new ZombieOwnerListener(), this
         );    
         Bukkit.getPluginManager().registerEvents(
-        new UnlimitedHoldListener(),this    
+              new UnlimitedHoldListener(),this    
         );
         Bukkit.getPluginManager().registerEvents(
-                new JoinListener(), this
+              new JoinListener(), this
         );
         Bukkit.getPluginManager().registerEvents(
-                new DeathListener(), this
+              new DeathListener(), this
         );
         Bukkit.getPluginManager().registerEvents(
-                new UnlimitedCraftListener(), this
+              new UnlimitedCraftListener(), this
         );
 
         // Command
