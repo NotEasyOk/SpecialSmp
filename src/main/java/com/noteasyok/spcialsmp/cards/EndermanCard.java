@@ -11,7 +11,7 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.RayTraceResult;
 import org.bukkit.util.Vector;
 
-public class EndermanCard implements Card {
+public class EndermanCard implements BaseCard {
 
     @Override
     public String getName() {
