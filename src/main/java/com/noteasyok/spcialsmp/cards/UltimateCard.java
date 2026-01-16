@@ -43,11 +43,11 @@ public class UltimateCard extends BaseCard {
                 return;
             }
 
-            RayTraceResult r = p.getWorld().rayTraceBlocks(
+            RayTraceResult r = p.getWorld().rayTraceBlocks{
                     p.getEyeLocation(),
                     p.getEyeLocation().getDirection(),
                     50
-            );
+         });
 
             if (r != null && r.getHitPosition() != null) {
             Location hit = r.getHitPosition().toLocation(p.getWorld());
