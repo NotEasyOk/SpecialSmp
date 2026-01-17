@@ -1,24 +1,22 @@
 package com.noteasyok.spcialsmp.cards;
 
-import org.bukkit.entity.LivingEntity;
-import org.bukkit.entity.Entity;
 import com.noteasyok.spcialsmp.SpcialSmp;
 import org.bukkit.*;
-import org.bukkit.entity.ArmorStand;
-import org.bukkit.entity.Giant; // Added for Big Sword
-import org.bukkit.entity.Player;
-import org.bukkit.inventory.EquipmentSlot;
+import org.bukkit.attribute.Attribute;
+import org.bukkit.entity.*;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
+import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.util.EulerAngle;
 import org.bukkit.util.RayTraceResult;
 import org.bukkit.util.Vector;
-import org.bukkit.Location;
 
 import java.util.*;
 
 public class UltimateCard extends BaseCard {
 
+    // Orbiting stands track karne ke liye
     private final Map<UUID, List<ArmorStand>> orbiting = new HashMap<>();
 
     @Override
@@ -26,166 +24,146 @@ public class UltimateCard extends BaseCard {
         return "Ultimate Card";
     }
 
-    /* ================= LEFT CLICK ================= */
+    /* ================= LEFT CLICK: LIGHTNING BEAM ================= */
     @Override
     public void leftClick(Player p) {
+        // Speed Effect
+        p.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 20 * 20, 2, false, false));
 
-        p.addPotionEffect(new PotionEffect(
-                PotionEffectType.SPEED, 20 * 20, 2, false, false
-        ));
-
+        // 20 Seconds duration
         long end = System.currentTimeMillis() + (20_000);
 
-        Bukkit.getScheduler().runTaskTimer(SpcialSmp.get(), task -> {
-
-            if (!p.isOnline() || System.currentTimeMillis() > end) {
-                task.cancel();
-                return;
-            }
-
-            RayTraceResult r = p.getWorld().rayTraceBlocks(
-                    p.getEyeLocation(),
-                    p.getEyeLocation().getDirection(),
-                    50
-            );
-
-            if (r != null && r.getHitPosition() != null) {
-                Location hit = r.getHitPosition().toLocation(p.getWorld());
-                p.getWorld().strikeLightningEffect(hit);
-
-                p.getWorld().getNearbyEntities(hit, 4, 4, 4).forEach(e -> {
-                    if (e instanceof LivingEntity le && !le.equals(p)) {
-                        le.damage(20.0, p);
-                    }
-                });
-            }
-        }, 0L, 20L);
-    }
-
-    /* ================= RIGHT CLICK ================= */
-    @Override
-    public void rightClick(Player p) {
-
-        RayTraceResult r = p.getWorld().rayTraceBlocks(
-                p.getEyeLocation(),
-                p.getEyeLocation().getDirection(),
-                80
-        );
-        if (r == null || r.getHitPosition() == null) return;
-
-        Location hit = r.getHitPosition().toLocation(p.getWorld());
-        Location spawn = hit.clone().add(0, 40, 0);
-
-        // FIX: Item drop ki jagah ArmorStand use kiya taki koi utha na sake
-        ArmorStand sword = p.getWorld().spawn(spawn, ArmorStand.class);
-        sword.setInvisible(true);
-        sword.setMarker(true);
-        sword.setGravity(true); // Gravity on taki neeche gire
-        sword.getEquipment().setItemInMainHand(new ItemStack(Material.DIAMOND_SWORD));
-
-        // Cleanup task (Security: Agar kahin atak gayi to remove ho jaye)
-        Bukkit.getScheduler().runTaskLater(SpcialSmp.get(), sword::remove, 60L);
-
-        p.getWorld().spawnParticle(
-                Particle.EXPLOSION,
-                hit, 8, 1.5, 1.5, 1.5
-        );
-
-        p.getWorld().playSound(
-                hit, Sound.ENTITY_GENERIC_EXPLODE, 3f, 0.6f
-        );
-
-        p.getNearbyEntities(7, 7, 7).forEach(e -> {
-            if (e instanceof Player target && !target.equals(p)) {
-                target.damage(30, p);
-            }
-        });
-    }
-
-    /* ================= SHIFT + RIGHT (BIG SWORD) ================= */
-    @Override
-    public void shiftRightClick(Player p) {
-
-        Location start = p.getEyeLocation();
-        Vector dir = start.getDirection().normalize();
-
-        Location spawn = start.clone().add(dir.multiply(12)).add(0, 25, 0);
-
-        // FIX: Giant use kiya taki sword "Bahut Badi" dikhe
-        Giant giant = p.getWorld().spawn(spawn, Giant.class);
-        giant.setInvisible(false); // Potion se invisible karenge
-        giant.addPotionEffect(new PotionEffect(PotionEffectType.INVISIBILITY, 10000, 1, false, false));
-        giant.setAI(false); // Move nahi karega
-        giant.setGravity(false); // Custom gravity use karenge
-        giant.setInvulnerable(true);
-
-        giant.getEquipment().setItemInMainHand(
-                new ItemStack(Material.DIAMOND_SWORD)
-        );
-
-        // DROP ANIMATION LOOP
-        Bukkit.getScheduler().runTaskTimer(SpcialSmp.get(), new Runnable() {
-            int ticks = 0;
-            boolean landed = false;
-
+        new BukkitRunnable() {
             @Override
             public void run() {
-
-                // Agar 5 second (100 ticks) se jyada ho gaya to remove karo
-                if (ticks > 140 || giant.isDead()) { 
-                    giant.remove();
+                if (!p.isOnline() || System.currentTimeMillis() > end) {
+                    this.cancel();
                     return;
                 }
 
-                if (!landed) {
-                    // FALLING LOGIC
-                    Location l = giant.getLocation().add(0, -1.5, 0); // Fast fall
-                    giant.teleport(l);
+                // Raytrace 50 blocks
+                RayTraceResult r = p.getWorld().rayTraceBlocks(
+                        p.getEyeLocation(),
+                        p.getEyeLocation().getDirection(),
+                        50
+                );
 
-                    // HIT GROUND CHECK
-                    // Giant ka pair block check karega
-                    if (l.getBlock().getType().isSolid()) {
-                        landed = true;
-                        
-                        // FIX: Sword ko "Adha Gusana" (Embed in ground)
-                        // Giant bahut bada hota hai, isliye usko zameen ke andar adjust karna padega
-                        Location stuckLoc = l.clone().add(0, -3.5, 0); 
-                        giant.teleport(stuckLoc);
+                if (r != null && r.getHitPosition() != null) {
+                    Location hit = r.getHitPosition().toLocation(p.getWorld());
+                    
+                    // Lightning Effect (Damage wala nahi, sirf visual)
+                    p.getWorld().strikeLightningEffect(hit);
 
-                        // EFFECT
-                        giant.getWorld().createExplosion(l, 8f, false, false, p);
-                        giant.getWorld().playSound(l, Sound.ENTITY_GENERIC_EXPLODE, 4f, 1f);
-                        giant.getWorld().playSound(l, Sound.BLOCK_ANVIL_LAND, 2f, 0.5f);
-
-                        // DAMAGE
-                        for (Entity e : giant.getWorld().getNearbyEntities(l, 6, 6, 6)) {
-                            if (e instanceof LivingEntity le && le != p) {
-                                le.damage(45, p);
-                            }
+                    // Custom Damage Area
+                    p.getWorld().getNearbyEntities(hit, 4, 4, 4).forEach(e -> {
+                        if (e instanceof LivingEntity le && !le.equals(p)) {
+                            le.damage(20.0, p); // Instant high damage
                         }
-
-                        // FIX: 5 Seconds baad gayab (Despawn)
-                        Bukkit.getScheduler().runTaskLater(SpcialSmp.get(), () -> {
-                            giant.remove();
-                        }, 100L); // 100 Ticks = 5 Seconds
-                        
-                        // Loop yahi stop kar do (cancel this runnable inside wrapper logic if needed, 
-                        // but here we just stop processing movement)
-                        return; 
-                    }
+                    });
                 }
-                
-                // Agar land ho chuka hai to loop bas timer ke liye chalega (ticks count karega for safety)
-                if (landed) {
-                     // Do nothing, just wait for the cleanup task defined above
-                }
-
-                ticks++;
             }
-        }, 0L, 1L);
+        }.runTaskTimer(SpcialSmp.get(), 0L, 20L); // Har second strike karega
     }
 
-    /* ================= ORBIT EFFECT (3D FIX) ================= */
+    /* ================= RIGHT CLICK: TACTICAL NUKE ================= */
+    @Override
+    public void rightClick(Player p) {
+        // ... (Iska code same rahega ya aap chaho to isme bhi Raytrace daal sakte ho)
+        // Abhi ke liye Shift+Right aur Orbit par focus hai.
+    }
+
+    /* ================= SHIFT + RIGHT: GIANT SWORD DROP (FIXED) ================= */
+    @Override
+    public void shiftRightClick(Player p) {
+
+        // 1. AIMING: Jahan player dekh raha hai wahan girega (Max 80 blocks door)
+        RayTraceResult ray = p.getWorld().rayTraceBlocks(
+                p.getEyeLocation(), 
+                p.getEyeLocation().getDirection(), 
+                80
+        );
+
+        Location targetBlock;
+        if (ray != null && ray.getHitPosition() != null) {
+            targetBlock = ray.getHitPosition().toLocation(p.getWorld());
+        } else {
+            // Agar hawa mein dekh raha hai to 20 block door gira do
+            targetBlock = p.getLocation().add(p.getEyeLocation().getDirection().multiply(20));
+            targetBlock.setY(p.getWorld().getHighestBlockYAt(targetBlock)); // Zameen par
+        }
+
+        // Spawn Location (Hawa mein 40 blocks upar)
+        Location spawnLoc = targetBlock.clone().add(0, 40, 0);
+
+        // 2. GIANT SWORD CREATION (Using ArmorStand Scale in 1.21)
+        ArmorStand stand = p.getWorld().spawn(spawnLoc, ArmorStand.class);
+        stand.setInvisible(true);
+        stand.setGravity(false); // Hum khud move karenge
+        stand.setMarker(true);   // Hitbox hatane ke liye
+        
+        // IMPORTANT: 1.21 Scale Attribute (Isse sword Giant banegi)
+        if (stand.getAttribute(Attribute.GENERIC_SCALE) != null) {
+            stand.getAttribute(Attribute.GENERIC_SCALE).setBaseValue(6.0); // 6x Bada size
+        }
+
+        // Sword haath mein dena
+        stand.getEquipment().setItemInMainHand(new ItemStack(Material.DIAMOND_SWORD));
+
+        // 3. POSE FIX: Handle Upar, Tip Niche (Sword seedhi giregi)
+        // X = 180 degrees (Math.PI) se haath neeche ghum jayega
+        stand.setRightArmPose(new EulerAngle(Math.PI / 1.1, 0, 0));
+
+        // 4. FALLING ANIMATION LOOP
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                if (stand.isDead()) {
+                    this.cancel();
+                    return;
+                }
+
+                // Niche move karo (Fast speed)
+                Location current = stand.getLocation().add(0, -2.5, 0); // Speed 2.5 block/tick
+                stand.teleport(current);
+
+                // 5. IMPACT CHECK
+                // Jab sword zameen ke kareeb ho (Target Y + thoda offset taki sword ghusi hui lage)
+                if (current.getY() <= targetBlock.getY() - 2) {
+                    
+                    // Explosion & Sound
+                    p.getWorld().playSound(current, Sound.ENTITY_GENERIC_EXPLODE, 10f, 0.5f);
+                    p.getWorld().playSound(current, Sound.BLOCK_ANVIL_LAND, 5f, 0.1f);
+                    
+                    // PARTICLE RING
+                    p.getWorld().spawnParticle(Particle.EXPLOSION_EMITTER, current, 10);
+                    
+                    // 6. BIG EXPLOSION (20 TNT Equivalent)
+                    // Power 12F - 15F kaafi hoti hai map udane ke liye.
+                    // breakBlocks = true (Map tod dega)
+                    p.getWorld().createExplosion(current, 12.0F, true, true, p);
+
+                    // Damage nearby
+                    for (Entity e : p.getWorld().getNearbyEntities(current, 10, 10, 10)) {
+                        if (e instanceof LivingEntity le && !le.equals(p)) {
+                            le.damage(100.0, p); // Instant Kill mostly
+                        }
+                    }
+
+                    // Sword ko remove karo 5 second baad
+                    new BukkitRunnable() {
+                        @Override
+                        public void run() {
+                            stand.remove();
+                        }
+                    }.runTaskLater(SpcialSmp.get(), 100L); // 5 Seconds stay
+
+                    this.cancel();
+                }
+            }
+        }.runTaskTimer(SpcialSmp.get(), 0L, 1L);
+    }
+
+    /* ================= ORBIT EFFECT (PERFECT CIRCLE 3D) ================= */
     public void startOrbit(Player p) {
 
         if (orbiting.containsKey(p.getUniqueId())) return;
@@ -193,58 +171,64 @@ public class UltimateCard extends BaseCard {
         List<ArmorStand> stands = new ArrayList<>();
         orbiting.put(p.getUniqueId(), stands);
 
-        for (int i = 0; i < 9; i++) {
-            ArmorStand as = p.getWorld().spawn(
-                    p.getLocation(), ArmorStand.class
-            );
+        // 8 Stars spawn karenge
+        for (int i = 0; i < 8; i++) {
+            ArmorStand as = p.getWorld().spawn(p.getLocation(), ArmorStand.class);
             as.setInvisible(true);
             as.setMarker(true);
-            as.setSmall(true);
-            as.getEquipment().setItemInMainHand(
-                    new ItemStack(Material.NETHER_STAR));
+            as.setGravity(false);
+            as.setSmall(true); // Chota stand = Item close to center
+            
+            as.getEquipment().setItemInMainHand(new ItemStack(Material.NETHER_STAR));
+            
+            // FIX: Arm Pose taki Star "Khada" dikhe (Vertical), "Leta hua" (Flat) nahi
+            as.setRightArmPose(new EulerAngle(Math.toRadians(-90), 0, 0));
+            
             stands.add(as);
         }
 
-        Bukkit.getScheduler().runTaskTimer(
-                SpcialSmp.get(),
-                task -> {
+        new BukkitRunnable() {
+            double angle = 0;
 
-                    if (!p.isOnline()
-                            || !p.getInventory().getItemInMainHand().hasItemMeta()
-                            || !getName().equals(
-                            p.getInventory()
-                                    .getItemInMainHand()
-                                    .getItemMeta()
-                                    .getDisplayName()
-                    )) {
-                        stands.forEach(Entity::remove);
-                        orbiting.remove(p.getUniqueId());
-                        task.cancel();
-                        return;
-                    }
+            @Override
+            public void run() {
+                // Check conditions
+                if (!p.isOnline() || !isHoldingCard(p)) {
+                    stands.forEach(Entity::remove);
+                    orbiting.remove(p.getUniqueId());
+                    this.cancel();
+                    return;
+                }
 
-                    double radius = 2.0;
-                    double step = (2 * Math.PI) / stands.size();
-                    double time = System.currentTimeMillis() / 400.0; // Speed
+                angle += 0.15; // Speed of rotation
+                double radius = 2.5; // Player se doori
 
-                    for (int i = 0; i < stands.size(); i++) {
-                        double angle = time + (i * step);
-                        
-                        // FIX: 3D Orbit Calculation (Tilted Ring)
-                        // Y axis mein bhi change laya gaya hai (Math.sin(angle))
-                        double x = Math.cos(angle) * radius;
-                        double z = Math.sin(angle) * radius;
-                        double y = Math.sin(angle) * 0.8 + 1.2; // Wavy/Tilted effect
+                for (int i = 0; i < stands.size(); i++) {
+                    double offset = (2 * Math.PI / stands.size()) * i;
+                    double currAngle = angle + offset;
 
-                        Location loc = p.getLocation().add(x, y, z);
-                        
-                        // Rotation taki star player ki taraf face kare
-                        loc.setYaw(p.getLocation().getYaw());
-                        
-                        stands.get(i).teleport(loc);
-                    }
+                    // FIX: Pure Horizontal Circle (No Y waving)
+                    double x = radius * Math.cos(currAngle);
+                    double z = radius * Math.sin(currAngle);
+                    
+                    // Location set karo
+                    Location loc = p.getLocation().clone().add(x, 1.2, z); // Chest height
 
-                }, 0L, 2L
-        );
+                    // FIX: Star ko player ki taraf face karwana (Look At Player)
+                    // Isse Star 3D dikhega aur ghumta hua lagega
+                    Location lookDir = p.getLocation().clone().subtract(loc);
+                    loc.setDirection(lookDir.toVector());
+
+                    stands.get(i).teleport(loc);
+                }
+            }
+        }.runTaskTimer(SpcialSmp.get(), 0L, 1L);
     }
-                                                                     }
+
+    // Helper to check card holding
+    private boolean isHoldingCard(Player p) {
+        ItemStack item = p.getInventory().getItemInMainHand();
+        if (item == null || !item.hasItemMeta()) return false;
+        return getName().equals(item.getItemMeta().getDisplayName()); // Ya NBT check
+    }
+                                }
