@@ -1,4 +1,4 @@
-package com.noteasyok.spcialsmp.manager;
+package package com.noteasyok.spcialsmp.manager;
 
 import com.noteasyok.spcialsmp.SpcialSmp;
 import com.noteasyok.spcialsmp.cards.BaseCard;
@@ -70,11 +70,13 @@ public class CardSpinner {
                         
                         player.sendMessage("§a§l✔ §fYou won: " + cardName);
                         
-                        // 2 second baad close
-                        Bukkit.getScheduler().runTaskLater(SpcialSmp.get(), player::closeInventory, 40L);
+                        // ✅ FIXED: Using Lambda instead of Method Reference to fix Ambiguous Error
+                        Bukkit.getScheduler().runTaskLater(SpcialSmp.get(), () -> {
+                            player.closeInventory();
+                        }, 40L);
                     }
                 }
             }
         }.runTaskTimer(SpcialSmp.get(), 0L, 1L);
     }
-                      }
+    }
