@@ -43,26 +43,30 @@ public class UltimateCard extends BaseCard {
         startOrbit(p);
     }
 
-    // --- SHIFT + RIGHT CLICK (Giant Sword) ---
+    // --- SHIFT + RIGHT CLICK (Giant Sword Fixed) ---
     @Override
     public void shiftRightClick(Player p) {
-        RayTraceResult ray = p.getWorld().rayTraceBlocks(p.getEyeLocation(), p.getEyeLocation().getDirection(), 60);
+        // ✅ FIX: p.getDirection() ko p.getLocation().getDirection() se replace kiya
+        Vector lookDir = p.getLocation().getDirection();
+        RayTraceResult ray = p.getWorld().rayTraceBlocks(p.getEyeLocation(), lookDir, 60);
+        
         Location targetLoc = (ray != null && ray.getHitPosition() != null) 
                 ? ray.getHitPosition().toLocation(p.getWorld()) 
-                : p.getLocation().add(p.getDirection().multiply(10));
+                : p.getLocation().add(lookDir.multiply(10));
 
-        Location spawnLoc = targetLoc.clone().add(0, 30, 0);
+        Location spawnLoc = targetLoc.clone().add(0, 35, 0);
         
         ArmorStand sword = p.getWorld().spawn(spawnLoc, ArmorStand.class);
         sword.setInvisible(true);
         sword.setGravity(false);
         sword.setBasePlate(false);
         sword.setArms(true);
+        sword.setMarker(true); // Marker true taaki koi ise maar na sake
         sword.getEquipment().setItemInMainHand(new ItemStack(Material.DIAMOND_SWORD));
         sword.setRightArmPose(new EulerAngle(Math.toRadians(180), 0, 0));
         
         if (sword.getAttribute(Attribute.GENERIC_SCALE) != null) {
-            sword.getAttribute(Attribute.GENERIC_SCALE).setBaseValue(7.0);
+            sword.getAttribute(Attribute.GENERIC_SCALE).setBaseValue(8.0);
         }
 
         new BukkitRunnable() {
@@ -70,14 +74,15 @@ public class UltimateCard extends BaseCard {
             @Override
             public void run() {
                 life++;
-                // Niche move karo
-                Location loc = sword.getLocation().subtract(0, 1.5, 0);
+                // Sword niche girne ki speed
+                Location loc = sword.getLocation().subtract(0, 1.8, 0);
                 sword.teleport(loc);
 
-                // Zameen check ya timeout (taki hawa mein na atke)
-                if (loc.getY() <= targetLoc.getY() || loc.getBlock().getType().isSolid() || life > 100) {
+                // ✅ FIX: Zameen check aur timeout taaki hawa mein na atke
+                if (loc.getBlock().getType().isSolid() || loc.getY() <= targetLoc.getY() || life > 100) {
                     p.getWorld().createExplosion(loc, 15F, true, true, p);
                     p.getWorld().spawnParticle(Particle.EXPLOSION_EMITTER, loc, 5);
+                    p.getWorld().playSound(loc, Sound.ENTITY_GENERIC_EXPLODE, 1.0f, 0.5f);
                     sword.remove();
                     this.cancel();
                 }
@@ -105,7 +110,7 @@ public class UltimateCard extends BaseCard {
             double angle = 0;
             @Override
             public void run() {
-                // ✅ Check using the safe method below
+                // ✅ Secure check using NBT and Name
                 if (!p.isOnline() || !isHoldingCard(p)) {
                     stars.forEach(Entity::remove);
                     orbiting.remove(p.getUniqueId());
@@ -116,9 +121,8 @@ public class UltimateCard extends BaseCard {
                 angle += 0.15;
                 for (int i = 0; i < stars.size(); i++) {
                     double theta = angle + (Math.PI * 2 / stars.size()) * i;
-                    double x = 2.5 * Math.cos(theta);
-                    double z = 2.5 * Math.sin(theta);
-                    Location loc = p.getLocation().clone().add(x, 1.2, z);
+                    // Radius thoda bada (2.8) taaki player ko clear dikhe
+                    Location loc = p.getLocation().clone().add(2.8 * Math.cos(theta), 1.2, 2.8 * Math.sin(theta));
                     
                     Vector dir = p.getLocation().toVector().subtract(loc.toVector());
                     loc.setDirection(dir);
@@ -128,18 +132,15 @@ public class UltimateCard extends BaseCard {
         }.runTaskTimer(SpcialSmp.get(), 0L, 1L);
     }
 
-    // ✅ FIXED: Secure Check (NBT + Name)
     private boolean isHoldingCard(Player p) {
         ItemStack item = p.getInventory().getItemInMainHand();
         if (item == null || !item.hasItemMeta()) return false;
         
-        // 1. Check NBT first
         NamespacedKey key = new NamespacedKey(SpcialSmp.get(), "card_id");
         String nbtId = item.getItemMeta().getPersistentDataContainer().get(key, PersistentDataType.STRING);
         if (nbtId != null && nbtId.equals(getName())) return true;
         
-        // 2. Fallback to Name (Strip colors)
         String name = ChatColor.stripColor(item.getItemMeta().getDisplayName());
-        return name.equals(getName());
+        return name != null && name.equals(getName());
     }
-            }
+    }
