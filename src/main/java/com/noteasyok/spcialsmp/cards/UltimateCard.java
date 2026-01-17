@@ -11,6 +11,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.EulerAngle;
 import org.bukkit.util.RayTraceResult;
 import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.util.Vector;
 
 import java.util.*;
 
@@ -55,15 +56,10 @@ public class UltimateCard extends BaseCard {
         }.runTaskTimer(SpcialSmp.get(), 0L, 20L);
     }
 
-    /* ================= RIGHT CLICK: TRIGGER ORBIT ================= */
+    /* ================= RIGHT CLICK: AB KUCH NAHI KAREGA (ORBIT PASSIVE HAI) ================= */
     @Override
     public void rightClick(Player p) {
-        if (!orbiting.containsKey(p.getUniqueId())) {
-            startOrbit(p);
-            p.sendMessage("§6§lULTIMATE: §fNether Stars Orbiting...");
-        } else {
-            p.sendMessage("§cOrbit is already active!");
-        }
+        p.sendMessage("§6§lULTIMATE: §fPassive Orbit is active while holding!");
     }
 
     /* ================= SHIFT + RIGHT: GIANT SWORD DROP ================= */
@@ -90,7 +86,6 @@ public class UltimateCard extends BaseCard {
         }
 
         stand.getEquipment().setItemInMainHand(new ItemStack(Material.DIAMOND_SWORD));
-        // Sword point downwards
         stand.setRightArmPose(new EulerAngle(Math.toRadians(180), 0, 0));
 
         new BukkitRunnable() {
@@ -116,8 +111,11 @@ public class UltimateCard extends BaseCard {
         }.runTaskTimer(SpcialSmp.get(), 0L, 1L);
     }
 
-    /* ================= ORBIT EFFECT (NETHER STARS) ================= */
+    /* ================= ORBIT EFFECT (AUTO-START LOGIC) ================= */
     public void startOrbit(Player p) {
+        // Agar pehle se chal raha hai toh naya mat chalao (Lag fix)
+        if (orbiting.containsKey(p.getUniqueId())) return;
+
         List<ArmorStand> stands = new ArrayList<>();
         int count = 8;
 
@@ -128,7 +126,6 @@ public class UltimateCard extends BaseCard {
             as.setGravity(false);
             as.setSmall(true);
             as.getEquipment().setItemInMainHand(new ItemStack(Material.NETHER_STAR));
-            // Rotate arm to make the star face outwards
             as.setRightArmPose(new EulerAngle(Math.toRadians(-90), 0, 0));
             stands.add(as);
         }
@@ -139,6 +136,7 @@ public class UltimateCard extends BaseCard {
 
             @Override
             public void run() {
+                // ✅ Haath se hat-te hi remove ho jayega
                 if (!p.isOnline() || !isHoldingCard(p)) {
                     stands.forEach(Entity::remove);
                     orbiting.remove(p.getUniqueId());
@@ -158,7 +156,6 @@ public class UltimateCard extends BaseCard {
                     
                     Location loc = p.getLocation().clone().add(x, 1.2, z);
                     
-                    // Make ArmorStand look at player center
                     Vector direction = p.getLocation().toVector().subtract(loc.toVector());
                     loc.setDirection(direction);
 
@@ -172,7 +169,6 @@ public class UltimateCard extends BaseCard {
         ItemStack item = p.getInventory().getItemInMainHand();
         if (item == null || !item.hasItemMeta()) return false;
         
-        // ✅ NBT Check for reliability
         NamespacedKey key = new NamespacedKey(SpcialSmp.get(), "card_id");
         String id = item.getItemMeta().getPersistentDataContainer().get(key, PersistentDataType.STRING);
         return getName().equals(id);
