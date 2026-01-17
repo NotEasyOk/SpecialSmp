@@ -24,7 +24,7 @@ public class UltimateCard extends BaseCard {
         return "Ultimate Card";
     }
 
-    // --- LEFT CLICK (Lightning) ---
+    /* ================= LEFT CLICK: LIGHTNING ================= */
     @Override
     public void leftClick(Player p) {
         p.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 400, 2));
@@ -37,22 +37,21 @@ public class UltimateCard extends BaseCard {
         }
     }
 
-    // --- RIGHT CLICK (Orbit Manual Trigger) ---
+    /* ================= RIGHT CLICK: MANUAL ORBIT ================= */
     @Override
     public void rightClick(Player p) {
         startOrbit(p);
     }
 
-    // --- SHIFT + RIGHT CLICK (Giant Sword Fixed) ---
+    /* ================= SHIFT + RIGHT: GIANT SWORD ================= */
     @Override
     public void shiftRightClick(Player p) {
-        // ✅ FIX: p.getDirection() ko p.getLocation().getDirection() se replace kiya
         Vector lookDir = p.getLocation().getDirection();
         RayTraceResult ray = p.getWorld().rayTraceBlocks(p.getEyeLocation(), lookDir, 60);
         
         Location targetLoc = (ray != null && ray.getHitPosition() != null) 
                 ? ray.getHitPosition().toLocation(p.getWorld()) 
-                : p.getLocation().add(lookDir.multiply(10));
+                : p.getLocation().add(lookDir.multiply(15));
 
         Location spawnLoc = targetLoc.clone().add(0, 35, 0);
         
@@ -61,7 +60,7 @@ public class UltimateCard extends BaseCard {
         sword.setGravity(false);
         sword.setBasePlate(false);
         sword.setArms(true);
-        sword.setMarker(true); // Marker true taaki koi ise maar na sake
+        sword.setMarker(true); 
         sword.getEquipment().setItemInMainHand(new ItemStack(Material.DIAMOND_SWORD));
         sword.setRightArmPose(new EulerAngle(Math.toRadians(180), 0, 0));
         
@@ -74,11 +73,9 @@ public class UltimateCard extends BaseCard {
             @Override
             public void run() {
                 life++;
-                // Sword niche girne ki speed
                 Location loc = sword.getLocation().subtract(0, 1.8, 0);
                 sword.teleport(loc);
 
-                // ✅ FIX: Zameen check aur timeout taaki hawa mein na atke
                 if (loc.getBlock().getType().isSolid() || loc.getY() <= targetLoc.getY() || life > 100) {
                     p.getWorld().createExplosion(loc, 15F, true, true, p);
                     p.getWorld().spawnParticle(Particle.EXPLOSION_EMITTER, loc, 5);
@@ -90,43 +87,53 @@ public class UltimateCard extends BaseCard {
         }.runTaskTimer(SpcialSmp.get(), 0L, 1L);
     }
 
-    // --- ORBIT LOGIC ---
+    /* ================= STABLE 9-CARD ORBIT ================= */
     public void startOrbit(Player p) {
         if (orbiting.containsKey(p.getUniqueId())) return;
 
-        List<ArmorStand> stars = new ArrayList<>();
-        for (int i = 0; i < 8; i++) {
+        List<ArmorStand> cards = new ArrayList<>();
+        int count = 9; // ✅ Ab 9 cards honge
+
+        for (int i = 0; i < count; i++) {
             ArmorStand as = p.getWorld().spawn(p.getLocation(), ArmorStand.class);
             as.setInvisible(true);
             as.setMarker(true);
             as.setGravity(false);
-            as.getEquipment().setItemInMainHand(new ItemStack(Material.NETHER_STAR));
+            as.setSmall(true);
+            // ✅ Paper Placeholder (Texture pack ke liye)
+            as.getEquipment().setItemInMainHand(new ItemStack(Material.PAPER));
             as.setRightArmPose(new EulerAngle(Math.toRadians(-90), 0, 0));
-            stars.add(as);
+            cards.add(as);
         }
-        orbiting.put(p.getUniqueId(), stars);
+        orbiting.put(p.getUniqueId(), cards);
 
         new BukkitRunnable() {
             double angle = 0;
             @Override
             public void run() {
-                // ✅ Secure check using NBT and Name
                 if (!p.isOnline() || !isHoldingCard(p)) {
-                    stars.forEach(Entity::remove);
+                    cards.forEach(Entity::remove);
                     orbiting.remove(p.getUniqueId());
                     this.cancel();
                     return;
                 }
 
-                angle += 0.15;
-                for (int i = 0; i < stars.size(); i++) {
-                    double theta = angle + (Math.PI * 2 / stars.size()) * i;
-                    // Radius thoda bada (2.8) taaki player ko clear dikhe
-                    Location loc = p.getLocation().clone().add(2.8 * Math.cos(theta), 1.2, 2.8 * Math.sin(theta));
+                angle += 0.12; // Orbit Speed
+                double radius = 2.8;
+
+                for (int i = 0; i < cards.size(); i++) {
+                    // ✅ Perfect Stable Circle Math
+                    double offset = (2 * Math.PI / cards.size()) * i;
+                    double x = radius * Math.cos(angle + offset);
+                    double z = radius * Math.sin(angle + offset);
                     
+                    Location loc = p.getLocation().clone().add(x, 1.2, z);
+                    
+                    // Cards face the center (player)
                     Vector dir = p.getLocation().toVector().subtract(loc.toVector());
                     loc.setDirection(dir);
-                    stars.get(i).teleport(loc);
+                    
+                    cards.get(i).teleport(loc);
                 }
             }
         }.runTaskTimer(SpcialSmp.get(), 0L, 1L);
@@ -143,4 +150,4 @@ public class UltimateCard extends BaseCard {
         String name = ChatColor.stripColor(item.getItemMeta().getDisplayName());
         return name != null && name.equals(getName());
     }
-    }
+            }
