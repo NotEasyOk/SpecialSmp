@@ -1,96 +1,77 @@
 package com.noteasyok.spcialsmp.manager;
 
 import com.noteasyok.spcialsmp.cards.*;
+import org.bukkit.ChatColor;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class CardRegistry {
 
-    private static final Map<String, Card> CARDS = new LinkedHashMap<>();
+    // Use <BaseCard> instead of <Card> to access helper methods if needed
+    private static final Map<String, BaseCard> CARDS = new LinkedHashMap<>();
     private static final Map<String, List<String>> DESC = new HashMap<>();
 
     public static void registerAll() {
-
-        register(new EndermanCard(), List.of(
-                "Left: Teleport where you look",
-                "Right: Teleport near random player + invis 10s",
-                "Shift+Right: Summon dragon ball (10s)"
-        ));
-
-        register(new HerobrineCard(), List.of(
-                "Left: Lightning non-stop 5s",
-                "Right: Darkness 10s + fly 10s",
-                "Shift+Right: Day-Giant Night-Tiny"
-        ));
-
-        register(new NothingCard(), List.of(
-                "Left: Toggle day/night",
-                "Right: Nothing",
-                "Shift+Right: No fall damage 20s"
-        ));
-
-        register(new ZombieCard(), List.of(
-                "Left: Summon baby netherite zombie (max per window)",
-                "Right: Hunger full instantly",
-                "Shift+Right: Full zombie mode 20s"
-        ));
-
-        register(new WardenCard(), List.of(
-                "Left: Darkness nearby enemies",
-                "Right: Sonic boom + big health boost (temp)",
-                "Shift+Right: Strength 4 + Resistance 4"
-        ));
-
-        register(new CreeperCard(), List.of(
-                "Left: Big explosion (5x TNT equivalent)",
-                "Right: Orbital strike where you aim",
-                "Shift+Right: TNT rain"
-        ));
-
-        register(new LightingCard(), List.of(
-                "Left: Lightning at aim",
-                "Right: Lightning storm",
-                "Shift+Right: Lightning trail (no damage)"
-        ));
-
-        register(new GhostCard(), List.of(
-                "Left: Pass-through blocks (simulated)",
-                "Right: Fly 20s",
-                "Shift+Right: Invisible 60s + armor"
-        ));
-
-        register(new RuinCard(), List.of(
-                "Left: Infected area",
-                "Right: Summon 10 Silverfish",
-                "Shift+Right: Poison nearby enemies 10s"
-        ));
-
-        register(new UltimateCard(), List.of(
-                "Craft-only Ultimate powers"
-        ));
+        // ... (Aapka purana register logic same rahega) ...
+        register(new EndermanCard(), List.of("§7Left: Teleport", "§7Right: Random TP + Invis", "§7Shift+R: Dragon Ball"));
+        register(new HerobrineCard(), List.of("§7Left: Lightning", "§7Right: Darkness + Fly", "§7Shift+R: Giant/Tiny Mode"));
+        register(new NothingCard(), List.of("§7Left: Time Set", "§7Right: Mind Control", "§7Shift+R: No Fall"));
+        register(new ZombieCard(), List.of("§7Left: Summon Zombie", "§7Right: Feed", "§7Shift+R: Horde Mode"));
+        register(new WardenCard(), List.of("§7Left: Darkness", "§7Right: Sonic Boom", "§7Shift+R: Tank Mode"));
+        register(new CreeperCard(), List.of("§7Left: Explosion", "§7Right: Airstrike", "§7Shift+R: Nuke Rain"));
+        register(new LightingCard(), List.of("§7Left: Strike", "§7Right: Storm", "§7Shift+R: Trail"));
+        register(new GhostCard(), List.of("§7Left: Wall Clip", "§7Right: Fly", "§7Shift+R: Invisibility"));
+        register(new RuinCard(), List.of("§7Left: Infection", "§7Right: Silverfish", "§7Shift+R: Poison Area"));
+        
+        // Ultimate register karo, lekin random mein nahi denge
+        register(new UltimateCard(), List.of("§6§lGOD MODE", "§eCraft Only"));
     }
 
-    private static void register(Card card, List<String> description) {
-        String key = card.getName();
-        CARDS.put(key, card);
-        DESC.put(key, description);
+    private static void register(BaseCard card, List<String> description) {
+        CARDS.put(card.getName(), card);
+        DESC.put(card.getName(), description);
     }
 
-    public static Map<String, Card> getCards() {
-        return Collections.unmodifiableMap(CARDS);
+    public static Collection<BaseCard> getCards() {
+        return Collections.unmodifiableCollection(CARDS.values());
     }
 
-    public static List<String> getDescriptionLore(String key) {
-        return DESC.getOrDefault(key, List.of("No description"));
-    }
-
+    // ✅ FIX: Get Random Card with correct ItemMeta
     public static ItemStack getRandomCard() {
         if (CARDS.isEmpty()) return null;
 
-        Card card = new ArrayList<>(CARDS.values())
-                .get(new Random().nextInt(CARDS.size()));
+        // 1. Ultimate Card ko list se hata kar random pick karo
+        List<BaseCard> pool = CARDS.values().stream()
+                .filter(c -> !c.getName().equalsIgnoreCase("Ultimate Card"))
+                .collect(Collectors.toList());
 
-        return card.createItem();
+        if (pool.isEmpty()) return null;
+
+        BaseCard randomCard = pool.get(new Random().nextInt(pool.size()));
+
+        // 2. Item Create karo
+        ItemStack item = randomCard.createItem(); 
+        
+        // 3. IMPORTANT: Description Lore Add karo manually taaki card asli lage
+        ItemMeta meta = item.getItemMeta();
+        if (meta != null) {
+            List<String> lore = new ArrayList<>();
+            lore.add("§8------------------");
+            // Registry se description nikalo
+            List<String> descLines = DESC.get(randomCard.getName());
+            if (descLines != null) {
+                lore.addAll(descLines);
+            }
+            lore.add("§8------------------");
+            lore.add("§e§lSPECIAL CARD");
+            
+            meta.setLore(lore);
+            item.setItemMeta(meta);
+        }
+
+        return item;
     }
-}
+                                         }
