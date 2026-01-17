@@ -3,7 +3,6 @@ package com.noteasyok.spcialsmp;
 import com.noteasyok.spcialsmp.command.CardsCommand;
 import com.noteasyok.spcialsmp.listener.*;
 import com.noteasyok.spcialsmp.manager.*;
-import com.noteasyok.spcialsmp.listener.ZombieOwnerListener;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -34,7 +33,7 @@ public class SpcialSmp extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(
               new CardUseListener(CardRegistry.getCards()), this
         );  
-         Bukkit.getPluginManager().registerEvents(
+        Bukkit.getPluginManager().registerEvents(
               new ZombieOwnerListener(), this
         );    
         Bukkit.getPluginManager().registerEvents(
@@ -48,6 +47,11 @@ public class SpcialSmp extends JavaPlugin {
         );
         Bukkit.getPluginManager().registerEvents(
               new UltimateCraftListener(), this
+        );
+        
+        // ✅ NEW: Spin GUI Protection (Isse koi GUI se item nahi nikal payega)
+        Bukkit.getPluginManager().registerEvents(
+              new InventoryListener(), this
         );
 
         // Command
