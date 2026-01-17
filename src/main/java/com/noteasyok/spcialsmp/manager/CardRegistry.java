@@ -21,7 +21,7 @@ public class CardRegistry {
         register(new HerobrineCard(), List.of(
                 "Left: Lightning non-stop 5s",
                 "Right: Darkness 10s + fly 10s",
-                "Shift+Right: Strength 4 + Reg 4 + 30 hearts (temp) + lightning 5s"
+                "Shift+Right: Day-Giant Night-Tiny"
         ));
 
         register(new NothingCard(), List.of(
