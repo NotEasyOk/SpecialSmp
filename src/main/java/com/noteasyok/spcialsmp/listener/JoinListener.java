@@ -1,48 +1,42 @@
 package com.noteasyok.spcialsmp.listener;
 
 import com.noteasyok.spcialsmp.SpcialSmp;
-import com.noteasyok.spcialsmp.manager.CardRegistry;
+import com.noteasyok.spcialsmp.manager.CardSpinner;
+import org.bukkit.attribute.Attribute;
+import org.bukkit.attribute.AttributeInstance;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.inventory.ItemStack;
 
 public class JoinListener implements Listener {
 
     @EventHandler
     public void onJoin(PlayerJoinEvent e) {
         Player p = e.getPlayer();
+        var dataManager = SpcialSmp.get().getPlayerDataManager();
 
-        // Player data manager se check karna
-        var data = SpcialSmp.get().getPlayerDataManager();
+        // 1. FIX: Player agar giant ya tiny mode mein leave kiya tha, toh use reset karo
+        // Ye 1.21.1 versions ke liye bahut zaroori hai
+        AttributeInstance scale = p.getAttribute(Attribute.GENERIC_SCALE);
+        if (scale != null) {
+            scale.setBaseValue(1.0);
+        }
+        p.setGlowing(false); // Herobrine card effect cleanup
 
-        // 1. Agar player pehle hi card le chuka hai toh ruk jao
-        if (data.hasReceivedFirstCard(p.getUniqueId())) {
+        // 2. CHECK: Kya player ko pehla card mil chuka hai?
+        if (dataManager.hasReceivedFirstCard(p.getUniqueId())) {
             return;
         }
 
-        // 2. Registry se random card lena
-        ItemStack card = CardRegistry.getRandomCard();
+        // 3. ACTION: Direct item dene ki jagah Animation (Spin) dikhao
+        // Pehle hi data update kar do taki koi leave karke baar-baar spin na le sake
+        dataManager.setReceivedFirstCard(p.getUniqueId(), "SPINNING...");
 
-        // YAHAN MISTAKE THI: Agar card null hai, toh plugin kuch nahi karta
-        if (card == null) {
-            // Debug ke liye console mein message (optional)
-            SpcialSmp.get().getLogger().warning("CardRegistry returned null for player: " + p.getName());
-            return;
-        }
-
-        // 3. Inventory mein add karna
-        p.getInventory().addItem(card);
-
-        // 4. Data save karna taki dobara na mile
-        String cardName = card.hasItemMeta() && card.getItemMeta().hasDisplayName() 
-                          ? card.getItemMeta().getDisplayName() 
-                          : "Unknown Card";
+        // 4. SPIN GUI OPEN: Ye humare CardSpinner class ko call karega
+        // Isme automatically Ultimate card nahi aayega (wo logic Spinner mein hai)
+        CardSpinner.openSpinGUI(p);
         
-        data.setReceivedFirstCard(p.getUniqueId(), cardName);
-
-        // 5. Player ko message bhejna
-        p.sendMessage("§aYou received your first card!");
+        p.sendMessage("§e§l⚡ §fSelecting your special card... Prepare yourself!");
     }
 }
