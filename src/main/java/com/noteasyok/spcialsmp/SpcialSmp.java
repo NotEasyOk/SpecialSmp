@@ -1,10 +1,12 @@
 package com.noteasyok.spcialsmp;
 
+import com.noteasyok.spcialsmp.cards.BaseCard; // Added this import
 import com.noteasyok.spcialsmp.command.CardsCommand;
 import com.noteasyok.spcialsmp.listener.*;
 import com.noteasyok.spcialsmp.manager.*;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
+import java.util.Map;
 
 public class SpcialSmp extends JavaPlugin {
 
@@ -29,9 +31,12 @@ public class SpcialSmp extends JavaPlugin {
         // Recipes
         RecipeManager.registerUltimateRecipe(this);
 
+        // ✅ FIX: Explicitly cast to Map<String, BaseCard> to avoid compilation error
+        Map<String, BaseCard> cardsMap = CardRegistry.getCards();
+
         // Listeners
         Bukkit.getPluginManager().registerEvents(
-              new CardUseListener(CardRegistry.getCards()), this
+              new CardUseListener(cardsMap), this
         );  
         Bukkit.getPluginManager().registerEvents(
               new ZombieOwnerListener(), this
@@ -49,7 +54,7 @@ public class SpcialSmp extends JavaPlugin {
               new UltimateCraftListener(), this
         );
         
-        // ✅ NEW: Spin GUI Protection (Isse koi GUI se item nahi nikal payega)
+        // Spin GUI Protection
         Bukkit.getPluginManager().registerEvents(
               new InventoryListener(), this
         );
