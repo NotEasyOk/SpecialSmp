@@ -24,153 +24,122 @@ public class UltimateCard extends BaseCard {
         return "Ultimate Card";
     }
 
-    /* ================= LEFT CLICK: LIGHTNING BEAM ================= */
+    // --- LEFT CLICK (Lightning) ---
     @Override
     public void leftClick(Player p) {
-        p.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 20 * 20, 2, false, false));
-        p.sendMessage("§6§lULTIMATE: §eLightning Beam Activated!");
-
-        long end = System.currentTimeMillis() + (20_000);
-
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                if (!p.isOnline() || System.currentTimeMillis() > end || !isHoldingCard(p)) {
-                    this.cancel();
-                    return;
-                }
-
-                RayTraceResult r = p.getWorld().rayTraceBlocks(p.getEyeLocation(), p.getEyeLocation().getDirection(), 50);
-
-                if (r != null && r.getHitPosition() != null) {
-                    Location hit = r.getHitPosition().toLocation(p.getWorld());
-                    p.getWorld().strikeLightningEffect(hit);
-
-                    p.getWorld().getNearbyEntities(hit, 4, 4, 4).forEach(e -> {
-                        if (e instanceof LivingEntity le && !le.equals(p)) {
-                            le.damage(20.0, p);
-                        }
-                    });
-                }
-            }
-        }.runTaskTimer(SpcialSmp.get(), 0L, 20L);
+        p.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 400, 2));
+        p.sendMessage("§6§lULTIMATE: §eLightning Strike!");
+        
+        RayTraceResult r = p.getWorld().rayTraceBlocks(p.getEyeLocation(), p.getEyeLocation().getDirection(), 50);
+        if (r != null && r.getHitPosition() != null) {
+            Location hit = r.getHitPosition().toLocation(p.getWorld());
+            p.getWorld().strikeLightning(hit);
+        }
     }
 
-    /* ================= RIGHT CLICK: AB KUCH NAHI KAREGA (ORBIT PASSIVE HAI) ================= */
+    // --- RIGHT CLICK (Orbit Manual Trigger) ---
     @Override
     public void rightClick(Player p) {
-        p.sendMessage("§6§lULTIMATE: §fPassive Orbit is active while holding!");
+        startOrbit(p);
     }
 
-    /* ================= SHIFT + RIGHT: GIANT SWORD DROP ================= */
+    // --- SHIFT + RIGHT CLICK (Giant Sword) ---
     @Override
     public void shiftRightClick(Player p) {
-        RayTraceResult ray = p.getWorld().rayTraceBlocks(p.getEyeLocation(), p.getEyeLocation().getDirection(), 80);
+        RayTraceResult ray = p.getWorld().rayTraceBlocks(p.getEyeLocation(), p.getEyeLocation().getDirection(), 60);
+        Location targetLoc = (ray != null && ray.getHitPosition() != null) 
+                ? ray.getHitPosition().toLocation(p.getWorld()) 
+                : p.getLocation().add(p.getDirection().multiply(10));
 
-        Location targetBlock;
-        if (ray != null && ray.getHitPosition() != null) {
-            targetBlock = ray.getHitPosition().toLocation(p.getWorld());
-        } else {
-            targetBlock = p.getLocation().add(p.getEyeLocation().getDirection().multiply(20));
-            targetBlock.setY(p.getWorld().getHighestBlockYAt(targetBlock));
-        }
-
-        Location spawnLoc = targetBlock.clone().add(0, 40, 0);
-        ArmorStand stand = p.getWorld().spawn(spawnLoc, ArmorStand.class);
-        stand.setInvisible(true);
-        stand.setGravity(false);
-        stand.setMarker(true);
+        Location spawnLoc = targetLoc.clone().add(0, 30, 0);
         
-        if (stand.getAttribute(Attribute.GENERIC_SCALE) != null) {
-            stand.getAttribute(Attribute.GENERIC_SCALE).setBaseValue(6.0);
+        ArmorStand sword = p.getWorld().spawn(spawnLoc, ArmorStand.class);
+        sword.setInvisible(true);
+        sword.setGravity(false);
+        sword.setBasePlate(false);
+        sword.setArms(true);
+        sword.getEquipment().setItemInMainHand(new ItemStack(Material.DIAMOND_SWORD));
+        sword.setRightArmPose(new EulerAngle(Math.toRadians(180), 0, 0));
+        
+        if (sword.getAttribute(Attribute.GENERIC_SCALE) != null) {
+            sword.getAttribute(Attribute.GENERIC_SCALE).setBaseValue(7.0);
         }
-
-        stand.getEquipment().setItemInMainHand(new ItemStack(Material.DIAMOND_SWORD));
-        stand.setRightArmPose(new EulerAngle(Math.toRadians(180), 0, 0));
 
         new BukkitRunnable() {
+            int life = 0;
             @Override
             public void run() {
-                if (stand.isDead()) {
-                    this.cancel();
-                    return;
-                }
+                life++;
+                // Niche move karo
+                Location loc = sword.getLocation().subtract(0, 1.5, 0);
+                sword.teleport(loc);
 
-                Location current = stand.getLocation().add(0, -2.5, 0);
-                stand.teleport(current);
-
-                if (current.getY() <= targetBlock.getY() - 1) {
-                    p.getWorld().playSound(current, Sound.ENTITY_GENERIC_EXPLODE, 10f, 0.5f);
-                    p.getWorld().spawnParticle(Particle.EXPLOSION_EMITTER, current, 5);
-                    p.getWorld().createExplosion(current, 12.0F, true, true, p);
-
-                    stand.remove();
+                // Zameen check ya timeout (taki hawa mein na atke)
+                if (loc.getY() <= targetLoc.getY() || loc.getBlock().getType().isSolid() || life > 100) {
+                    p.getWorld().createExplosion(loc, 15F, true, true, p);
+                    p.getWorld().spawnParticle(Particle.EXPLOSION_EMITTER, loc, 5);
+                    sword.remove();
                     this.cancel();
                 }
             }
         }.runTaskTimer(SpcialSmp.get(), 0L, 1L);
     }
 
-    /* ================= ORBIT EFFECT (AUTO-START LOGIC) ================= */
+    // --- ORBIT LOGIC ---
     public void startOrbit(Player p) {
-        // Agar pehle se chal raha hai toh naya mat chalao (Lag fix)
         if (orbiting.containsKey(p.getUniqueId())) return;
 
-        List<ArmorStand> stands = new ArrayList<>();
-        int count = 8;
-
-        for (int i = 0; i < count; i++) {
+        List<ArmorStand> stars = new ArrayList<>();
+        for (int i = 0; i < 8; i++) {
             ArmorStand as = p.getWorld().spawn(p.getLocation(), ArmorStand.class);
             as.setInvisible(true);
             as.setMarker(true);
             as.setGravity(false);
-            as.setSmall(true);
             as.getEquipment().setItemInMainHand(new ItemStack(Material.NETHER_STAR));
             as.setRightArmPose(new EulerAngle(Math.toRadians(-90), 0, 0));
-            stands.add(as);
+            stars.add(as);
         }
-        orbiting.put(p.getUniqueId(), stands);
+        orbiting.put(p.getUniqueId(), stars);
 
         new BukkitRunnable() {
             double angle = 0;
-
             @Override
             public void run() {
-                // ✅ Haath se hat-te hi remove ho jayega
+                // ✅ Check using the safe method below
                 if (!p.isOnline() || !isHoldingCard(p)) {
-                    stands.forEach(Entity::remove);
+                    stars.forEach(Entity::remove);
                     orbiting.remove(p.getUniqueId());
                     this.cancel();
                     return;
                 }
 
                 angle += 0.15;
-                double radius = 2.5;
-
-                for (int i = 0; i < stands.size(); i++) {
-                    double offset = (2 * Math.PI / stands.size()) * i;
-                    double currAngle = angle + offset;
-
-                    double x = radius * Math.cos(currAngle);
-                    double z = radius * Math.sin(currAngle);
-                    
+                for (int i = 0; i < stars.size(); i++) {
+                    double theta = angle + (Math.PI * 2 / stars.size()) * i;
+                    double x = 2.5 * Math.cos(theta);
+                    double z = 2.5 * Math.sin(theta);
                     Location loc = p.getLocation().clone().add(x, 1.2, z);
                     
-                    Vector direction = p.getLocation().toVector().subtract(loc.toVector());
-                    loc.setDirection(direction);
-
-                    stands.get(i).teleport(loc);
+                    Vector dir = p.getLocation().toVector().subtract(loc.toVector());
+                    loc.setDirection(dir);
+                    stars.get(i).teleport(loc);
                 }
             }
         }.runTaskTimer(SpcialSmp.get(), 0L, 1L);
     }
 
+    // ✅ FIXED: Secure Check (NBT + Name)
     private boolean isHoldingCard(Player p) {
         ItemStack item = p.getInventory().getItemInMainHand();
         if (item == null || !item.hasItemMeta()) return false;
         
+        // 1. Check NBT first
         NamespacedKey key = new NamespacedKey(SpcialSmp.get(), "card_id");
-        String id = item.getItemMeta().getPersistentDataContainer().get(key, PersistentDataType.STRING);
-        return getName().equals(id);
+        String nbtId = item.getItemMeta().getPersistentDataContainer().get(key, PersistentDataType.STRING);
+        if (nbtId != null && nbtId.equals(getName())) return true;
+        
+        // 2. Fallback to Name (Strip colors)
+        String name = ChatColor.stripColor(item.getItemMeta().getDisplayName());
+        return name.equals(getName());
     }
             }
