@@ -24,17 +24,17 @@ public class UltimateCard extends BaseCard {
         return "Ultimate Card";
     }
 
-    /* ================= LEFT CLICK: LIGHTNING ================= */
+    /* ================= LEFT CLICK: UNLIMITED LIGHTNING SPAM ================= */
     @Override
     public void leftClick(Player p) {
-        p.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 400, 2));
-        p.sendMessage("§6§lULTIMATE: §eLightning Strike!");
-        
-        RayTraceResult r = p.getWorld().rayTraceBlocks(p.getEyeLocation(), p.getEyeLocation().getDirection(), 50);
-        if (r != null && r.getHitPosition() != null) {
-            Location hit = r.getHitPosition().toLocation(p.getWorld());
-            p.getWorld().strikeLightning(hit);
-        }
+        // Lightning Strike logic (No Cooldown)
+        RayTraceResult r = p.getWorld().rayTraceBlocks(p.getEyeLocation(), p.getEyeLocation().getDirection(), 60);
+        Location hitLoc = (r != null && r.getHitPosition() != null) 
+                ? r.getHitPosition().toLocation(p.getWorld()) 
+                : p.getLocation().add(p.getLocation().getDirection().multiply(20));
+
+        p.getWorld().strikeLightning(hitLoc);
+        p.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 100, 1)); // Thoda speed boost click par
     }
 
     /* ================= RIGHT CLICK: MANUAL ORBIT ================= */
@@ -43,7 +43,7 @@ public class UltimateCard extends BaseCard {
         startOrbit(p);
     }
 
-    /* ================= SHIFT + RIGHT: GIANT SWORD ================= */
+    /* ================= SHIFT + RIGHT: GIANT SWORD (With Bad Effects) ================= */
     @Override
     public void shiftRightClick(Player p) {
         Vector lookDir = p.getLocation().getDirection();
@@ -77,7 +77,17 @@ public class UltimateCard extends BaseCard {
                 sword.teleport(loc);
 
                 if (loc.getBlock().getType().isSolid() || loc.getY() <= targetLoc.getY() || life > 100) {
+                    // Explosion
                     p.getWorld().createExplosion(loc, 15F, true, true, p);
+                    
+                    // ✅ BAD EFFECTS (Poison + Wither)
+                    loc.getWorld().getNearbyEntities(loc, 10, 10, 10).forEach(entity -> {
+                        if (entity instanceof LivingEntity target && !entity.equals(p)) {
+                            target.addPotionEffect(new PotionEffect(PotionEffectType.POISON, 200, 1)); // 10s Poison
+                            target.addPotionEffect(new PotionEffect(PotionEffectType.WITHER, 100, 1)); // 5s Wither
+                        }
+                    });
+
                     p.getWorld().spawnParticle(Particle.EXPLOSION_EMITTER, loc, 5);
                     p.getWorld().playSound(loc, Sound.ENTITY_GENERIC_EXPLODE, 1.0f, 0.5f);
                     sword.remove();
@@ -92,7 +102,7 @@ public class UltimateCard extends BaseCard {
         if (orbiting.containsKey(p.getUniqueId())) return;
 
         List<ArmorStand> cards = new ArrayList<>();
-        int count = 9; // ✅ Ab 9 cards honge
+        int count = 9; 
 
         for (int i = 0; i < count; i++) {
             ArmorStand as = p.getWorld().spawn(p.getLocation(), ArmorStand.class);
@@ -100,7 +110,6 @@ public class UltimateCard extends BaseCard {
             as.setMarker(true);
             as.setGravity(false);
             as.setSmall(true);
-            // ✅ Paper Placeholder (Texture pack ke liye)
             as.getEquipment().setItemInMainHand(new ItemStack(Material.PAPER));
             as.setRightArmPose(new EulerAngle(Math.toRadians(-90), 0, 0));
             cards.add(as);
@@ -118,18 +127,15 @@ public class UltimateCard extends BaseCard {
                     return;
                 }
 
-                angle += 0.12; // Orbit Speed
+                angle += 0.12; 
                 double radius = 2.8;
 
                 for (int i = 0; i < cards.size(); i++) {
-                    // ✅ Perfect Stable Circle Math
                     double offset = (2 * Math.PI / cards.size()) * i;
                     double x = radius * Math.cos(angle + offset);
                     double z = radius * Math.sin(angle + offset);
                     
                     Location loc = p.getLocation().clone().add(x, 1.2, z);
-                    
-                    // Cards face the center (player)
                     Vector dir = p.getLocation().toVector().subtract(loc.toVector());
                     loc.setDirection(dir);
                     
@@ -150,4 +156,4 @@ public class UltimateCard extends BaseCard {
         String name = ChatColor.stripColor(item.getItemMeta().getDisplayName());
         return name != null && name.equals(getName());
     }
-            }
+    }
