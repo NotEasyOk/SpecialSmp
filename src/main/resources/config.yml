@@ -52,17 +52,17 @@ card-cooldowns:
 # ------------------------------------------------------
 # CARD SPECIFIC ABILITIES
 # ------------------------------------------------------
-zombie-card:
+Zombie Card:
   max-zombies: 2
   zombie-type: "REINFORCED" # Options: NORMAL, REINFORCED, BABY
   duration-seconds: 60
 
-warden-card:
+Warden Card:
   sonic-boom-damage: 12.0
   darkness-range: 20
   darkness-duration: 200
 
-ultimate-card:
+Ultimate Card:
   sword-explosion-power: 15.0
   poison-duration: 240 # 12 seconds
   wither-duration: 100 # 5 seconds
