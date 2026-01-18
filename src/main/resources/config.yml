@@ -7,7 +7,7 @@
 
 server-settings:
   version-supported: "1.21.x"
-  storage-type: "YAML" # YAML ya MYSQL (Future support)
+  storage-type:
   debug-mode: false
 
 # ------------------------------------------------------
