@@ -38,8 +38,6 @@ public class UltimateHoldListener implements Listener {
         ULTIMATE_EFFECTS.add(PotionEffectType.LUCK);
         ULTIMATE_EFFECTS.add(PotionEffectType.CONDUIT_POWER);
         ULTIMATE_EFFECTS.add(PotionEffectType.DOLPHINS_GRACE);
-        // ✅ Poison effect add kiya gaya hai
-        ULTIMATE_EFFECTS.add(PotionEffectType.POISON); 
     }
 
     public UltimateHoldListener() {
