@@ -1,7 +1,25 @@
-server-version-supported: "1.21x"
-cooldown-seconds: 60
+# ======================================================
+#          SPECIAL SMP - CARDS CONFIGURATION
+# ======================================================
+# Version: 1.21.x
+# Author: NotEasyOk
+# ======================================================
 
-cooldowns:
+server-settings:
+  version-supported: "1.21.x"
+  storage-type: "YAML" # YAML ya MYSQL (Future support)
+  debug-mode: false
+
+# ------------------------------------------------------
+# COOLDOWN SETTINGS (In Seconds)
+# ------------------------------------------------------
+global-cooldown-enabled: true
+
+card-cooldowns:
+  Ultimate Card:
+    left: 0          
+    right: 30   
+    shift_right: 120 
   Enderman Card:
     left: 60
     right: 40
@@ -26,32 +44,80 @@ cooldowns:
     left: 60
     right: 40
     shift_right: 90
+  Herobrine Card:
+    left: 10
+    right: 60
+    shift_right: 180
 
+# ------------------------------------------------------
+# CARD SPECIFIC ABILITIES
+# ------------------------------------------------------
 zombie-card:
   max-zombies: 2
+  zombie-type: "REINFORCED" # Options: NORMAL, REINFORCED, BABY
   duration-seconds: 60
 
+warden-card:
+  sonic-boom-damage: 12.0
+  darkness-range: 20
+  darkness-duration: 200
+
+ultimate-card:
+  sword-explosion-power: 15.0
+  poison-duration: 240 # 12 seconds
+  wither-duration: 100 # 5 seconds
+  orbit-radius: 2.8
+  total-cards: 9
+
+# ------------------------------------------------------
+# JOIN & SPAWN SETTINGS
+# ------------------------------------------------------
 first-join:
   give-random-card: true
-  allowed-cards:
-    - Enderman
-    - Herobrine
-    - Nothing
-    - Zombie
-    - Warden
-    - Creeper
-    - Lighting
-    - Ghost
-    - Ruin
+  send-welcome-message: true
   allow-ultimate-on-join: false
+  allowed-cards:
+    - "Enderman"
+    - "Herobrine"
+    - "Nothing"
+    - "Zombie"
+    - "Warden"
+    - "Creeper"
+    - "Lighting"
+    - "Ghost"
+    - "Ruin"
 
+# ------------------------------------------------------
+# CARD ECONOMY & DROPS
+# ------------------------------------------------------
 drops:
   natural-death-drops-card: false
   drop-only-if-killed-by-player: true
+  drop-chance-percent: 10 # 10% chance to drop a card on player kill
 
+# ------------------------------------------------------
+# CRAFTING RECIPES
+# ------------------------------------------------------
 recipes:
   ultimate-card:
     enabled: true
-    require-all-9: true
+    require-all-9-unique-cards: true
+    # Pattern: 123, 456, 789 (Place cards in grid to craft)
+    crafting-station: "CRAFTING_TABLE"
 
-storage-file: playerdata.yml
+# ------------------------------------------------------
+# LOCALIZATION (MESSAGES)
+# ------------------------------------------------------
+messages:
+  prefix: "§8[§6§lSpecialSMP§8] §r"
+  no-permission: "§cYou don't have permission to use this card!"
+  cooldown-active: "§cPlease wait §e%time%s §cbefore using this again."
+  card-given: "§aYou received the §e%card%§a!"
+  ultimate-unlocked: "§6§lULTIMATE: §fThe gods have granted you power!"
+
+# ------------------------------------------------------
+# DATA STORAGE
+# ------------------------------------------------------
+storage:
+  file-name: "playerdata.yml"
+  save-interval-minutes: 5
