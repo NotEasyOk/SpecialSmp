@@ -17,17 +17,21 @@ import java.util.UUID;
 
 public class EndermanCard extends BaseCard {
 
-    // Cooldown track karne ke liye Map
-    private final Map<UUID, Long> dragonBreathCooldowns = new HashMap<>();
+    // Step 1: Cooldown track karne ke liye Map
+    private final Map<UUID, Long> cooldowns = new HashMap<>();
 
     @Override
     public String getName() {
         return "Enderman Card";
     }
 
-    /* ---------------- LEFT CLICK ---------------- */
+    /* ---------------- LEFT CLICK (Teleport) ---------------- */
     @Override
     public void leftClick(Player p) {
+        // Config path: cards.enderman.teleport_cooldown
+        int cd = SpcialSmp.get().getConfig().getInt("cards.enderman.teleport_cooldown", 5);
+        if (!isCool(p, "tp", cd)) return;
+
         RayTraceResult r = p.getWorld().rayTraceBlocks(
                 p.getEyeLocation(),
                 p.getEyeLocation().getDirection(),
@@ -49,12 +53,19 @@ public class EndermanCard extends BaseCard {
                     0.2
             );
             p.playSound(p.getLocation(), org.bukkit.Sound.ENTITY_ENDERMAN_TELEPORT, 1f, 1f);
+        } else {
+            // Safe location nahi mili to cooldown reset
+            cooldowns.remove(p.getUniqueId().toString() + "tp");
         }
     }
 
-    /* ---------------- RIGHT CLICK ---------------- */
+    /* ---------------- RIGHT CLICK (Pull Target) ---------------- */
     @Override
     public void rightClick(Player p) {
+        // Config path: cards.enderman.pull_cooldown
+        int cd = SpcialSmp.get().getConfig().getInt("cards.enderman.pull_cooldown", 10);
+        if (!isCool(p, "pull", cd)) return;
+
         RayTraceResult r = p.getWorld().rayTraceEntities(
                 p.getEyeLocation(),
                 p.getEyeLocation().getDirection(),
@@ -62,7 +73,10 @@ public class EndermanCard extends BaseCard {
                 e -> e instanceof Player && !e.equals(p)
         );
 
-        if (r == null) return;
+        if (r == null || r.getHitEntity() == null) {
+            cooldowns.remove(p.getUniqueId().toString() + "pull");
+            return;
+        }
 
         Entity e = r.getHitEntity();
         if (!(e instanceof Player target)) return;
@@ -78,23 +92,13 @@ public class EndermanCard extends BaseCard {
         p.playSound(p.getLocation(), org.bukkit.Sound.ENTITY_ENDERMAN_TELEPORT, 1f, 0.5f);
     }
 
-    /* ---------------- SHIFT + RIGHT CLICK (FIXED) ---------------- */
-    // Dragon Breath: 10s Duration, High Damage, Cooldown Logic
+    /* ---------------- SHIFT + RIGHT CLICK (Dragon Breath) ---------------- */
     @Override
     public void shiftRightClick(Player p) {
-        
-        // 1. COOLDOWN CHECK
-        UUID id = p.getUniqueId();
-        if (dragonBreathCooldowns.containsKey(id)) {
-            long timeEnds = dragonBreathCooldowns.get(id);
-            if (System.currentTimeMillis() < timeEnds) {
-                long timeLeft = (timeEnds - System.currentTimeMillis()) / 1000;
-                p.sendMessage(ChatColor.RED + "Dragon Breath cooling down: " + timeLeft + "s");
-                return;
-            }
-        }
+        // Config path: cards.enderman.breath_cooldown
+        int cd = SpcialSmp.get().getConfig().getInt("cards.enderman.breath_cooldown", 20);
+        if (!isCool(p, "breath", cd)) return;
 
-        // 2. Raytrace to find ground
         RayTraceResult r = p.getWorld().rayTraceBlocks(
                 p.getEyeLocation(),
                 p.getEyeLocation().getDirection(),
@@ -105,34 +109,35 @@ public class EndermanCard extends BaseCard {
                 ? r.getHitPosition().toLocation(p.getWorld()).add(0, 0.1, 0)
                 : p.getLocation();
 
-        // 3. Spawn AreaEffectCloud
         AreaEffectCloud cloud = p.getWorld().spawn(loc, AreaEffectCloud.class);
         cloud.setRadius(4.5f);
-        cloud.setDuration(200); // 10 seconds (20 ticks * 10)
-        
-        // IMPORTANT FIXES FOR DAMAGE:
-        cloud.setWaitTime(0);             // Turant start hoga
-        cloud.setReapplicationDelay(20);  // Har 1 second (20 ticks) mein damage dega
-        cloud.setRadiusOnUse(0.0f);       // Player ko touch karne par cloud gayab nahi hoga
-        cloud.setRadiusPerTick(0.0f);     // Cloud ka size kam nahi hoga
-        
+        cloud.setDuration(200); 
+        cloud.setWaitTime(0);             
+        cloud.setReapplicationDelay(20);  
+        cloud.setRadiusOnUse(0.0f);       
+        cloud.setRadiusPerTick(0.0f);     
         cloud.setParticle(org.bukkit.Particle.DRAGON_BREATH);
-        
-        // Adding Instant Damage (Harming II)
-        // Duration 1 tick rakha hai kyunki cloud bar-bar apply karega
-        cloud.addCustomEffect(
-                new PotionEffect(PotionEffectType.INSTANT_DAMAGE, 1, 1), 
-                false
-        );
-        
-        cloud.setSource(p); // Taaki kill credit player ko mile
+        cloud.addCustomEffect(new PotionEffect(PotionEffectType.INSTANT_DAMAGE, 1, 1), false);
+        cloud.setSource(p); 
 
-        // 4. Set Cooldown (10 Seconds)
-        dragonBreathCooldowns.put(id, System.currentTimeMillis() + 10000);
         p.sendMessage(ChatColor.DARK_PURPLE + "Dragon Breath Released!");
     }
 
-    /* ---------------- SAFE TELEPORT HELPER ---------------- */
+    // --- COOLDOWN HELPER (Universal) ---
+    private boolean isCool(Player p, String key, int seconds) {
+        long now = System.currentTimeMillis();
+        String mapKey = p.getUniqueId().toString() + key;
+        if (cooldowns.containsKey(mapKey)) {
+            long timeLeft = (cooldowns.get(mapKey) - now) / 1000;
+            if (timeLeft > 0) {
+                p.sendMessage(ChatColor.RED + "Ability on cooldown: " + timeLeft + "s");
+                return false;
+            }
+        }
+        cooldowns.put(mapKey, now + (seconds * 1000L));
+        return true;
+    }
+
     private Location findSafeLocation(Location base, World w) {
         for (int i = 0; i < 12; i++) {
             double x = base.getX() + (Math.random() * 6 - 3);
@@ -146,4 +151,4 @@ public class EndermanCard extends BaseCard {
         }
         return null;
     }
-            }
+                                                      }
