@@ -148,3 +148,4 @@ public class CreeperCard extends BaseCard {
     cooldowns.put(mapKey, now + (seconds * 1000L));
     return true;
     }
+}
