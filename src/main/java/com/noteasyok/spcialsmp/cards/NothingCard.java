@@ -25,7 +25,7 @@ public class NothingCard extends BaseCard {
         return "Nothing Card";
     }
 
-    /* ================= LEFT CLICK: TIME CHANGE (With Cooldown) ================= */
+    /* ================= LEFT CLICK: TIME CHANGE ================= */
     @Override
     public void leftClick(Player p) {
         int cd = SpcialSmp.get().getConfig().getInt("cards.nothing.left_click_cooldown", 10);
@@ -41,12 +41,11 @@ public class NothingCard extends BaseCard {
         }
     }
 
-    /* ================= RIGHT CLICK: MIND CONTROL (With Cooldown) ================= */
+    /* ================= RIGHT CLICK: MIND CONTROL ================= */
     @Override
     public void rightClick(Player p) {
         int cd = SpcialSmp.get().getConfig().getInt("cards.nothing.right_click_cooldown", 30);
         
-        // Target check karne se pehle cooldown check karna zaroori hai
         if (!isCool(p, "control", cd)) return;
 
         RayTraceResult result = p.getWorld().rayTraceEntities(
@@ -58,8 +57,7 @@ public class NothingCard extends BaseCard {
 
         if (result == null || result.getHitEntity() == null) {
             p.sendMessage("§cNo target found to control!");
-            // Target nahi mila to cooldown hata dete hain taaki click waste na ho
-            cooldowns.remove(p.getUniqueId().toString() + "control");
+            cooldowns.remove(p.getUniqueId().toString() + "_control");
             return;
         }
 
@@ -71,7 +69,7 @@ public class NothingCard extends BaseCard {
             @Override
             public void run() {
                 if (ticks >= 100 || !p.isOnline() || target.isDead() || !isHoldingCard(p)) {
-                    p.sendMessage("§7Control lost.");
+                    if (p.isOnline()) p.sendMessage("§7Control lost.");
                     this.cancel();
                     return;
                 }
@@ -85,7 +83,7 @@ public class NothingCard extends BaseCard {
         }.runTaskTimer(SpcialSmp.get(), 0L, 1L);
     }
 
-    /* ================= SHIFT CLICK: SLOW FALLING (With Cooldown) ================= */
+    /* ================= SHIFT CLICK: SLOW FALLING ================= */
     @Override
     public void shiftRightClick(Player p) {
         int cd = SpcialSmp.get().getConfig().getInt("cards.nothing.shift_click_cooldown", 40);
@@ -95,24 +93,27 @@ public class NothingCard extends BaseCard {
         p.sendMessage("§fNo fall damage for 20s (Slow Falling)");
     }
 
-    // --- COOLDOWN HELPER (Universal) ---
+    /* ================= HELPER METHODS (FIXED) ================= */
+    private boolean isHoldingCard(Player p) {
+        var item = p.getInventory().getItemInMainHand();
+        if (item == null || !item.hasItemMeta() || !item.getItemMeta().hasDisplayName()) return false;
+        return ChatColor.stripColor(item.getItemMeta().getDisplayName()).equalsIgnoreCase("Nothing Card");
+    }
+
     private boolean isCool(Player p, String key, int seconds) {
-    if (seconds <= 0) return true;
-    long now = System.currentTimeMillis();
-    
-    // Map ki key String honi chahiye
-    String mapKey = p.getUniqueId().toString() + "_" + key;
-    
-    if (cooldowns.containsKey(mapKey)) {
-        long timeLeft = (cooldowns.get(mapKey) - now) / 1000;
-        if (timeLeft > 0) {
-            // Config se message uthayega
-            String rawMsg = SpcialSmp.get().getConfig().getString("messages.cooldown-active", "§cWait %time%s");
-            p.sendMessage(rawMsg.replace("%time%", String.valueOf(timeLeft)));
-            return false;
+        if (seconds <= 0) return true;
+        long now = System.currentTimeMillis();
+        String mapKey = p.getUniqueId().toString() + "_" + key;
+        
+        if (cooldowns.containsKey(mapKey)) {
+            long timeLeft = (cooldowns.get(mapKey) - now) / 1000;
+            if (timeLeft > 0) {
+                String rawMsg = SpcialSmp.get().getConfig().getString("messages.cooldown-active", "§cWait %time%s");
+                p.sendMessage(rawMsg.replace("%time%", String.valueOf(timeLeft)));
+                return false;
+            }
         }
+        cooldowns.put(mapKey, now + (seconds * 1000L));
+        return true;
     }
-    cooldowns.put(mapKey, now + (seconds * 1000L));
-    return true;
-    }
-}
+                        }
