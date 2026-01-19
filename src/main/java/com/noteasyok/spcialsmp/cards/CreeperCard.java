@@ -20,7 +20,12 @@ public class CreeperCard extends BaseCard {
     public String getName() {
         return "Creeper Card";
     }
-
+    
+      @Override
+       public int getModelData() {
+          return 1;
+    }
+    
     /* ================= LEFT CLICK (Big Explosion) ================= */
     @Override
     public void leftClick(Player p) {
