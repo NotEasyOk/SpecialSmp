@@ -24,7 +24,12 @@ public class EndermanCard extends BaseCard {
     public String getName() {
         return "Enderman Card";
     }
-
+    
+     @Override
+public int getModelData() {
+    return 2;
+}
+    
     /* ---------------- LEFT CLICK (Teleport) ---------------- */
     @Override
     public void leftClick(Player p) {
