@@ -23,7 +23,12 @@ public class ZombieCard extends BaseCard {
     public String getName() {
         return "Zombie Card";
     }
-
+    
+    @Override
+public int getModelData() {
+    return 10;
+}
+    
     @Override
     public void leftClick(Player p) {
         int cooldownSec = SpcialSmp.get().getConfig().getInt("cards.zombie.cooldown", 30);
