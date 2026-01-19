@@ -24,7 +24,12 @@ public class UltimateCard extends BaseCard {
     public String getName() {
         return "Ultimate Card";
     }
-
+    
+     @Override
+public int getModelData() {
+    return 8;
+}
+    
     /* ================= LEFT CLICK: LIGHTNING ================= */
     @Override
     public void leftClick(Player p) {
