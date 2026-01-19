@@ -11,34 +11,48 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
 public class HerobrineCard extends BaseCard {
 
-    // Flight ability track karne ke liye set
     private final Set<UUID> flyingPlayers = new HashSet<>();
+    // Step 1: Cooldown Map
+    private final Map<UUID, Long> cooldowns = new HashMap<>();
 
     @Override
     public String getName() {
         return "Herobrine Card";
     }
 
+    /* ---------------- LEFT CLICK (Lightning) ---------------- */
     @Override
     public void leftClick(Player p) {
+        // Left click cooldown (Config path: cards.herobrine.left_click_cooldown)
+        int cd = SpcialSmp.get().getConfig().getInt("cards.herobrine.left_click_cooldown", 5);
+        if (!isCool(p, "lightning", cd)) return;
+
         World w = p.getWorld();
         for (int i = 0; i < 5; i++)
             w.strikeLightning(p.getLocation());
     }
 
-    // --- RIGHT CLICK: FLIGHT LOGIC (Fixed) ---
+    /* ---------------- RIGHT CLICK (Flight) ---------------- */
     @Override
     public void rightClick(Player p) {
+        // Flight Cooldown (Config path: cards.herobrine.right_click_cooldown)
+        int cd = SpcialSmp.get().getConfig().getInt("cards.herobrine.right_click_cooldown", 30);
+        
         if (flyingPlayers.contains(p.getUniqueId())) {
             p.sendMessage(ChatColor.RED + "Flight ability is already active!");
             return;
         }
+
+        // Cooldown check
+        if (!isCool(p, "flight", cd)) return;
 
         p.addPotionEffect(new PotionEffect(PotionEffectType.DARKNESS, 200, 1));
         p.setAllowFlight(true);
@@ -49,79 +63,64 @@ public class HerobrineCard extends BaseCard {
 
         new BukkitRunnable() {
             int ticks = 0;
-
             @Override
             public void run() {
                 ticks++;
-
                 if (!p.isOnline()) {
                     flyingPlayers.remove(p.getUniqueId());
                     this.cancel();
                     return;
                 }
-
-                // Check: Card haath se hata YA Time khatam (200 ticks = 10s)
                 if (!isHoldingHerobrineCard(p) || ticks >= 200) {
-                    
                     if (p.getGameMode() != GameMode.CREATIVE && p.getGameMode() != GameMode.SPECTATOR) {
                         p.setAllowFlight(false);
                         p.setFlying(false);
                     }
-
                     flyingPlayers.remove(p.getUniqueId());
-
                     if (ticks >= 200) {
                         p.sendMessage(ChatColor.RED + "Flight time over!");
                     } else {
                         p.sendMessage(ChatColor.RED + "Card removed! Flight disabled.");
                     }
-
                     this.cancel();
                 }
             }
         }.runTaskTimer(SpcialSmp.get(), 0L, 1L);
     }
 
-    // --- SHIFT + RIGHT CLICK: GIANT + JUMP BOOST (Updated) ---
+    /* ---------------- SHIFT + RIGHT CLICK (Giant/Tiny) ---------------- */
     @Override
     public void shiftRightClick(Player p) {
+        // Shift Click Cooldown (Config path: cards.herobrine.shift_click_cooldown)
+        int cd = SpcialSmp.get().getConfig().getInt("cards.herobrine.shift_click_cooldown", 45);
+        if (!isCool(p, "power", cd)) return;
+
         World w = p.getWorld();
         long time = w.getTime();
-        
         AttributeInstance scaleAttr = p.getAttribute(Attribute.GENERIC_SCALE);
         if (scaleAttr == null) return;
 
         boolean isDay = time < 13000 || time > 23000;
 
         if (isDay) {
-            // GIANT MODE
             scaleAttr.setBaseValue(3.5); 
-            // Add Jump Boost IV (Amplifier 3) for 20 seconds
             p.addPotionEffect(new PotionEffect(PotionEffectType.JUMP_BOOST, 400, 3)); 
-            p.sendMessage(ChatColor.YELLOW + "Herobrine's Day Power: GIANT MODE (Jump Boost Active)!");
+            p.sendMessage(ChatColor.YELLOW + "Herobrine's Day Power: GIANT MODE!");
         } else {
-            // TINY MODE
             scaleAttr.setBaseValue(0.3);
             p.setGlowing(true);
             p.sendMessage(ChatColor.RED + "Herobrine's Night Power: TINY MODE!");
         }
 
-        // Timer to reset size and remove effects
         new BukkitRunnable() {
             int ticks = 0;
-
             @Override
             public void run() {
                 ticks++;
-
-                // Stop if: Time over (20s), Card removed, or Offline
                 if (ticks >= 400 || !isHoldingHerobrineCard(p) || !p.isOnline()) {
-                    
-                    // Reset Logic
-                    scaleAttr.setBaseValue(1.0); // Size normal
-                    p.setGlowing(false);         // Glowing off
-                    p.removePotionEffect(PotionEffectType.JUMP_BOOST); // Jump Boost remove
-
+                    scaleAttr.setBaseValue(1.0);
+                    p.setGlowing(false);
+                    p.removePotionEffect(PotionEffectType.JUMP_BOOST);
                     if (p.isOnline()) {
                         p.sendMessage(ChatColor.GRAY + "Herobrine's power has faded.");
                     }
@@ -131,12 +130,25 @@ public class HerobrineCard extends BaseCard {
         }.runTaskTimer(SpcialSmp.get(), 0L, 1L);
     }
 
-    // Helper: Card Check
+    // --- COOLDOWN HELPER (Universal) ---
+    private boolean isCool(Player p, String key, int seconds) {
+        long now = System.currentTimeMillis();
+        String mapKey = p.getUniqueId().toString() + key;
+        if (cooldowns.containsKey(mapKey)) {
+            long timeLeft = (cooldowns.get(mapKey) - now) / 1000;
+            if (timeLeft > 0) {
+                p.sendMessage(ChatColor.RED + "Wait " + timeLeft + "s for " + key + "!");
+                return false;
+            }
+        }
+        cooldowns.put(mapKey, now + (seconds * 1000L));
+        return true;
+    }
+
     private boolean isHoldingHerobrineCard(Player p) {
         var item = p.getInventory().getItemInMainHand();
         if (item == null || !item.hasItemMeta() || !item.getItemMeta().hasDisplayName()) return false;
-        
         String cleanName = ChatColor.stripColor(item.getItemMeta().getDisplayName());
         return cleanName.equalsIgnoreCase("Herobrine Card");
     }
-                                    }
+                                         }
