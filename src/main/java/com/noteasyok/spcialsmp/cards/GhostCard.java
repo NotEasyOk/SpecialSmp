@@ -21,7 +21,12 @@ public class GhostCard extends BaseCard {
     public String getName() {
         return "Ghost Card";
     }
-
+    
+    @Override
+public int getModelData() {
+    return 3;
+}
+    
     /* ---------------- LEFT CLICK (Slow Falling) ---------------- */
     @Override
     public void leftClick(Player p) {
