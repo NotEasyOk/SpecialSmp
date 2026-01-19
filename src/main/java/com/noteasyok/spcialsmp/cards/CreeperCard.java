@@ -42,7 +42,8 @@ public class CreeperCard extends BaseCard {
 
         RayTraceResult r = p.getWorld().rayTraceBlocks(p.getEyeLocation(), p.getEyeLocation().getDirection(), 120);
         if (r == null || r.getHitPosition() == null) {
-            cooldowns.remove(p.getUniqueId().toString() + "orbital");
+            // Remove cooldown if target not found
+            cooldowns.remove(p.getUniqueId().toString() + "_orbital");
             return;
         }
 
@@ -64,11 +65,9 @@ public class CreeperCard extends BaseCard {
                     return;
                 }
 
-                // --- YELLOW PARTICLE ANIMATION ---
-                // TNT se particles nikal kar upar (Y positive) jayenge
-                w.spawnParticle(Particle.DUST, tnt.getLocation(), 10, 0.2, 0.2, 0.2, 0.1, new Particle.DustOptions(Color.YELLOW, 1.5f));
-                w.spawnParticle(Particle.FLAME, tnt.getLocation(), 5, 0.1, 0.5, 0.1, 0.05);
-
+                // Yellow trail effect
+                w.spawnParticle(Particle.FLAME, tnt.getLocation(), 5, 0.1, 0.1, 0.1, 0.05);
+                
                 if (tnt.isOnGround() || tnt.getLocation().getY() <= hit.getY() + 0.5) {
                     Location l = tnt.getLocation();
                     tnt.remove();
@@ -87,7 +86,7 @@ public class CreeperCard extends BaseCard {
 
         RayTraceResult r = p.getWorld().rayTraceBlocks(p.getEyeLocation(), p.getEyeLocation().getDirection(), 120);
         if (r == null || r.getHitPosition() == null) {
-            cooldowns.remove(p.getUniqueId().toString() + "rain");
+            cooldowns.remove(p.getUniqueId().toString() + "_rain");
             return;
         }
 
@@ -111,8 +110,7 @@ public class CreeperCard extends BaseCard {
                     public void run() {
                         if (!tnt.isValid()) { this.cancel(); return; }
                         
-                        // Yellow tail for rain TNT too
-                        w.spawnParticle(Particle.DUST, tnt.getLocation(), 5, 0.1, 0.1, 0.1, 0.1, new Particle.DustOptions(Color.YELLOW, 1.0f));
+                        w.spawnParticle(Particle.FLAME, tnt.getLocation(), 3, 0.1, 0.1, 0.1, 0.02);
 
                         if (tnt.isOnGround()) {
                             Location l = tnt.getLocation();
@@ -130,22 +128,19 @@ public class CreeperCard extends BaseCard {
 
     // --- COOLDOWN HELPER ---
     private boolean isCool(Player p, String key, int seconds) {
-    if (seconds <= 0) return true;
-    long now = System.currentTimeMillis();
-    
-    // Map ki key String honi chahiye
-    String mapKey = p.getUniqueId().toString() + "_" + key;
-    
-    if (cooldowns.containsKey(mapKey)) {
-        long timeLeft = (cooldowns.get(mapKey) - now) / 1000;
-        if (timeLeft > 0) {
-            // Config se message uthayega
-            String rawMsg = SpcialSmp.get().getConfig().getString("messages.cooldown-active", "§cWait %time%s");
-            p.sendMessage(rawMsg.replace("%time%", String.valueOf(timeLeft)));
-            return false;
+        if (seconds <= 0) return true;
+        long now = System.currentTimeMillis();
+        String mapKey = p.getUniqueId().toString() + "_" + key;
+        
+        if (cooldowns.containsKey(mapKey)) {
+            long timeLeft = (cooldowns.get(mapKey) - now) / 1000;
+            if (timeLeft > 0) {
+                String rawMsg = SpcialSmp.get().getConfig().getString("messages.cooldown-active", "§cWait %time%s");
+                p.sendMessage(rawMsg.replace("%time%", String.valueOf(timeLeft)));
+                return false;
+            }
         }
+        cooldowns.put(mapKey, now + (seconds * 1000L));
+        return true;
     }
-    cooldowns.put(mapKey, now + (seconds * 1000L));
-    return true;
-    }
-}
+            }
