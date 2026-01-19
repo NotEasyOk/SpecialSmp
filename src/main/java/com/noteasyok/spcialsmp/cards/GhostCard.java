@@ -15,7 +15,7 @@ import java.util.UUID;
 public class GhostCard extends BaseCard {
 
     // Cooldown track karne ke liye Map
-    private final Map<UUID, Long> cooldowns = new HashMap<>();
+    private final Map<String, Long> cooldowns = new HashMap<>();
 
     @Override
     public String getName() {
