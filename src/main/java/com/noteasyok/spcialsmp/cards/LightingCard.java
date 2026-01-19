@@ -22,7 +22,12 @@ public class LightingCard extends BaseCard {
     public String getName() {
         return "Lighting Card";
     }
-
+    
+    @Override
+public int getModelData() {
+    return 5;
+}
+    
     /* ---------------- LEFT CLICK (Lightning + Strength) ---------------- */
     @Override
     public void leftClick(Player p) {
