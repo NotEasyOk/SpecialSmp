@@ -97,7 +97,7 @@ public class HerobrineCard extends BaseCard {
             // GIANT MODE
             scaleAttr.setBaseValue(3.5); 
             // Add Jump Boost IV (Amplifier 3) for 20 seconds
-            p.addPotionEffect(new PotionEffect(PotionEffectType.JUMP, 400, 3)); 
+            p.addPotionEffect(new PotionEffect(PotionEffectType.JUMP_BOOST, 400, 3)); 
             p.sendMessage(ChatColor.YELLOW + "Herobrine's Day Power: GIANT MODE (Jump Boost Active)!");
         } else {
             // TINY MODE
@@ -120,7 +120,7 @@ public class HerobrineCard extends BaseCard {
                     // Reset Logic
                     scaleAttr.setBaseValue(1.0); // Size normal
                     p.setGlowing(false);         // Glowing off
-                    p.removePotionEffect(PotionEffectType.JUMP); // Jump Boost remove
+                    p.removePotionEffect(PotionEffectType.JUMP_BOOST); // Jump Boost remove
 
                     if (p.isOnline()) {
                         p.sendMessage(ChatColor.GRAY + "Herobrine's power has faded.");
