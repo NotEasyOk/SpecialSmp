@@ -20,7 +20,6 @@ import java.util.UUID;
 public class HerobrineCard extends BaseCard {
 
     private final Set<UUID> flyingPlayers = new HashSet<>();
-    // Step 1: Cooldown Map
     private final Map<String, Long> cooldowns = new HashMap<>();
 
     @Override
@@ -31,8 +30,7 @@ public class HerobrineCard extends BaseCard {
     /* ---------------- LEFT CLICK (Lightning) ---------------- */
     @Override
     public void leftClick(Player p) {
-        // Left click cooldown (Config path: cards.herobrine.left_click_cooldown)
-        int cd = SpcialSmp.get().getConfig().getInt("cards.herobrine.left_click_cooldown", 5);
+        int cd = SpcialSmp.get().getConfig().getInt("card-cooldowns.Herobrine Card.left", 10);
         if (!isCool(p, "lightning", cd)) return;
 
         World w = p.getWorld();
@@ -43,15 +41,13 @@ public class HerobrineCard extends BaseCard {
     /* ---------------- RIGHT CLICK (Flight) ---------------- */
     @Override
     public void rightClick(Player p) {
-        // Flight Cooldown (Config path: cards.herobrine.right_click_cooldown)
-        int cd = SpcialSmp.get().getConfig().getInt("cards.herobrine.right_click_cooldown", 30);
+        int cd = SpcialSmp.get().getConfig().getInt("card-cooldowns.Herobrine Card.right", 60);
         
         if (flyingPlayers.contains(p.getUniqueId())) {
             p.sendMessage(ChatColor.RED + "Flight ability is already active!");
             return;
         }
 
-        // Cooldown check
         if (!isCool(p, "flight", cd)) return;
 
         p.addPotionEffect(new PotionEffect(PotionEffectType.DARKNESS, 200, 1));
@@ -77,11 +73,7 @@ public class HerobrineCard extends BaseCard {
                         p.setFlying(false);
                     }
                     flyingPlayers.remove(p.getUniqueId());
-                    if (ticks >= 200) {
-                        p.sendMessage(ChatColor.RED + "Flight time over!");
-                    } else {
-                        p.sendMessage(ChatColor.RED + "Card removed! Flight disabled.");
-                    }
+                    p.sendMessage(ChatColor.RED + (ticks >= 200 ? "Flight time over!" : "Card removed! Flight disabled."));
                     this.cancel();
                 }
             }
@@ -91,8 +83,7 @@ public class HerobrineCard extends BaseCard {
     /* ---------------- SHIFT + RIGHT CLICK (Giant/Tiny) ---------------- */
     @Override
     public void shiftRightClick(Player p) {
-        // Shift Click Cooldown (Config path: cards.herobrine.shift_click_cooldown)
-        int cd = SpcialSmp.get().getConfig().getInt("cards.herobrine.shift_click_cooldown", 45);
+        int cd = SpcialSmp.get().getConfig().getInt("card-cooldowns.Herobrine Card.shift_right", 180);
         if (!isCool(p, "power", cd)) return;
 
         World w = p.getWorld();
@@ -121,33 +112,35 @@ public class HerobrineCard extends BaseCard {
                     scaleAttr.setBaseValue(1.0);
                     p.setGlowing(false);
                     p.removePotionEffect(PotionEffectType.JUMP_BOOST);
-                    if (p.isOnline()) {
-                        p.sendMessage(ChatColor.GRAY + "Herobrine's power has faded.");
-                    }
+                    if (p.isOnline()) p.sendMessage(ChatColor.GRAY + "Herobrine's power has faded.");
                     this.cancel();
                 }
             }
         }.runTaskTimer(SpcialSmp.get(), 0L, 1L);
     }
 
-    // --- COOLDOWN HELPER (Universal) ---
+    /* ---------------- HELPER METHODS (FIXED) ---------------- */
+    private boolean isHoldingHerobrineCard(Player p) {
+        var item = p.getInventory().getItemInMainHand();
+        if (item == null || !item.hasItemMeta() || !item.getItemMeta().hasDisplayName()) return false;
+        String cleanName = ChatColor.stripColor(item.getItemMeta().getDisplayName());
+        return cleanName.equalsIgnoreCase("Herobrine Card");
+    }
+
     private boolean isCool(Player p, String key, int seconds) {
-    if (seconds <= 0) return true;
-    long now = System.currentTimeMillis();
-    
-    // Map ki key String honi chahiye
-    String mapKey = p.getUniqueId().toString() + "_" + key;
-    
-    if (cooldowns.containsKey(mapKey)) {
-        long timeLeft = (cooldowns.get(mapKey) - now) / 1000;
-        if (timeLeft > 0) {
-            // Config se message uthayega
-            String rawMsg = SpcialSmp.get().getConfig().getString("messages.cooldown-active", "§cWait %time%s");
-            p.sendMessage(rawMsg.replace("%time%", String.valueOf(timeLeft)));
-            return false;
+        if (seconds <= 0) return true;
+        long now = System.currentTimeMillis();
+        String mapKey = p.getUniqueId().toString() + "_" + key;
+        
+        if (cooldowns.containsKey(mapKey)) {
+            long timeLeft = (cooldowns.get(mapKey) - now) / 1000;
+            if (timeLeft > 0) {
+                String rawMsg = SpcialSmp.get().getConfig().getString("messages.cooldown-active", "§cWait %time%s");
+                p.sendMessage(rawMsg.replace("%time%", String.valueOf(timeLeft)));
+                return false;
+            }
         }
+        cooldowns.put(mapKey, now + (seconds * 1000L));
+        return true;
     }
-    cooldowns.put(mapKey, now + (seconds * 1000L));
-    return true;
-    }
-}
+                          }
