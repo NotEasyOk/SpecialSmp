@@ -1,81 +1,67 @@
 # ======================================================
 #          SPECIAL SMP - CARDS CONFIGURATION
 # ======================================================
-# Version: 1.21.x
-# Author: NotEasyOk
-# ======================================================
-
-server-settings:
-  version-supported: "1.21.x"
-  storage-type:
-  debug-mode: false
-
+# Version: 1.21x
+#Author: NotEasyOk
 # ------------------------------------------------------
-# COOLDOWN SETTINGS (In Seconds)
+# CARD COOLDOWNS (In Seconds)
 # ------------------------------------------------------
-global-cooldown-enabled: true
-
-card-cooldowns:
-  Ultimate Card:
-    left: 0          
-    right: 30   
-    shift_right: 120 
-  Enderman Card:
-    left: 60
-    right: 40
-    shift_right: 90
-  Zombie Card:
-    left: 60
-    right: 40
-    shift_right: 90
-  Creeper Card:
-    left: 60
-    right: 90
-    shift_right: 120
-  Warden Card:
-    left: 60
-    right: 120
-    shift_right: 60
-  Lighting Card:
-    left: 40
-    right: 20
-    shift_right: 60
-  Ghost Card:
-    left: 60
-    right: 40
-    shift_right: 90
-  Herobrine Card:
-    left: 10
-    right: 60
-    shift_right: 180
+cards:
+  ultimate:
+    sword_cooldown: 120
+  warden:
+    left_click_cooldown: 60
+    right_click_cooldown: 120
+    shift_click_cooldown: 60
+  zombie:
+    cooldown: 60
+  ruin:
+    silverfish_cooldown: 30
+    poison_cooldown: 45
+  nothing:
+    left_click_cooldown: 20
+    right_click_cooldown: 40
+    shift_click_cooldown: 60
+  lighting:
+    left_click_cooldown: 40
+    right_click_cooldown: 20
+    shift_click_cooldown: 60
+  herobrine:
+    left_click_cooldown: 10
+    right_click_cooldown: 60
+    shift_click_cooldown: 180
+  ghost:
+    left_click_cooldown: 60
+    right_click_cooldown: 40
+    shift_click_cooldown: 90
+  enderman:
+    teleport_cooldown: 60
+    pull_cooldown: 40
+    breath_cooldown: 90
+  creeper:
+    left_click_cooldown: 60
+    right_click_cooldown: 90
+    shift_click_cooldown: 120
 
 # ------------------------------------------------------
 # CARD SPECIFIC ABILITIES
 # ------------------------------------------------------
-Zombie Card:
+zombie-card:
   max-zombies: 2
-  zombie-type: "REINFORCED" # Options: NORMAL, REINFORCED, BABY
   duration-seconds: 60
 
-Warden Card:
-  sonic-boom-damage: 12.0
-  darkness-range: 20
-  darkness-duration: 200
-
-Ultimate Card:
-  sword-explosion-power: 15.0
-  poison-duration: 240 # 12 seconds
-  wither-duration: 100 # 5 seconds
-  orbit-radius: 2.8
-  total-cards: 9
+# ------------------------------------------------------
+# MESSAGES
+# ------------------------------------------------------
+messages:
+  prefix: "§8[§6§lSpecialSMP§8] §r"
+  cooldown-active: "§cPlease wait §e%time%s §cbefore using this again."
 
 # ------------------------------------------------------
-# JOIN & SPAWN SETTINGS
+# OTHER SETTINGS
 # ------------------------------------------------------
 first-join:
   give-random-card: true
-  send-welcome-message: true
-  allow-ultimate-on-join: false
   allowed-cards:
     - "Enderman"
     - "Herobrine"
@@ -86,38 +72,3 @@ first-join:
     - "Lighting"
     - "Ghost"
     - "Ruin"
-
-# ------------------------------------------------------
-# CARD ECONOMY & DROPS
-# ------------------------------------------------------
-drops:
-  natural-death-drops-card: false
-  drop-only-if-killed-by-player: true
-  drop-chance-percent: 10 # 10% chance to drop a card on player kill
-
-# ------------------------------------------------------
-# CRAFTING RECIPES
-# ------------------------------------------------------
-recipes:
-  ultimate-card:
-    enabled: true
-    require-all-9-unique-cards: true
-    # Pattern: 123, 456, 789 (Place cards in grid to craft)
-    crafting-station: "CRAFTING_TABLE"
-
-# ------------------------------------------------------
-# LOCALIZATION (MESSAGES)
-# ------------------------------------------------------
-messages:
-  prefix: "§8[§6§lSpecialSMP§8] §r"
-  no-permission: "§cYou don't have permission to use this card!"
-  cooldown-active: "§cPlease wait §e%time%s §cbefore using this again."
-  card-given: "§aYou received the §e%card%§a!"
-  ultimate-unlocked: "§6§lULTIMATE: §fThe gods have granted you power!"
-
-# ------------------------------------------------------
-# DATA STORAGE
-# ------------------------------------------------------
-storage:
-  file-name: "playerdata.yml"
-  save-interval-minutes: 5
