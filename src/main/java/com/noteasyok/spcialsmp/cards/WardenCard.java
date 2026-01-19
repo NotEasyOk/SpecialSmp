@@ -25,7 +25,12 @@ public class WardenCard extends BaseCard {
     public String getName() {
         return "Warden Card";
     }
-
+    
+     @Override
+public int getModelData() {
+    return 9;
+}
+    
     /* ---------------- LEFT CLICK (Health Boost) ---------------- */
     @Override
     public void leftClick(Player p) {
