@@ -19,6 +19,9 @@ public abstract class BaseCard {
     public abstract void leftClick(Player p);
     public abstract void rightClick(Player p);
     public abstract void shiftRightClick(Player p);
+    
+    // Naya method: Har card apni unique ID yahan se dega
+    public abstract int getModelData();
 
     /**
      * Standard card creation with NBT Tags and Glow
@@ -31,10 +34,10 @@ public abstract class BaseCard {
             // 1. Name
             meta.setDisplayName("§6§l" + getName());
 
-            // 2. Custom Model Data
-            meta.setCustomModelData(1); 
+            // 2. Custom Model Data (Fixed: Ab ye har card ke liye alag hoga)
+            meta.setCustomModelData(getModelData()); 
 
-            // 3. Shiny Effect (Fix: 1.21 uses UNBREAKING instead of DURABILITY)
+            // 3. Shiny Effect
             meta.addEnchant(Enchantment.UNBREAKING, 1, true);
             meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
 
