@@ -28,7 +28,6 @@ public class EndermanCard extends BaseCard {
     /* ---------------- LEFT CLICK (Teleport) ---------------- */
     @Override
     public void leftClick(Player p) {
-        // Config path: cards.enderman.teleport_cooldown
         int cd = SpcialSmp.get().getConfig().getInt("cards.enderman.teleport_cooldown", 5);
         if (!isCool(p, "tp", cd)) return;
 
@@ -54,15 +53,13 @@ public class EndermanCard extends BaseCard {
             );
             p.playSound(p.getLocation(), org.bukkit.Sound.ENTITY_ENDERMAN_TELEPORT, 1f, 1f);
         } else {
-            // Safe location nahi mili to cooldown reset
-            cooldowns.remove(p.getUniqueId().toString() + "tp");
+            cooldowns.remove(p.getUniqueId().toString() + "_tp");
         }
     }
 
     /* ---------------- RIGHT CLICK (Pull Target) ---------------- */
     @Override
     public void rightClick(Player p) {
-        // Config path: cards.enderman.pull_cooldown
         int cd = SpcialSmp.get().getConfig().getInt("cards.enderman.pull_cooldown", 10);
         if (!isCool(p, "pull", cd)) return;
 
@@ -74,7 +71,7 @@ public class EndermanCard extends BaseCard {
         );
 
         if (r == null || r.getHitEntity() == null) {
-            cooldowns.remove(p.getUniqueId().toString() + "pull");
+            cooldowns.remove(p.getUniqueId().toString() + "_pull");
             return;
         }
 
@@ -95,7 +92,6 @@ public class EndermanCard extends BaseCard {
     /* ---------------- SHIFT + RIGHT CLICK (Dragon Breath) ---------------- */
     @Override
     public void shiftRightClick(Player p) {
-        // Config path: cards.enderman.breath_cooldown
         int cd = SpcialSmp.get().getConfig().getInt("cards.enderman.breath_cooldown", 20);
         if (!isCool(p, "breath", cd)) return;
 
@@ -123,24 +119,36 @@ public class EndermanCard extends BaseCard {
         p.sendMessage(ChatColor.DARK_PURPLE + "Dragon Breath Released!");
     }
 
-    // --- COOLDOWN HELPER (Universal) ---
-    private boolean isCool(Player p, String key, int seconds) {
-    if (seconds <= 0) return true;
-    long now = System.currentTimeMillis();
-    
-    // Map ki key String honi chahiye
-    String mapKey = p.getUniqueId().toString() + "_" + key;
-    
-    if (cooldowns.containsKey(mapKey)) {
-        long timeLeft = (cooldowns.get(mapKey) - now) / 1000;
-        if (timeLeft > 0) {
-            // Config se message uthayega
-            String rawMsg = SpcialSmp.get().getConfig().getString("messages.cooldown-active", "§cWait %time%s");
-            p.sendMessage(rawMsg.replace("%time%", String.valueOf(timeLeft)));
-            return false;
+    /* ---------------- SAFE TELEPORT HELPER (FIXED) ---------------- */
+    private Location findSafeLocation(Location base, World w) {
+        for (int i = 0; i < 12; i++) {
+            double x = base.getX() + (Math.random() * 6 - 3);
+            double z = base.getZ() + (Math.random() * 6 - 3);
+            int y = w.getHighestBlockYAt((int) x, (int) z) + 1;
+
+            Location loc = new Location(w, x, y, z);
+            if (loc.getBlock().isPassable() && loc.clone().add(0, 1, 0).getBlock().isPassable()) {
+                return loc;
+            }
         }
+        return null;
     }
-    cooldowns.put(mapKey, now + (seconds * 1000L));
-    return true;
+
+    // --- COOLDOWN HELPER ---
+    private boolean isCool(Player p, String key, int seconds) {
+        if (seconds <= 0) return true;
+        long now = System.currentTimeMillis();
+        String mapKey = p.getUniqueId().toString() + "_" + key;
+        
+        if (cooldowns.containsKey(mapKey)) {
+            long timeLeft = (cooldowns.get(mapKey) - now) / 1000;
+            if (timeLeft > 0) {
+                String rawMsg = SpcialSmp.get().getConfig().getString("messages.cooldown-active", "§cWait %time%s");
+                p.sendMessage(rawMsg.replace("%time%", String.valueOf(timeLeft)));
+                return false;
+            }
+        }
+        cooldowns.put(mapKey, now + (seconds * 1000L));
+        return true;
     }
-}
+                }
