@@ -18,7 +18,7 @@ import java.util.UUID;
 public class EndermanCard extends BaseCard {
 
     // Step 1: Cooldown track karne ke liye Map
-    private final Map<UUID, Long> cooldowns = new HashMap<>();
+    private final Map<String, Long> cooldowns = new HashMap<>();
 
     @Override
     public String getName() {
@@ -125,30 +125,21 @@ public class EndermanCard extends BaseCard {
 
     // --- COOLDOWN HELPER (Universal) ---
     private boolean isCool(Player p, String key, int seconds) {
-        long now = System.currentTimeMillis();
-        String mapKey = p.getUniqueId().toString() + key;
-        if (cooldowns.containsKey(mapKey)) {
-            long timeLeft = (cooldowns.get(mapKey) - now) / 1000;
-            if (timeLeft > 0) {
-                p.sendMessage(ChatColor.RED + "Ability on cooldown: " + timeLeft + "s");
-                return false;
-            }
+    if (seconds <= 0) return true;
+    long now = System.currentTimeMillis();
+    
+    // Map ki key String honi chahiye
+    String mapKey = p.getUniqueId().toString() + "_" + key;
+    
+    if (cooldowns.containsKey(mapKey)) {
+        long timeLeft = (cooldowns.get(mapKey) - now) / 1000;
+        if (timeLeft > 0) {
+            // Config se message uthayega
+            String rawMsg = SpcialSmp.get().getConfig().getString("messages.cooldown-active", "§cWait %time%s");
+            p.sendMessage(rawMsg.replace("%time%", String.valueOf(timeLeft)));
+            return false;
         }
-        cooldowns.put(mapKey, now + (seconds * 1000L));
-        return true;
     }
-
-    private Location findSafeLocation(Location base, World w) {
-        for (int i = 0; i < 12; i++) {
-            double x = base.getX() + (Math.random() * 6 - 3);
-            double z = base.getZ() + (Math.random() * 6 - 3);
-            int y = w.getHighestBlockYAt((int) x, (int) z) + 1;
-
-            Location loc = new Location(w, x, y, z);
-            if (loc.getBlock().isPassable() && loc.clone().add(0, 1, 0).getBlock().isPassable()) {
-                return loc;
-            }
-        }
-        return null;
+    cooldowns.put(mapKey, now + (seconds * 1000L));
+    return true;
     }
-                                                      }
