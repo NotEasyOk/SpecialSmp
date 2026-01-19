@@ -1,12 +1,20 @@
 package com.noteasyok.spcialsmp.cards;
 
 import com.noteasyok.spcialsmp.SpcialSmp;
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Silverfish;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+
 public class RuinCard extends BaseCard {
+
+    // Cooldown track karne ke liye Map
+    private final Map<UUID, Long> cooldowns = new HashMap<>();
 
     @Override
     public String getName() {
@@ -15,9 +23,14 @@ public class RuinCard extends BaseCard {
 
     @Override
     public void leftClick(Player p) {
+        // --- CONFIG COOLDOWN ---
+        int cd = SpcialSmp.get().getConfig().getInt("cards.ruin.silverfish_cooldown", 20);
+        if (!isCool(p, "silverfish", cd)) return;
+
         for (int i = 0; i < 10; i++) {
             p.getWorld().spawn(p.getLocation(), Silverfish.class);
         }
+        p.sendMessage(ChatColor.GRAY + "Ruin unleashed: Silverfish spawned!");
     }
 
     @Override
@@ -27,6 +40,10 @@ public class RuinCard extends BaseCard {
 
     @Override
     public void shiftRightClick(Player p) {
+        // --- CONFIG COOLDOWN ---
+        int cd = SpcialSmp.get().getConfig().getInt("cards.ruin.poison_cooldown", 30);
+        if (!isCool(p, "poison", cd)) return;
+
         p.getNearbyEntities(6, 6, 6).forEach(entity -> {
             if (entity instanceof Player target && !target.equals(p)) {
                 target.addPotionEffect(
@@ -34,5 +51,21 @@ public class RuinCard extends BaseCard {
                 );
             }
         });
+        p.sendMessage(ChatColor.DARK_GREEN + "Ruin's Poison Cloud activated!");
     }
-}
+
+    // --- COOLDOWN HELPER (Universal) ---
+    private boolean isCool(Player p, String key, int seconds) {
+        long now = System.currentTimeMillis();
+        String mapKey = p.getUniqueId().toString() + key;
+        if (cooldowns.containsKey(mapKey)) {
+            long timeLeft = (cooldowns.get(mapKey) - now) / 1000;
+            if (timeLeft > 0) {
+                p.sendMessage(ChatColor.RED + "Wait " + timeLeft + "s for " + key + "!");
+                return false;
+            }
+        }
+        cooldowns.put(mapKey, now + (seconds * 1000L));
+        return true;
+    }
+                }
