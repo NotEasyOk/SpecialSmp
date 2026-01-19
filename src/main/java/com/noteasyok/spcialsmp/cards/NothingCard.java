@@ -18,7 +18,7 @@ import java.util.UUID;
 public class NothingCard extends BaseCard {
 
     // Cooldown track karne ke liye Map
-    private final Map<UUID, Long> cooldowns = new HashMap<>();
+    private final Map<String, Long> cooldowns = new HashMap<>();
 
     @Override
     public String getName() {
@@ -97,23 +97,21 @@ public class NothingCard extends BaseCard {
 
     // --- COOLDOWN HELPER (Universal) ---
     private boolean isCool(Player p, String key, int seconds) {
-        long now = System.currentTimeMillis();
-        String mapKey = p.getUniqueId().toString() + key;
-        if (cooldowns.containsKey(mapKey)) {
-            long timeLeft = (cooldowns.get(mapKey) - now) / 1000;
-            if (timeLeft > 0) {
-                p.sendMessage(ChatColor.RED + "Wait " + timeLeft + "s for " + key + "!");
-                return false;
-            }
+    if (seconds <= 0) return true;
+    long now = System.currentTimeMillis();
+    
+    // Map ki key String honi chahiye
+    String mapKey = p.getUniqueId().toString() + "_" + key;
+    
+    if (cooldowns.containsKey(mapKey)) {
+        long timeLeft = (cooldowns.get(mapKey) - now) / 1000;
+        if (timeLeft > 0) {
+            // Config se message uthayega
+            String rawMsg = SpcialSmp.get().getConfig().getString("messages.cooldown-active", "§cWait %time%s");
+            p.sendMessage(rawMsg.replace("%time%", String.valueOf(timeLeft)));
+            return false;
         }
-        cooldowns.put(mapKey, now + (seconds * 1000L));
-        return true;
     }
-
-    private boolean isHoldingCard(Player p) {
-        var item = p.getInventory().getItemInMainHand();
-        if (item == null || !item.hasItemMeta() || !item.getItemMeta().hasDisplayName()) return false;
-        String cleanName = ChatColor.stripColor(item.getItemMeta().getDisplayName());
-        return cleanName.equalsIgnoreCase(getName());
+    cooldowns.put(mapKey, now + (seconds * 1000L));
+    return true;
     }
-                             }
