@@ -19,7 +19,7 @@ import java.util.UUID;
 
 public class WardenCard extends BaseCard {
 
-    private final Map<UUID, Long> cooldowns = new HashMap<>();
+    private final Map<String, Long> cooldowns = new HashMap<>();
 
     @Override
     public String getName() {
@@ -87,32 +87,22 @@ public class WardenCard extends BaseCard {
     }
 
     // --- COOLDOWN HELPER ---
-    private boolean checkCooldown(Player p, String action, int seconds) {
-        UUID id = p.getUniqueId();
-        String key = id.toString() + action;
-        long now = System.currentTimeMillis();
-        
-        if (cooldowns.containsKey(id)) { // Simplest check
-            long lastTime = cooldowns.getOrDefault(id.getLeastSignificantBits() + action.hashCode(), 0L);
-            // Unique key for each action
-            String fullKey = id.toString() + "_" + action;
-            // Using a simple check
+    private boolean isCool(Player p, String key, int seconds) {
+    if (seconds <= 0) return true;
+    long now = System.currentTimeMillis();
+    
+    // Map ki key String honi chahiye
+    String mapKey = p.getUniqueId().toString() + "_" + key;
+    
+    if (cooldowns.containsKey(mapKey)) {
+        long timeLeft = (cooldowns.get(mapKey) - now) / 1000;
+        if (timeLeft > 0) {
+            // Config se message uthayega
+            String rawMsg = SpcialSmp.get().getConfig().getString("messages.cooldown-active", "§cWait %time%s");
+            p.sendMessage(rawMsg.replace("%time%", String.valueOf(timeLeft)));
+            return false;
         }
-        
-        // Final logic to keep it simple and config friendly
-        long nextUsage = cooldowns.getOrDefault(id, 0L); // This is just a placeholder
-        // Let's use a more precise key for separate action cooldowns
-        String mapKey = id.toString() + "_" + action;
-        
-        if (cooldowns.containsKey(mapKey)) {
-            long timeLeft = (cooldowns.get(mapKey) - now) / 1000;
-            if (timeLeft > 0) {
-                p.sendMessage(ChatColor.RED + "Ability on cooldown: " + timeLeft + "s");
-                return false;
-            }
-        }
-        
-        cooldowns.put(mapKey, now + (seconds * 1000L));
-        return true;
     }
-            }
+    cooldowns.put(mapKey, now + (seconds * 1000L));
+    return true;
+}
