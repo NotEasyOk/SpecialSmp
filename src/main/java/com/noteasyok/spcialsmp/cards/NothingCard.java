@@ -24,7 +24,12 @@ public class NothingCard extends BaseCard {
     public String getName() {
         return "Nothing Card";
     }
-
+    
+     @Override
+public int getModelData() {
+    return 6;
+}
+    
     /* ================= LEFT CLICK: TIME CHANGE ================= */
     @Override
     public void leftClick(Player p) {
