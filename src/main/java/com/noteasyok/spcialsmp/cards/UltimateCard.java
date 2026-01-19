@@ -18,6 +18,7 @@ import java.util.*;
 public class UltimateCard extends BaseCard {
 
     private final Map<UUID, List<ArmorStand>> orbiting = new HashMap<>();
+    private final Map<UUID, Long> cooldowns = new HashMap<>();
 
     @Override
     public String getName() {
@@ -42,18 +43,32 @@ public class UltimateCard extends BaseCard {
         startOrbit(p);
     }
 
-    /* ================= SHIFT + RIGHT: GIANT SWORD (FIXED) ================= */
+    /* ================= SHIFT + RIGHT: GIANT SWORD (FIXED + CONFIG) ================= */
     @Override
     public void shiftRightClick(Player p) {
+        // --- CONFIG COOLDOWN LOGIC ---
+        int configCooldown = SpcialSmp.get().getConfig().getInt("cards.ultimate.sword_cooldown", 30);
+        long now = System.currentTimeMillis();
+        
+        if (cooldowns.containsKey(p.getUniqueId())) {
+            long timeLeft = (cooldowns.get(p.getUniqueId()) - now) / 1000;
+            if (timeLeft > 0) {
+                p.sendMessage(ChatColor.RED + "Ultimate Sword cooldown: " + timeLeft + "s");
+                return;
+            }
+        }
+        // Set new cooldown
+        cooldowns.put(p.getUniqueId(), now + (configCooldown * 1000L));
+
+        // --- SWORD LOGIC ---
         Vector lookDir = p.getLocation().getDirection();
-        // 100 block tak ground scan karega
         RayTraceResult ray = p.getWorld().rayTraceBlocks(p.getEyeLocation(), lookDir, 100);
         
+        // Fix: ray symbol use kiya hai 'r' ki jagah
         Location targetLoc = (ray != null && ray.getHitPosition() != null) 
-                ? r.getHitPosition().toLocation(p.getWorld()) 
+                ? ray.getHitPosition().toLocation(p.getWorld()) 
                 : p.getLocation().add(lookDir.multiply(25));
 
-        // Sword asmaan se giregi
         Location spawnLoc = targetLoc.clone().add(0, 35, 0);
         
         ArmorStand sword = p.getWorld().spawn(spawnLoc, ArmorStand.class);
@@ -64,8 +79,8 @@ public class UltimateCard extends BaseCard {
         sword.setMarker(true); 
         sword.getEquipment().setItemInMainHand(new ItemStack(Material.DIAMOND_SWORD));
         
-        // POSE FIX: Sword ki noke (tip) neeche ki taraf
-        sword.setRightArmPose(new EulerAngle(Math.toRadians(0), 0, 0));
+        // POSE: Seedha neeche (0,0,0)
+        sword.setRightArmPose(new EulerAngle(0, 0, 0));
         
         if (sword.getAttribute(Attribute.GENERIC_SCALE) != null) {
             sword.getAttribute(Attribute.GENERIC_SCALE).setBaseValue(8.0);
@@ -76,19 +91,15 @@ public class UltimateCard extends BaseCard {
             @Override
             public void run() {
                 life++;
-                // Sword neeche giregi
                 Location currentLoc = sword.getLocation().subtract(0, 1.2, 0);
                 sword.teleport(currentLoc);
 
-                // GROUND DETECTION: Kya sword ke neeche solid block hai?
-                // Giant sword hai isliye thoda neeche check kar rahe hain
+                // Zameen touch detection
                 boolean hitBlock = currentLoc.clone().add(0, -1.5, 0).getBlock().getType().isSolid();
 
                 if (hitBlock || currentLoc.getY() <= targetLoc.getY() || life > 150) {
-                    // BLAST
                     p.getWorld().createExplosion(currentLoc, 15F, true, true, p);
                     
-                    // Bad Effects for 12 blocks
                     currentLoc.getWorld().getNearbyEntities(currentLoc, 12, 12, 12).forEach(entity -> {
                         if (entity instanceof LivingEntity target && !entity.equals(p)) {
                             target.addPotionEffect(new PotionEffect(PotionEffectType.POISON, 200, 1));
