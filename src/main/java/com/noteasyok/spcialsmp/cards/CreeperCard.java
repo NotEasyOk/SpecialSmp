@@ -1,30 +1,32 @@
 package com.noteasyok.spcialsmp.cards;
 
 import com.noteasyok.spcialsmp.SpcialSmp;
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.World;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.Listener;
-import org.bukkit.event.entity.EntityExplodeEvent;
+import org.bukkit.*;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.TNTPrimed;
 import org.bukkit.util.RayTraceResult;
 import org.bukkit.util.Vector;
 import org.bukkit.scheduler.BukkitRunnable;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+
 public class CreeperCard extends BaseCard {
+
+    private final Map<UUID, Long> cooldowns = new HashMap<>();
 
     @Override
     public String getName() {
         return "Creeper Card";
     }
 
-    /* ================= LEFT CLICK =================
-       Big explosion at target block
-     */
+    /* ================= LEFT CLICK (Big Explosion) ================= */
     @Override
     public void leftClick(Player p) {
+        int cd = SpcialSmp.get().getConfig().getInt("cards.creeper.left_click_cooldown", 10);
+        if (!isCool(p, "boom", cd)) return;
+
         Location loc = p.getTargetBlockExact(12) != null
                 ? p.getTargetBlockExact(12).getLocation().add(0, 1, 0)
                 : p.getLocation();
@@ -32,19 +34,17 @@ public class CreeperCard extends BaseCard {
         p.getWorld().createExplosion(loc, 5f, true, true, p);
     }
 
-    /* ================= RIGHT CLICK =================
-       Orbital strike (ground touch explosion)
-     */
+    /* ================= RIGHT CLICK (Orbital Strike with Animation) ================= */
     @Override
     public void rightClick(Player p) {
+        int cd = SpcialSmp.get().getConfig().getInt("cards.creeper.right_click_cooldown", 30);
+        if (!isCool(p, "orbital", cd)) return;
 
-        RayTraceResult r = p.getWorld().rayTraceBlocks(
-                p.getEyeLocation(),
-                p.getEyeLocation().getDirection(),
-                120
-        );
-
-        if (r == null || r.getHitPosition() == null) return;
+        RayTraceResult r = p.getWorld().rayTraceBlocks(p.getEyeLocation(), p.getEyeLocation().getDirection(), 120);
+        if (r == null || r.getHitPosition() == null) {
+            cooldowns.remove(p.getUniqueId().toString() + "orbital");
+            return;
+        }
 
         World w = p.getWorld();
         Location hit = r.getHitPosition().toLocation(w);
@@ -53,74 +53,67 @@ public class CreeperCard extends BaseCard {
         TNTPrimed tnt = w.spawn(spawn, TNTPrimed.class);
         tnt.setVelocity(new Vector(0, -2.5, 0));
         tnt.setFuseTicks(200);
-        tnt.setYield(10f); // ~10 TNT power
+        tnt.setYield(10f);
         tnt.setIsIncendiary(false);
 
         new BukkitRunnable() {
             @Override
             public void run() {
-                if (!tnt.isValid()) {
-                  this.cancel();
+                if (!tnt.isValid() || tnt.isDead()) {
+                    this.cancel();
                     return;
                 }
-                if (tnt.isOnGround()) {
+
+                // --- YELLOW PARTICLE ANIMATION ---
+                // TNT se particles nikal kar upar (Y positive) jayenge
+                w.spawnParticle(Particle.DUST, tnt.getLocation(), 10, 0.2, 0.2, 0.2, 0.1, new Particle.DustOptions(Color.YELLOW, 1.5f));
+                w.spawnParticle(Particle.ORANGE_FLAME, tnt.getLocation(), 5, 0.1, 0.5, 0.1, 0.05);
+
+                if (tnt.isOnGround() || tnt.getLocation().getY() <= hit.getY() + 0.5) {
                     Location l = tnt.getLocation();
                     tnt.remove();
                     w.createExplosion(l, 10f, true, true, p);
-                    cancel();
+                    this.cancel();
                 }
             }
         }.runTaskTimer(SpcialSmp.get(), 0L, 1L);
     }
 
-    /* ================= SHIFT + RIGHT CLICK =================
-       TNT Rain for 5 seconds
-     */
+    /* ================= SHIFT + RIGHT CLICK (TNT Rain) ================= */
     @Override
     public void shiftRightClick(Player p) {
+        int cd = SpcialSmp.get().getConfig().getInt("cards.creeper.shift_click_cooldown", 60);
+        if (!isCool(p, "rain", cd)) return;
 
-        RayTraceResult r = p.getWorld().rayTraceBlocks(
-                p.getEyeLocation(),
-                p.getEyeLocation().getDirection(),
-                120
-        );
-
-        if (r == null || r.getHitPosition() == null) return;
+        RayTraceResult r = p.getWorld().rayTraceBlocks(p.getEyeLocation(), p.getEyeLocation().getDirection(), 120);
+        if (r == null || r.getHitPosition() == null) {
+            cooldowns.remove(p.getUniqueId().toString() + "rain");
+            return;
+        }
 
         World w = p.getWorld();
         Location center = r.getHitPosition().toLocation(w);
 
         new BukkitRunnable() {
-
             int ticks = 0;
-
             @Override
             public void run() {
+                if (ticks >= 100) { cancel(); return; }
 
-                if (ticks >= 100) { // 5 seconds
-                    cancel();
-                    return;
-                }
-
-                Location spawn = center.clone().add(
-                        (Math.random() * 8) - 4,
-                        30,
-                        (Math.random() * 8) - 4
-                );
-
+                Location spawn = center.clone().add((Math.random() * 8) - 4, 30, (Math.random() * 8) - 4);
                 TNTPrimed tnt = w.spawn(spawn, TNTPrimed.class);
                 tnt.setVelocity(new Vector(0, -2.5, 0));
                 tnt.setFuseTicks(200);
                 tnt.setYield(6f);
-                tnt.setIsIncendiary(false);
 
                 new BukkitRunnable() {
                     @Override
                     public void run() {
-                        if (!tnt.isValid()) {
-                            this.cancel();
-                            return;
-                        }
+                        if (!tnt.isValid()) { this.cancel(); return; }
+                        
+                        // Yellow tail for rain TNT too
+                        w.spawnParticle(Particle.DUST, tnt.getLocation(), 5, 0.1, 0.1, 0.1, 0.1, new Particle.DustOptions(Color.YELLOW, 1.0f));
+
                         if (tnt.isOnGround()) {
                             Location l = tnt.getLocation();
                             tnt.remove();
@@ -132,7 +125,21 @@ public class CreeperCard extends BaseCard {
 
                 ticks += 10;
             }
-
         }.runTaskTimer(SpcialSmp.get(), 0L, 10L);
     }
-}
+
+    // --- COOLDOWN HELPER ---
+    private boolean isCool(Player p, String key, int seconds) {
+        long now = System.currentTimeMillis();
+        String mapKey = p.getUniqueId().toString() + key;
+        if (cooldowns.containsKey(mapKey)) {
+            long timeLeft = (cooldowns.get(mapKey) - now) / 1000;
+            if (timeLeft > 0) {
+                p.sendMessage(ChatColor.RED + "Creeper ability on cooldown: " + timeLeft + "s");
+                return false;
+            }
+        }
+        cooldowns.put(mapKey, now + (seconds * 1000L));
+        return true;
+    }
+    }
