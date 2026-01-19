@@ -43,28 +43,15 @@ public class UltimateCard extends BaseCard {
         startOrbit(p);
     }
 
-    /* ================= SHIFT + RIGHT: GIANT SWORD (FIXED + CONFIG) ================= */
+    /* ================= SHIFT + RIGHT: GIANT SWORD ================= */
     @Override
     public void shiftRightClick(Player p) {
-        // --- CONFIG COOLDOWN LOGIC ---
-        int configCooldown = SpcialSmp.get().getConfig().getInt("cards.ultimate.sword_cooldown", 30);
-        long now = System.currentTimeMillis();
-        
-        if (cooldowns.containsKey(p.getUniqueId())) {
-            long timeLeft = (cooldowns.get(p.getUniqueId()) - now) / 1000;
-            if (timeLeft > 0) {
-                p.sendMessage(ChatColor.RED + "Ultimate Sword cooldown: " + timeLeft + "s");
-                return;
-            }
-        }
-        // Set new cooldown
-        cooldowns.put(p.getUniqueId(), now + (configCooldown * 1000L));
+        int cd = SpcialSmp.get().getConfig().getInt("cards.ultimate.sword_cooldown", 30);
+        if (!isCool(p, "ultimate_sword", cd)) return;
 
-        // --- SWORD LOGIC ---
         Vector lookDir = p.getLocation().getDirection();
         RayTraceResult ray = p.getWorld().rayTraceBlocks(p.getEyeLocation(), lookDir, 100);
         
-        // Fix: ray symbol use kiya hai 'r' ki jagah
         Location targetLoc = (ray != null && ray.getHitPosition() != null) 
                 ? ray.getHitPosition().toLocation(p.getWorld()) 
                 : p.getLocation().add(lookDir.multiply(25));
@@ -79,7 +66,6 @@ public class UltimateCard extends BaseCard {
         sword.setMarker(true); 
         sword.getEquipment().setItemInMainHand(new ItemStack(Material.DIAMOND_SWORD));
         
-        // POSE: Seedha neeche (0,0,0)
         sword.setRightArmPose(new EulerAngle(0, 0, 0));
         
         if (sword.getAttribute(Attribute.GENERIC_SCALE) != null) {
@@ -94,7 +80,6 @@ public class UltimateCard extends BaseCard {
                 Location currentLoc = sword.getLocation().subtract(0, 1.2, 0);
                 sword.teleport(currentLoc);
 
-                // Zameen touch detection
                 boolean hitBlock = currentLoc.clone().add(0, -1.5, 0).getBlock().getType().isSolid();
 
                 if (hitBlock || currentLoc.getY() <= targetLoc.getY() || life > 150) {
@@ -170,6 +155,22 @@ public class UltimateCard extends BaseCard {
         if (nbtId != null && nbtId.equals(getName())) return true;
         
         String name = ChatColor.stripColor(item.getItemMeta().getDisplayName());
-        return name != null && name.equals(getName());
+        return name != null && name.equalsIgnoreCase(getName());
     }
+
+    private boolean isCool(Player p, String key, int seconds) {
+        if (seconds <= 0) return true;
+        long now = System.currentTimeMillis();
+        String mapKey = p.getUniqueId().toString() + "_" + key;
+        if (cooldowns.containsKey(mapKey)) {
+            long timeLeft = (cooldowns.get(mapKey) - now) / 1000;
+            if (timeLeft > 0) {
+                String rawMsg = SpcialSmp.get().getConfig().getString("messages.cooldown-active", "§cWait %time%s");
+                p.sendMessage(rawMsg.replace("%time%", String.valueOf(timeLeft)));
+                return false;
             }
+        }
+        cooldowns.put(mapKey, now + (seconds * 1000L));
+        return true;
+    }
+    }
