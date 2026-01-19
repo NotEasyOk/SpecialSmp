@@ -20,7 +20,12 @@ public class RuinCard extends BaseCard {
     public String getName() {
         return "Ruin Card";
     }
-
+    
+     @Override
+public int getModelData() {
+    return 7;
+}
+    
     @Override
     public void leftClick(Player p) {
         // --- CONFIG COOLDOWN ---
