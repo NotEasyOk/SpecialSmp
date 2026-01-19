@@ -26,7 +26,12 @@ public class HerobrineCard extends BaseCard {
     public String getName() {
         return "Herobrine Card";
     }
-
+    
+     @Override
+public int getModelData() {
+    return 4;
+}
+    
     /* ---------------- LEFT CLICK (Lightning) ---------------- */
     @Override
     public void leftClick(Player p) {
