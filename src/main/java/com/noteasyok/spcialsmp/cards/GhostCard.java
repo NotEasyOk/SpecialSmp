@@ -2,22 +2,33 @@ package com.noteasyok.spcialsmp.cards;
 
 import com.noteasyok.spcialsmp.SpcialSmp;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+
 public class GhostCard extends BaseCard {
+
+    // Cooldown track karne ke liye Map
+    private final Map<UUID, Long> cooldowns = new HashMap<>();
 
     @Override
     public String getName() {
         return "Ghost Card";
     }
 
-    /* ---------------- LEFT CLICK ---------------- */
-    // Slow floating ghost movement
+    /* ---------------- LEFT CLICK (Slow Falling) ---------------- */
     @Override
     public void leftClick(Player p) {
+        // Config path: cards.ghost.left_click_cooldown
+        int cd = SpcialSmp.get().getConfig().getInt("cards.ghost.left_click_cooldown", 5);
+        if (!isCool(p, "float", cd)) return;
+
         p.addPotionEffect(new PotionEffect(
                 PotionEffectType.SLOW_FALLING,
                 20 * 10,
@@ -27,10 +38,12 @@ public class GhostCard extends BaseCard {
         ));
     }
 
-    /* ---------------- RIGHT CLICK ---------------- */
-    // Fly only for 20 seconds
+    /* ---------------- RIGHT CLICK (Fly 20s) ---------------- */
     @Override
     public void rightClick(Player p) {
+        // Config path: cards.ghost.right_click_cooldown
+        int cd = SpcialSmp.get().getConfig().getInt("cards.ghost.right_click_cooldown", 40);
+        if (!isCool(p, "fly", cd)) return;
 
         p.setAllowFlight(true);
         p.setFlying(true);
@@ -48,15 +61,16 @@ public class GhostCard extends BaseCard {
         );
     }
 
-    /* ---------------- SHIFT + RIGHT CLICK ---------------- */
-    // Ghost phase mode (pass through blocks)
+    /* ---------------- SHIFT + RIGHT CLICK (Spectator Phase) ---------------- */
     @Override
     public void shiftRightClick(Player p) {
+        // Config path: cards.ghost.shift_click_cooldown
+        int cd = SpcialSmp.get().getConfig().getInt("cards.ghost.shift_click_cooldown", 60);
+        if (!isCool(p, "phase", cd)) return;
 
         GameMode old = p.getGameMode();
         p.setGameMode(GameMode.SPECTATOR);
 
-        // invisibility safety (in case resource packs etc.)
         p.addPotionEffect(new PotionEffect(
                 PotionEffectType.INVISIBILITY,
                 20 * 20,
@@ -75,4 +89,19 @@ public class GhostCard extends BaseCard {
                 20L * 20 // 20 seconds
         );
     }
-}
+
+    // --- COOLDOWN HELPER (Universal) ---
+    private boolean isCool(Player p, String key, int seconds) {
+        long now = System.currentTimeMillis();
+        String mapKey = p.getUniqueId().toString() + key;
+        if (cooldowns.containsKey(mapKey)) {
+            long timeLeft = (cooldowns.get(mapKey) - now) / 1000;
+            if (timeLeft > 0) {
+                p.sendMessage(ChatColor.RED + "Ghost ability on cooldown: " + timeLeft + "s");
+                return false;
+            }
+        }
+        cooldowns.put(mapKey, now + (seconds * 1000L));
+        return true;
+    }
+            }
