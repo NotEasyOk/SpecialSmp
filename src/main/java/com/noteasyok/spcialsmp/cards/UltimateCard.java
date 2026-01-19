@@ -24,35 +24,36 @@ public class UltimateCard extends BaseCard {
         return "Ultimate Card";
     }
 
-    /* ================= LEFT CLICK: UNLIMITED LIGHTNING SPAM ================= */
+    /* ================= LEFT CLICK: LIGHTNING ================= */
     @Override
     public void leftClick(Player p) {
-        // Lightning Strike logic (No Cooldown)
         RayTraceResult r = p.getWorld().rayTraceBlocks(p.getEyeLocation(), p.getEyeLocation().getDirection(), 60);
         Location hitLoc = (r != null && r.getHitPosition() != null) 
                 ? r.getHitPosition().toLocation(p.getWorld()) 
                 : p.getLocation().add(p.getLocation().getDirection().multiply(20));
 
         p.getWorld().strikeLightning(hitLoc);
-        p.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 100, 1)); // Thoda speed boost click par
+        p.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 100, 1));
     }
 
-    /* ================= RIGHT CLICK: MANUAL ORBIT ================= */
+    /* ================= RIGHT CLICK: ORBIT ================= */
     @Override
     public void rightClick(Player p) {
         startOrbit(p);
     }
 
-    /* ================= SHIFT + RIGHT: GIANT SWORD (With Bad Effects) ================= */
+    /* ================= SHIFT + RIGHT: GIANT SWORD (FIXED) ================= */
     @Override
     public void shiftRightClick(Player p) {
         Vector lookDir = p.getLocation().getDirection();
-        RayTraceResult ray = p.getWorld().rayTraceBlocks(p.getEyeLocation(), lookDir, 60);
+        // 100 block tak ground scan karega
+        RayTraceResult ray = p.getWorld().rayTraceBlocks(p.getEyeLocation(), lookDir, 100);
         
         Location targetLoc = (ray != null && ray.getHitPosition() != null) 
-                ? ray.getHitPosition().toLocation(p.getWorld()) 
-                : p.getLocation().add(lookDir.multiply(15));
+                ? r.getHitPosition().toLocation(p.getWorld()) 
+                : p.getLocation().add(lookDir.multiply(25));
 
+        // Sword asmaan se giregi
         Location spawnLoc = targetLoc.clone().add(0, 35, 0);
         
         ArmorStand sword = p.getWorld().spawn(spawnLoc, ArmorStand.class);
@@ -62,7 +63,9 @@ public class UltimateCard extends BaseCard {
         sword.setArms(true);
         sword.setMarker(true); 
         sword.getEquipment().setItemInMainHand(new ItemStack(Material.DIAMOND_SWORD));
-        sword.setRightArmPose(new EulerAngle(Math.toRadians(180), 0, 0));
+        
+        // POSE FIX: Sword ki noke (tip) neeche ki taraf
+        sword.setRightArmPose(new EulerAngle(Math.toRadians(0), 0, 0));
         
         if (sword.getAttribute(Attribute.GENERIC_SCALE) != null) {
             sword.getAttribute(Attribute.GENERIC_SCALE).setBaseValue(8.0);
@@ -73,23 +76,28 @@ public class UltimateCard extends BaseCard {
             @Override
             public void run() {
                 life++;
-                Location loc = sword.getLocation().subtract(0, 1.8, 0);
-                sword.teleport(loc);
+                // Sword neeche giregi
+                Location currentLoc = sword.getLocation().subtract(0, 1.2, 0);
+                sword.teleport(currentLoc);
 
-                if (loc.getBlock().getType().isSolid() || loc.getY() <= targetLoc.getY() || life > 100) {
-                    // Explosion
-                    p.getWorld().createExplosion(loc, 15F, true, true, p);
+                // GROUND DETECTION: Kya sword ke neeche solid block hai?
+                // Giant sword hai isliye thoda neeche check kar rahe hain
+                boolean hitBlock = currentLoc.clone().add(0, -1.5, 0).getBlock().getType().isSolid();
+
+                if (hitBlock || currentLoc.getY() <= targetLoc.getY() || life > 150) {
+                    // BLAST
+                    p.getWorld().createExplosion(currentLoc, 15F, true, true, p);
                     
-                    // ✅ BAD EFFECTS (Poison + Wither)
-                    loc.getWorld().getNearbyEntities(loc, 10, 10, 10).forEach(entity -> {
+                    // Bad Effects for 12 blocks
+                    currentLoc.getWorld().getNearbyEntities(currentLoc, 12, 12, 12).forEach(entity -> {
                         if (entity instanceof LivingEntity target && !entity.equals(p)) {
-                            target.addPotionEffect(new PotionEffect(PotionEffectType.POISON, 200, 1)); // 10s Poison
-                            target.addPotionEffect(new PotionEffect(PotionEffectType.WITHER, 100, 1)); // 5s Wither
+                            target.addPotionEffect(new PotionEffect(PotionEffectType.POISON, 200, 1));
+                            target.addPotionEffect(new PotionEffect(PotionEffectType.WITHER, 100, 1));
                         }
                     });
 
-                    p.getWorld().spawnParticle(Particle.EXPLOSION_EMITTER, loc, 5);
-                    p.getWorld().playSound(loc, Sound.ENTITY_GENERIC_EXPLODE, 1.0f, 0.5f);
+                    p.getWorld().spawnParticle(Particle.EXPLOSION_EMITTER, currentLoc, 5);
+                    p.getWorld().playSound(currentLoc, Sound.ENTITY_GENERIC_EXPLODE, 1.0f, 0.5f);
                     sword.remove();
                     this.cancel();
                 }
@@ -97,14 +105,12 @@ public class UltimateCard extends BaseCard {
         }.runTaskTimer(SpcialSmp.get(), 0L, 1L);
     }
 
-    /* ================= STABLE 9-CARD ORBIT ================= */
+    /* ================= ORBIT LOGIC ================= */
     public void startOrbit(Player p) {
         if (orbiting.containsKey(p.getUniqueId())) return;
 
         List<ArmorStand> cards = new ArrayList<>();
-        int count = 9; 
-
-        for (int i = 0; i < count; i++) {
+        for (int i = 0; i < 9; i++) {
             ArmorStand as = p.getWorld().spawn(p.getLocation(), ArmorStand.class);
             as.setInvisible(true);
             as.setMarker(true);
@@ -138,7 +144,6 @@ public class UltimateCard extends BaseCard {
                     Location loc = p.getLocation().clone().add(x, 1.2, z);
                     Vector dir = p.getLocation().toVector().subtract(loc.toVector());
                     loc.setDirection(dir);
-                    
                     cards.get(i).teleport(loc);
                 }
             }
@@ -156,4 +161,4 @@ public class UltimateCard extends BaseCard {
         String name = ChatColor.stripColor(item.getItemMeta().getDisplayName());
         return name != null && name.equals(getName());
     }
-    }
+            }
