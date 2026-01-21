@@ -1,74 +1,116 @@
 # ======================================================
-#          SPECIAL SMP - CARDS CONFIGURATION
+#          SPECIAL SMP - OFFICIAL CONFIGURATION
 # ======================================================
-# Version: 1.21x
-#Author: NotEasyOk
+# Version: 1.0
+# Author: NotEasyOk
+# Support: 1.21.x
 # ------------------------------------------------------
-# CARD COOLDOWNS (In Seconds)
+
+# GENERAL SETTINGS
+settings:
+  prefix: "&8[&6&lSpecialSMP&8] &r"
+  first-join-give-card: true
+
+# ------------------------------------------------------
+# CARD CONFIGURATIONS
+# Note: cooldowns
 # ------------------------------------------------------
 cards:
-  ultimate:
-    sword_cooldown: 120
-  warden:
-    left_click_cooldown: 60
-    right_click_cooldown: 120
-    shift_click_cooldown: 60
-  zombie:
-    cooldown: 60
-  ruin:
-    silverfish_cooldown: 30
-    poison_cooldown: 45
-  nothing:
-    left_click_cooldown: 20
-    right_click_cooldown: 40
-    shift_click_cooldown: 60
-  lighting:
-    left_click_cooldown: 40
-    right_click_cooldown: 20
-    shift_click_cooldown: 60
-  herobrine:
-    left_click_cooldown: 10
-    right_click_cooldown: 60
-    shift_click_cooldown: 180
-  ghost:
-    left_click_cooldown: 60
-    right_click_cooldown: 40
-    shift_click_cooldown: 90
-  enderman:
-    teleport_cooldown: 60
-    pull_cooldown: 40
-    breath_cooldown: 90
   creeper:
-    left_click_cooldown: 60
-    right_click_cooldown: 90
-    shift_click_cooldown: 120
+    display-name: "Creeper Card"
+    model-data: 1
+    cooldowns:
+      left-click: 60
+      right-click: 90
+      shift-click: 120
+
+  warden:
+    display-name: "Warden Card"
+    model-data: 2
+    cooldowns:
+      left-click: 60
+      right-click: 120
+      shift-click: 60
+
+  herobrine:
+    display-name: "Herobrine Card"
+    model-data: 3
+    cooldowns:
+      left-click: 10
+      right-click: 60
+      shift-click: 180
+
+  zombie:
+    display-name: "Zombie Card"
+    model-data: 4
+    cooldowns:
+      left-click: 60
+      right-click: 60
+      shift-click: 60
+    # Zombie specific settings
+    max-zombies: 2
+    duration: 60
+
+  ruin:
+    display-name: "Ruin Card"
+    model-data: 5
+    cooldowns:
+      left-click: 30 # Silverfish ability
+      right-click: 45 # Poison ability
+      shift-click: 60
+
+  ultimate:
+    display-name: "Ultimate Card"
+    model-data: 6
+    cooldowns:
+      left-click: 120 # Sword ability
+      right-click: 120
+      shift-click: 120
+
+  ghost:
+    display-name: "Ghost Card"
+    model-data: 7
+    cooldowns:
+      left-click: 60
+      right-click: 40
+      shift-click: 90
+
+  enderman:
+    display-name: "Enderman Card"
+    model-data: 8
+    cooldowns:
+      left-click: 60 # Teleport
+      right-click: 40 # Pull
+      shift-click: 90 # Breath
+
+  nothing:
+    display-name: "Nothing Card"
+    model-data: 9
+    cooldowns:
+      left-click: 20
+      right-click: 40
+      shift-click: 60
+
+  lightning:
+    display-name: "Lightning Card"
+    model-data: 10
+    cooldowns:
+      left-click: 40
+      right-click: 20
+      shift-click: 60
 
 # ------------------------------------------------------
-# CARD SPECIFIC ABILITIES
-# ------------------------------------------------------
-zombie-card:
-  max-zombies: 2
-  duration-seconds: 60
+# MESSAGES SECTION
+# -----------------------------------------------------
 
-# ------------------------------------------------------
-# MESSAGES
-# ------------------------------------------------------
-messages:
-  prefix: "§8[§6§lSpecialSMP§8] §r"
-  cooldown-active: "§cPlease wait §e%time%s §cbefore using this again."
-
-# ------------------------------------------------------
-# OTHER SETTINGS
-# ------------------------------------------------------
-first-join:
-  give-random-card: true
-  allowed-cards:
-    - "Enderman"
-    - "Herobrine"
-    - "Nothing"
-    - "Zombie"
-    - "Warden"
-    - "Creeper"
-    - "Lighting"
-    - "Ghost"
-    - "Ruin"
+allowed-first-join-cards:
+  - "creeper"
+  - "warden"
+  - "herobrine"
+  - "zombie"
+  - "ruin"
+  - "ultimate"
+  - "ghost"
+  - "enderman"
+  - "nothing"
+  - "lightning"
