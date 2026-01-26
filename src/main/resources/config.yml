@@ -6,111 +6,94 @@
 # Support: 1.21.x
 # ------------------------------------------------------
 
-# GENERAL SETTINGS
 settings:
   prefix: "&8[&6&lSpecialSMP&8] &r"
   first-join-give-card: true
 
 # ------------------------------------------------------
 # CARD CONFIGURATIONS
-# Note: cooldowns
 # ------------------------------------------------------
 cards:
-  creeper:
-    display-name: "Creeper Card"
-    model-data: 1
-    cooldowns:
-      left-click: 60
-      right-click: 90
-      shift-click: 120
+  "Enderman Card":
+    display-name: "&d&lEnderman Card"
+    teleport_cooldown: 60
+    pull_cooldown: 40
+    breath_cooldown: 90
 
-  warden:
-    display-name: "Warden Card"
-    model-data: 2
-    cooldowns:
-      left-click: 60
-      right-click: 120
-      shift-click: 60
+  "Herobrine Card":
+    display-name: "&4&lHerobrine Card"
+    strike_cooldown: 10
+    scare_cooldown: 60
+    shift_click_cooldown: 180
 
-  herobrine:
-    display-name: "Herobrine Card"
-    model-data: 3
-    cooldowns:
-      left-click: 10
-      right-click: 60
-      shift-click: 180
+  "Nothing Card":
+    display-name: "&f&lNothing Card"
+    time_set_cooldown: 20
+    mind_control_cooldown: 40
+    no_fall_cooldown: 60
 
-  zombie:
-    display-name: "Zombie Card"
-    model-data: 4
-    cooldowns:
-      left-click: 60
-      right-click: 60
-      shift-click: 60
-    # Zombie specific settings
+  "Zombie Card":
+    display-name: "&2&lZombie Card"
+    summon_cooldown: 60
+    feed_cooldown: 60
+    horde_mode_cooldown: 120
     max-zombies: 2
     duration: 60
 
-  ruin:
-    display-name: "Ruin Card"
-    model-data: 5
-    cooldowns:
-      left-click: 30 # Silverfish ability
-      right-click: 45 # Poison ability
-      shift-click: 60
+  "Warden Card":
+    display-name: "&3&lWarden Card"
+    darkness_cooldown: 60
+    sonic_boom_cooldown: 120
+    tank_mode_cooldown: 180
 
-  ultimate:
-    display-name: "Ultimate Card"
-    model-data: 6
-    cooldowns:
-      left-click: 120 # Sword ability
-      right-click: 120
-      shift-click: 120
+  "Creeper Card":
+    display-name: "&a&lCreeper Card"
+    explosion_cooldown: 60
+    airstrike_cooldown: 90
+    nuke_rain_cooldown: 120
 
-  ghost:
-    display-name: "Ghost Card"
-    model-data: 7
-    cooldowns:
-      left-click: 60
-      right-click: 40
-      shift-click: 90
+  "Lighting Card":
+    display-name: "&e&lLighting Card"
+    strike_cooldown: 40
+    storm_cooldown: 20
+    trail_cooldown: 60
 
-  enderman:
-    display-name: "Enderman Card"
-    model-data: 8
-    cooldowns:
-      left-click: 60 # Teleport
-      right-click: 40 # Pull
-      shift-click: 90 # Breath
+  "Ghost Card":
+    display-name: "&7&lGhost Card"
+    wall_clip_cooldown: 60
+    fly_cooldown: 40
+    invis_cooldown: 90
 
-  nothing:
-    display-name: "Nothing Card"
-    model-data: 9
-    cooldowns:
-      left-click: 20
-      right-click: 40
-      shift-click: 60
+  "Ruin Card":
+    display-name: "&0&lRuin Card"
+    infection_cooldown: 30
+    silverfish_cooldown: 45
+    poison_area_cooldown: 60
 
-  lightning:
-    display-name: "Lightning Card"
-    model-data: 10
-    cooldowns:
-      left-click: 40
-      right-click: 20
-      shift-click: 60
+  "Ultimate Card":
+    display-name: "&6&lUltimate Card"
+    sword_cooldown: 120
+    special_cooldown: 120
+    god_mode_cooldown: 300
 
 # ------------------------------------------------------
 # MESSAGES SECTION
-# -----------------------------------------------------
+# ------------------------------------------------------
+messages:
+  no-permission: "&cYou do not have permission to use this!"
+  cooldown-active: "&cPlease wait &e%time%s &cbefore using this again."
+  card-received: "&aYou received a &6%card%&a!"
 
+# ------------------------------------------------------
+# REGISTRATION LIST
+# ------------------------------------------------------
 allowed-first-join-cards:
-  - "creeper"
-  - "warden"
-  - "herobrine"
-  - "zombie"
-  - "ruin"
-  - "ultimate"
-  - "ghost"
-  - "enderman"
-  - "nothing"
-  - "lightning"
+  - "Enderman Card"
+  - "Herobrine Card"
+  - "Nothing Card"
+  - "Zombie Card"
+  - "Warden Card"
+  - "Creeper Card"
+  - "Lighting Card"
+  - "Ghost Card"
+  - "Ruin Card"
