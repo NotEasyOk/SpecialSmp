@@ -108,48 +108,59 @@ public int getModelData() {
 
     /* ================= ORBIT LOGIC ================= */
     public void startOrbit(Player p) {
-        if (orbiting.containsKey(p.getUniqueId())) return;
+    if (orbiting.containsKey(p.getUniqueId())) return;
 
-        List<ArmorStand> cards = new ArrayList<>();
-        for (int i = 0; i < 9; i++) {
-            ArmorStand as = p.getWorld().spawn(p.getLocation(), ArmorStand.class);
-            as.setInvisible(true);
-            as.setMarker(true);
-            as.setGravity(false);
-            as.setSmall(true);
-            as.getEquipment().setItemInMainHand(new ItemStack(Material.PAPER));
-            as.setRightArmPose(new EulerAngle(Math.toRadians(-90), 0, 0));
-            cards.add(as);
+    List<ArmorStand> cards = new ArrayList<>();
+    for (int i = 0; i < 9; i++) {
+        ArmorStand as = p.getWorld().spawn(p.getLocation(), ArmorStand.class);
+        as.setInvisible(true);
+        as.setMarker(true);
+        as.setGravity(false);
+        as.setSmall(true);
+
+        // --- Texture Logic: Applying 1-9 Custom Model Data ---
+        ItemStack cardItem = new ItemStack(Material.PAPER);
+        ItemMeta meta = cardItem.getItemMeta();
+        if (meta != null) {
+            // Har armor stand ko alag card texture milega (1 to 9)
+            meta.setCustomModelData(i + 1); 
+            cardItem.setItemMeta(meta);
         }
-        orbiting.put(p.getUniqueId(), cards);
+        as.getEquipment().setItemInMainHand(cardItem);
+        // ---------------------------------------------------
 
-        new BukkitRunnable() {
-            double angle = 0;
-            @Override
-            public void run() {
-                if (!p.isOnline() || !isHoldingCard(p)) {
-                    cards.forEach(Entity::remove);
-                    orbiting.remove(p.getUniqueId());
-                    this.cancel();
-                    return;
-                }
-
-                angle += 0.12; 
-                double radius = 2.8;
-
-                for (int i = 0; i < cards.size(); i++) {
-                    double offset = (2 * Math.PI / cards.size()) * i;
-                    double x = radius * Math.cos(angle + offset);
-                    double z = radius * Math.sin(angle + offset);
-                    
-                    Location loc = p.getLocation().clone().add(x, 1.2, z);
-                    Vector dir = p.getLocation().toVector().subtract(loc.toVector());
-                    loc.setDirection(dir);
-                    cards.get(i).teleport(loc);
-                }
-            }
-        }.runTaskTimer(SpcialSmp.get(), 0L, 1L);
+        as.setRightArmPose(new EulerAngle(Math.toRadians(-90), 0, 0));
+        cards.add(as);
     }
+    orbiting.put(p.getUniqueId(), cards);
+
+    new BukkitRunnable() {
+        double angle = 0;
+        @Override
+        public void run() {
+            if (!p.isOnline() || !isHoldingCard(p)) {
+                cards.forEach(Entity::remove);
+                orbiting.remove(p.getUniqueId());
+                this.cancel();
+                return;
+            }
+
+            angle += 0.12; 
+            double radius = 2.8;
+
+            for (int i = 0; i < cards.size(); i++) {
+                double offset = (2 * Math.PI / cards.size()) * i;
+                double x = radius * Math.cos(angle + offset);
+                double z = radius * Math.sin(angle + offset);
+                
+                Location loc = p.getLocation().clone().add(x, 1.2, z);
+                Vector dir = p.getLocation().toVector().subtract(loc.toVector());
+                loc.setDirection(dir);
+                cards.get(i).teleport(loc);
+            }
+        }
+    }.runTaskTimer(SpcialSmp.get(), 0L, 1L);
+                    }
 
     private boolean isHoldingCard(Player p) {
         ItemStack item = p.getInventory().getItemInMainHand();
