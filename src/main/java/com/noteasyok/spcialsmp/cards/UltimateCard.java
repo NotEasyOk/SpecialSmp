@@ -3,6 +3,7 @@ package com.noteasyok.spcialsmp.cards;
 import com.noteasyok.spcialsmp.SpcialSmp;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.entity.*;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
