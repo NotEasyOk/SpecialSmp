@@ -1,92 +1,63 @@
 # ======================================================
 #          SPECIAL SMP - OFFICIAL CONFIGURATION
 # ======================================================
-# Version: 1.0
-# Author: NotEasyOk
-# Support: 1.21.x
-# ------------------------------------------------------
-
 settings:
   prefix: "&8[&6&lSpecialSMP&8] &r"
   first-join-give-card: true
 
-# ------------------------------------------------------
-# CARD CONFIGURATIONS
-# ------------------------------------------------------
-cards:
+cooldowns:
   "Enderman Card":
-    display-name: "&d&lEnderman Card"
-    teleport_cooldown: 60
-    pull_cooldown: 40
-    breath_cooldown: 90
-
+    left: 60
+    right: 40
+    shift_right: 90
   "Herobrine Card":
-    display-name: "&4&lHerobrine Card"
-    strike_cooldown: 10
-    scare_cooldown: 60
-    shift_click_cooldown: 180
-
-  "Nothing Card":
-    display-name: "&f&lNothing Card"
-    time_set_cooldown: 20
-    mind_control_cooldown: 40
-    no_fall_cooldown: 60
-
+    left: 10
+    right: 60
+    shift_right: 180
   "Zombie Card":
-    display-name: "&2&lZombie Card"
-    summon_cooldown: 60
-    feed_cooldown: 60
-    horde_mode_cooldown: 120
+    left: 60
+    right: 60
+    shift_right: 120
+  "Creeper Card":
+    left: 60
+    right: 90
+    shift_right: 120
+  "Lighting Card":
+    left: 40
+    right: 20
+    shift_right: 60
+  "Warden Card":
+    left: 60
+    right: 120
+    shift_right: 180
+  "Ghost Card":
+    left: 60
+    right: 40
+    shift_right: 90
+  "Ruin Card":
+    left: 30
+    right: 45
+    shift_right: 60
+  "Nothing Card":
+    left: 20
+    right: 40
+    shift_right: 60
+  "Ultimate Card":
+    left: 120
+    right: 120
+    shift_right: 300
+
+# Extra settings needed by some cards
+settings-extra:
+  zombie:
     max-zombies: 2
     duration: 60
 
-  "Warden Card":
-    display-name: "&3&lWarden Card"
-    darkness_cooldown: 60
-    sonic_boom_cooldown: 120
-    tank_mode_cooldown: 180
-
-  "Creeper Card":
-    display-name: "&a&lCreeper Card"
-    explosion_cooldown: 60
-    airstrike_cooldown: 90
-    nuke_rain_cooldown: 120
-
-  "Lighting Card":
-    display-name: "&e&lLighting Card"
-    strike_cooldown: 40
-    storm_cooldown: 20
-    trail_cooldown: 60
-
-  "Ghost Card":
-    display-name: "&7&lGhost Card"
-    wall_clip_cooldown: 60
-    fly_cooldown: 40
-    invis_cooldown: 90
-
-  "Ruin Card":
-    display-name: "&0&lRuin Card"
-    infection_cooldown: 30
-    silverfish_cooldown: 45
-    poison_area_cooldown: 60
-
-  "Ultimate Card":
-    display-name: "&6&lUltimate Card"
-    sword_cooldown: 120
-    special_cooldown: 120
-    god_mode_cooldown: 300
-
-# ------------------------------------------------------
-# MESSAGES SECTION
-# ------------------------------------------------------
 messages:
   no-permission: "&cYou do not have permission to use this!"
   cooldown-active: "&cPlease wait &e%time%s &cbefore using this again."
   card-received: "&aYou received a &6%card%&a!"
 
-# ------------------------------------------------------
-# REGISTRATION LIST
-# ------------------------------------------------------
 allowed-first-join-cards:
   - "Enderman Card"
   - "Herobrine Card"
