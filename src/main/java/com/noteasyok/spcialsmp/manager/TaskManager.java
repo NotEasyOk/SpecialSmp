@@ -1,10 +1,7 @@
 package com.noteasyok.spcialsmp.manager;
 
 import com.noteasyok.spcialsmp.SpcialSmp;
-import org.bukkit.Bukkit;
-import org.bukkit.Color;
-import org.bukkit.Material;
-import org.bukkit.Sound;
+import org.bukkit.*;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemFlag;
@@ -18,19 +15,12 @@ import java.util.Random;
 
 public class TaskManager {
 
-    /**
-     * Har 24 ghante mein sabhi players ko task distribute karta hai
-     */
     public static void startGlobalTaskTimer() {
-        // 1728000L ticks = 24 hours
         Bukkit.getScheduler().runTaskTimer(SpcialSmp.get(), () -> {
-            
             for (Player p : Bukkit.getOnlinePlayers()) {
-                // Fancy Effects
                 p.playSound(p.getLocation(), Sound.BLOCK_BEACON_ACTIVATE, 1f, 1f);
                 p.sendTitle("§6§lNEW TASKS", "§eInventory check karo!", 10, 70, 20);
                 
-                // Fancy Bot Message in Chat
                 p.sendMessage("§8§m-----------------------------------------");
                 p.sendMessage("               §6§lSURVIVAL BOT               ");
                 p.sendMessage("§7   Naye tasks distribute ho gaye hain!      ");
@@ -42,9 +32,6 @@ public class TaskManager {
         }, 0L, 1728000L);
     }
 
-    /**
-     * Player ko ek random task book deta hai
-     */
     public static void giveRandomTask(Player p) {
         TaskType[] tasks = TaskType.values();
         TaskType randomTask = tasks[new Random().nextInt(tasks.length)];
@@ -57,7 +44,6 @@ public class TaskManager {
             meta.setTitle("Task Book");
             meta.setAuthor("Survival Bot");
             
-            // Hinglish Content
             List<String> pages = new ArrayList<>();
             pages.add("§0Hello §l" + p.getName() + ",\n\n§0Aapka aaj ka task hai:\n\n§1" + 
                     randomTask.getDescription() + "\n\n§0Ise pura karo aur §lSoul Potion §0pao warna 24h baad fuel khatam ho jayega!");
@@ -66,7 +52,6 @@ public class TaskManager {
             book.setItemMeta(meta);
         }
 
-        // Inventory check: Agar full hai toh niche gira do, warna inventory mein de do
         if (p.getInventory().firstEmpty() == -1) {
             p.getWorld().dropItemNaturally(p.getLocation(), book);
         } else {
@@ -74,9 +59,6 @@ public class TaskManager {
         }
     }
 
-    /**
-     * Reward: Soul Refill Potion create karta hai
-     */
     public static ItemStack getSoulPotion() {
         ItemStack potion = new ItemStack(Material.POTION);
         PotionMeta meta = (PotionMeta) potion.getItemMeta();
@@ -92,25 +74,40 @@ public class TaskManager {
             lore.add("§f +24 Hours Soul Fuel");
             lore.add("§8§m-----------------------");
             meta.setLore(lore);
-            
-            // Potion Visuals
             meta.setColor(Color.AQUA);
             
-            // Glow Effect Fix (Using DURABILITY/UNBREAKING for cross-version compatibility)
-            meta.addEnchant(Enchantment.DURABILITY, 1, true);
+            // ✅ FIX: Cross-version Enchantment Glow (Using NamespacedKey)
+            Enchantment glow = Enchantment.getByKey(NamespacedKey.minecraft("unbreaking"));
+            if (glow != null) {
+                meta.addEnchant(glow, 1, true);
+            }
             
-            // ItemFlag Fix (Handling HIDE_POTION_EFFECTS for newer versions)
+            // ✅ FIX: Cross-version ItemFlags
             meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
-            try {
-                // Minecraft 1.20.5+ use HIDE_ADDITIONAL_TOOLTIP
-                meta.addItemFlags(ItemFlag.valueOf("HIDE_ADDITIONAL_TOOLTIP"));
-            } catch (Exception e) {
-                // Older versions use HIDE_POTION_EFFECTS
-                meta.addItemFlags(ItemFlag.valueOf("HIDE_POTION_EFFECTS"));
+            for (ItemFlag flag : ItemFlag.values()) {
+                if (flag.name().equals("HIDE_ADDITIONAL_TOOLTIP") || flag.name().equals("HIDE_POTION_EFFECTS")) {
+                    meta.addItemFlags(flag);
+                }
             }
             
             potion.setItemMeta(meta);
         }
         return potion;
     }
-                      }
+
+    /**
+     * ✅ Fancy Particles for Card Spinning
+     * Ise CardSpinner mein ArmorStand ke paas call karein.
+     */
+    public static void playSpinParticles(org.bukkit.entity.Entity stand) {
+        Location loc = stand.getLocation().add(0, 0.5, 0);
+        // Golden Ring Effect
+        for (double i = 0; i <= Math.PI * 2; i += Math.PI / 8) {
+            double x = Math.cos(i) * 0.6;
+            double z = Math.sin(i) * 0.6;
+            loc.getWorld().spawnParticle(Particle.END_ROD, loc.clone().add(x, 0, z), 1, 0, 0, 0, 0.02);
+        }
+        // Small center spark
+        loc.getWorld().spawnParticle(Particle.ENCHANT, loc, 3, 0.1, 0.1, 0.1, 0.1);
+    }
+                                       }
