@@ -10,7 +10,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.PotionMeta;
 
 import java.util.ArrayList;
@@ -96,11 +95,22 @@ public class TaskManager {
             
             // Potion Visuals
             meta.setColor(Color.AQUA);
-            meta.addEnchant(Enchantment.LUCK, 1, true);
-            meta.addItemFlags(ItemFlag.HIDE_ENCHANTS, ItemFlag.HIDE_POTION_EFFECTS);
+            
+            // Glow Effect Fix (Using DURABILITY/UNBREAKING for cross-version compatibility)
+            meta.addEnchant(Enchantment.DURABILITY, 1, true);
+            
+            // ItemFlag Fix (Handling HIDE_POTION_EFFECTS for newer versions)
+            meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
+            try {
+                // Minecraft 1.20.5+ use HIDE_ADDITIONAL_TOOLTIP
+                meta.addItemFlags(ItemFlag.valueOf("HIDE_ADDITIONAL_TOOLTIP"));
+            } catch (Exception e) {
+                // Older versions use HIDE_POTION_EFFECTS
+                meta.addItemFlags(ItemFlag.valueOf("HIDE_POTION_EFFECTS"));
+            }
             
             potion.setItemMeta(meta);
         }
         return potion;
     }
-            }
+                      }
