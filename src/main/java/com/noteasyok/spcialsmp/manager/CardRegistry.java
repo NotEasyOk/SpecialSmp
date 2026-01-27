@@ -2,7 +2,7 @@ package com.noteasyok.spcialsmp.manager;
 
 import com.noteasyok.spcialsmp.SpcialSmp;
 import com.noteasyok.spcialsmp.cards.*;
-import org.bukkit.Bukkit; // Import added for registration
+import org.bukkit.Bukkit;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
@@ -15,16 +15,19 @@ public class CardRegistry {
     private static final Map<String, List<String>> DESC = new HashMap<>();
 
     public static void registerAll() {
-        // --- Enderman Card GUI Registration ---
+        // --- Enderman Card Registration ---
         EndermanCard enderman = new EndermanCard();
         register(enderman, List.of("§7Left: Teleport", "§7Right: GUI Player Pull", "§7Shift+R: Dragon Breath"));
-        // Ye line GUI clicks ko enable karegi
         Bukkit.getPluginManager().registerEvents(enderman, SpcialSmp.get()); 
-        // --------------------------------------
+
+        // --- Zombie Card Registration (Naya Logic Enable Kiya) ---
+        ZombieCard zombie = new ZombieCard();
+        register(zombie, List.of("§7Left: Summon Zombie", "§7Right: Instant Feed", "§7Shift+R: Zombie Disguise"));
+        Bukkit.getPluginManager().registerEvents(zombie, SpcialSmp.get());
+        // ---------------------------------------------------------
 
         register(new HerobrineCard(), List.of("§7Left: Lightning", "§7Right: Darkness + Fly", "§7Shift+R: Giant/Tiny Mode"));
         register(new NothingCard(), List.of("§7Left: Time Set", "§7Right: Mind Control", "§7Shift+R: No Fall"));
-        register(new ZombieCard(), List.of("§7Left: Summon Zombie", "§7Right: Feed", "§7Shift+R: Horde Mode"));
         register(new WardenCard(), List.of("§7Left: Darkness", "§7Right: Sonic Boom", "§7Shift+R: Tank Mode"));
         register(new CreeperCard(), List.of("§7Left: Explosion", "§7Right: Airstrike", "§7Shift+R: Nuke Rain"));
         register(new LightingCard(), List.of("§7Left: Strike", "§7Right: Storm", "§7Shift+R: Trail"));
