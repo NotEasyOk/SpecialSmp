@@ -1,6 +1,6 @@
 package com.noteasyok.spcialsmp;
 
-import com.noteasyok.spcialsmp.cards.BaseCard; // Added this import
+import com.noteasyok.spcialsmp.cards.BaseCard;
 import com.noteasyok.spcialsmp.command.CardsCommand;
 import com.noteasyok.spcialsmp.listener.*;
 import com.noteasyok.spcialsmp.manager.*;
@@ -30,6 +30,9 @@ public class SpcialSmp extends JavaPlugin {
 
         // Recipes
         RecipeManager.registerUltimateRecipe(this);
+
+        // ✅ Fuel System Task Start
+        FuelManager.startFuelTask();
 
         // ✅ FIX: Explicitly cast to Map<String, BaseCard> to avoid compilation error
         Map<String, BaseCard> cardsMap = CardRegistry.getCards();
@@ -64,7 +67,7 @@ public class SpcialSmp extends JavaPlugin {
             getCommand("cards").setExecutor(new CardsCommand());
         }
 
-        getLogger().info("SpcialSmp plugin ENABLED successfully");
+        getLogger().info("SpcialSmp plugin ENABLED successfully with Fuel System");
     }
 
     @Override
