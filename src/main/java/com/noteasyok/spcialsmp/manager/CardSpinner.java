@@ -3,87 +3,94 @@ package com.noteasyok.spcialsmp.manager;
 import com.noteasyok.spcialsmp.SpcialSmp;
 import com.noteasyok.spcialsmp.cards.BaseCard;
 import org.bukkit.Bukkit;
-import org.bukkit.Material;
+import org.bukkit.Location;
 import org.bukkit.Sound;
+import org.bukkit.entity.ArmorStand;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
 import java.util.stream.Collectors;
 
 public class CardSpinner {
 
     public static void openSpinGUI(Player player) {
-        // 3-row inventory create karna
-        Inventory inv = Bukkit.createInventory(null, 27, "§8» §0§lCARD SELECTION");
-        player.openInventory(inv);
-
-        // Ultimate card ko chhod kar baaki cards ka pool
+        // Ultimate card ko chhod kar baaki cards ka pool filter karna
         List<BaseCard> allCards = CardRegistry.getCards().values().stream()
                 .filter(c -> !c.getName().equalsIgnoreCase("Ultimate Card"))
                 .collect(Collectors.toList());
 
-        // Decoration items
-        ItemStack border = new ItemStack(Material.BLACK_STAINED_GLASS_PANE);
-        ItemStack pointer = new ItemStack(Material.RED_STAINED_GLASS_PANE);
+        if (allCards.isEmpty()) return;
 
-        // GUI design set karna
-        for (int i = 0; i < 27; i++) {
-            if (i == 4 || i == 22) inv.setItem(i, pointer);
-            else if (i < 9 || i > 17) inv.setItem(i, border);
-        }
+        // Player ke samne location set karna
+        Location loc = player.getLocation().add(player.getLocation().getDirection().multiply(2)).add(0, 0.8, 0);
+        
+        // Armor Stand spawn karna (Physical animation ke liye)
+        ArmorStand stand = (ArmorStand) player.getWorld().spawnEntity(loc, EntityType.ARMOR_STAND);
+        stand.setVisible(false);
+        stand.setGravity(false);
+        stand.setBasePlate(false);
+        stand.setSmall(true);
+        stand.setCustomNameVisible(true);
+        stand.setInvulnerable(true);
 
         new BukkitRunnable() {
             int ticks = 0;
-            double speed = 1.0;
             final Random random = new Random();
 
             @Override
             public void run() {
-                // Spin speed control
-                if (ticks % (int) speed == 0) {
-                    // Items ko left ki taraf shift karna (Animation effect)
-                    for (int i = 9; i < 17; i++) {
-                        inv.setItem(i, inv.getItem(i + 1));
-                    }
-
-                    // Naya random card last slot (17) mein daalna
-                    BaseCard nextCard = allCards.get(random.nextInt(allCards.size()));
-                    inv.setItem(17, nextCard.getItemStackWithLore(nextCard.getName()));
-
-                    // Tick sound play karna
-                    player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_XYLOPHONE, 0.6f, 1.2f);
-                }
-
-                ticks++;
-                
-                // Dhire-dhire speed kam karna (Slowing down effect)
-                if (ticks > 40) speed = 2.0;
-                if (ticks > 70) speed = 4.0;
-
-                // Jab spin khatam ho jaye (100 ticks par)
-                if (ticks >= 100) {
+                if (!player.isOnline() || ticks >= 60) {
                     this.cancel();
                     
-                    ItemStack winner = inv.getItem(13); // Center slot winner hai
-                    if (winner != null && winner.hasItemMeta()) {
-                        // Player ko item dena
-                        player.getInventory().addItem(winner);
-                        player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1f, 1f);
-
-                        String cardName = winner.getItemMeta().getDisplayName();
-                        
-                        // Data save karna taaki dobara spin na ho
-                        SpcialSmp.get().getPlayerDataManager().setReceivedFirstCard(player.getUniqueId(), cardName);
-                        player.sendMessage("§a§l✔ §fYou won: " + cardName);
-
-                        // GUI close karna (Ambiguous error fix ke saath)
-                        Bukkit.getScheduler().runTaskLater(SpcialSmp.get(), () -> player.closeInventory(), 40L);
-                    }
+                    // Final winner select karna
+                    BaseCard winner = allCards.get(random.nextInt(allCards.size()));
+                    finishSpin(player, stand, winner);
+                    return;
                 }
+
+                // Randomly change card and name during spin
+                BaseCard current = allCards.get(random.nextInt(allCards.size()));
+                
+                // Item aur Name set karna
+                stand.getEquipment().setHelmet(current.getItemStackWithLore(current.getName()));
+                stand.setCustomName("§f§l" + current.getName());
+
+                // Rotation animation
+                Location teleportLoc = stand.getLocation();
+                teleportLoc.setYaw(teleportLoc.getYaw() + 25f);
+                stand.teleport(teleportLoc);
+
+                // Spin sound
+                player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_HAT, 0.5f, 1.8f);
+                
+                ticks++;
             }
         }.runTaskTimer(SpcialSmp.get(), 0L, 1L);
     }
-                                                   }
+
+    private static void finishSpin(Player player, ArmorStand stand, BaseCard winner) {
+        // Winner card display
+        ItemStack winningItem = winner.getItemStackWithLore(winner.getName());
+        stand.getEquipment().setHelmet(winningItem);
+        stand.setCustomName("§a§l★ " + winner.getName() + " ★");
+
+        // Player effects
+        player.sendTitle("§a§l" + winner.getName(), "§fAapko ye card mila!", 10, 40, 10);
+        player.playSound(player.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 1f, 1.2f);
+        
+        // Inventory mein card dena
+        player.getInventory().addItem(winningItem);
+
+        // Data save karna
+        SpcialSmp.get().getPlayerDataManager().setReceivedFirstCard(player.getUniqueId(), winner.getName());
+        player.sendMessage("§a§l✔ §fYou won: " + winner.getName());
+
+        // 3 second baad armor stand remove karna
+        Bukkit.getScheduler().runTaskLater(SpcialSmp.get(), stand::remove, 60L);
+    }
+            }
