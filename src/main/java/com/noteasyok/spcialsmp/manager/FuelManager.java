@@ -5,26 +5,27 @@ import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
+import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.persistence.PersistentDataType;
-
-import java.util.UUID;
 
 public class FuelManager {
 
     private static final NamespacedKey FUEL_KEY = new NamespacedKey(SpcialSmp.get(), "soul_fuel");
     private static final int MAX_FUEL = 1440; // 24 hours in minutes
 
+    /**
+     * Fuel system ko start karta hai (Main class se call hoga)
+     */
     public static void startFuelTask() {
-        // Har 1 minute mein fuel kam karne ka task (1200 ticks = 60 seconds)
+        // Task 1: Har 1 minute mein fuel -1 karega
         Bukkit.getScheduler().runTaskTimer(SpcialSmp.get(), () -> {
             for (Player p : Bukkit.getOnlinePlayers()) {
                 reduceFuel(p, 1);
-                updateActionBar(p);
             }
         }, 1200L, 1200L);
 
-        // Action bar update task (har 2 second mein taki smooth dikhe)
+        // Task 2: Action bar ko har 2 second mein refresh karega
         Bukkit.getScheduler().runTaskTimer(SpcialSmp.get(), () -> {
             for (Player p : Bukkit.getOnlinePlayers()) {
                 updateActionBar(p);
@@ -46,13 +47,27 @@ public class FuelManager {
 
         if (next <= 0) {
             setFuel(p, 0);
-            Bukkit.getScheduler().runTask(SpcialSmp.get(), () -> {
-                p.kickPlayer("§c§lSOUL DEPLETED\n\n§7Aapka Soul Fuel khatam ho gaya hai.\n§eAb aapko koi aur player hi zinda kar sakta hai!");
-                // Yahan aap Ban logic bhi daal sakte hain
-            });
+            handleBan(p);
         } else {
             setFuel(p, next);
+            // Agar fuel 1 ghante se kam bacha ho toh warning sound
+            if (next <= 60 && next % 10 == 0) {
+                p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_BASS, 1f, 0.5f);
+                p.sendMessage("§c§lWARNING: §7Aapka Soul Fuel khatam hone wala hai!");
+            }
         }
+    }
+
+    private static void handleBan(Player p) {
+        Bukkit.getScheduler().runTask(SpcialSmp.get(), () -> {
+            p.getWorld().strikeLightningEffect(p.getLocation()); // Fancy Lightning sound
+            p.sendMessage("§c§lAapka waqt khatam ho gaya...");
+            
+            // 2 second ka delay taaki player message dekh sake
+            Bukkit.getScheduler().runTaskLater(SpcialSmp.get(), () -> {
+                p.kickPlayer("§c§lSOUL DEPLETED\n\n§7Aapka fuel khatam ho gaya hai.\n§eAgli baar task time par pura karein!");
+            }, 40L);
+        });
     }
 
     public static void updateActionBar(Player p) {
@@ -60,20 +75,25 @@ public class FuelManager {
         int hours = fuel / 60;
         int mins = fuel % 60;
 
-        // Progress Bar Calculation
-        int bars = 10;
-        int filledBars = (int) ((double) fuel / MAX_FUEL * bars);
-        StringBuilder barStr = new StringBuilder("§8[");
+        // Progress Bar (10 Blocks)
+        int totalBars = 10;
+        int filledBars = (int) (((double) fuel / MAX_FUEL) * totalBars);
         
-        for (int i = 0; i < bars; i++) {
-            if (i < filledBars) barStr.append("§a┃"); // Filled part (Green)
-            else barStr.append("§r┃"); // Empty part (Gray)
+        StringBuilder barStr = new StringBuilder("§8[");
+        for (int i = 0; i < totalBars; i++) {
+            if (i < filledBars) {
+                barStr.append("§a┃"); // Green for filled
+            } else {
+                barStr.append("§r┃"); // Gray for empty
+            }
         }
         barStr.append("§8]");
 
-        String color = (fuel > 300) ? "§b" : "§c"; // 5 ghante se kam pe Red ho jayega
+        // Color toggle: 5 ghante se kam par Red
+        String color = (fuel > 300) ? "§b" : "§c";
+        
         String message = "§fSoul Fuel: " + barStr + " " + color + hours + "h " + mins + "m remaining";
         
         p.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(message));
     }
-  }
+            }
