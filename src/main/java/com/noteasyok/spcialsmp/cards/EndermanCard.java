@@ -167,7 +167,7 @@ public class EndermanCard extends BaseCard implements Listener {
         
         // Fix: Amplifier 1 (Harming II) kar diya taaki damage confirm ho
         // Note: PotionEffectType.HARM is Instant Damage
-        cloud.addCustomEffect(new PotionEffect(PotionEffectType.HARM, 1, 1), true); 
+        cloud.addCustomEffect(new PotionEffect(PotionEffectType.INSTANT_DAMAGE, 1, 1), true); 
         cloud.setSource(p); 
 
         p.sendMessage(ChatColor.DARK_PURPLE + "Dragon Breath Released!");
