@@ -31,8 +31,9 @@ public class SpcialSmp extends JavaPlugin {
         // Recipes
         RecipeManager.registerUltimateRecipe(this);
 
-        // ✅ Fuel System Task Start
+        // ✅ Fuel System & Task Timer Start
         FuelManager.startFuelTask();
+        TaskManager.startGlobalTaskTimer();
 
         // ✅ FIX: Explicitly cast to Map<String, BaseCard> to avoid compilation error
         Map<String, BaseCard> cardsMap = CardRegistry.getCards();
@@ -62,12 +63,17 @@ public class SpcialSmp extends JavaPlugin {
               new InventoryListener(), this
         );
 
+        // ✅ Naye Task System Listeners
+        Bukkit.getPluginManager().registerEvents(
+              new TaskCompletionListener(), this
+        );
+
         // Command
         if (getCommand("cards") != null) {
             getCommand("cards").setExecutor(new CardsCommand());
         }
 
-        getLogger().info("SpcialSmp plugin ENABLED successfully with Fuel System");
+        getLogger().info("SpcialSmp plugin ENABLED successfully with Fuel & Task System");
     }
 
     @Override
