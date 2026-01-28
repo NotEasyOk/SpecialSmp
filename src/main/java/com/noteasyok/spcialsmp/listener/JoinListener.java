@@ -21,25 +21,25 @@ public class JoinListener implements Listener {
         Player p = e.getPlayer();
         var dataManager = SpcialSmp.get().getPlayerDataManager();
 
-        // 1. Fuel System: Naye players ko 24 ghante fuel dena
+        // 1. Fuel Logic: Naye players ko 24 ghante fuel dena
         if (!p.hasPlayedBefore()) {
             FuelManager.setFuel(p, 1440);
         }
 
-        // 2. Task System: Check karna ki kya player ke paas task hai (Unban ke baad kaam aayega)
+        // 2. Task Logic: Check karke naya task dena (Unban ke baad bhi kaam karega)
         Bukkit.getScheduler().runTaskLater(SpcialSmp.get(), () -> {
             if (p.isOnline() && !hasTaskBook(p)) {
                 TaskManager.giveRandomTask(p);
-                p.sendMessage("§6§lSURVIVAL BOT §8» §fA new task has been assigned! Complete it to stay alive.");
+                p.sendMessage("§6§lSURVIVAL BOT §8» §fA new task has been assigned! Complete it to survive.");
                 p.playSound(p.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1f, 1f);
             }
         }, 100L); 
 
-        // 3. Attribute Reset (Scale fix)
+        // 3. Reset Scale: Player size fix
         if (p.getAttribute(Attribute.GENERIC_SCALE) != null) 
             p.getAttribute(Attribute.GENERIC_SCALE).setBaseValue(1.0);
 
-        // 4. First Time Spin: Agar pehli baar join kiya hai toh Card milega
+        // 4. First Time Card Spin: Video style animation
         if (!dataManager.hasReceivedFirstCard(p.getUniqueId())) {
             Bukkit.getScheduler().runTaskLater(SpcialSmp.get(), () -> {
                  if (p.isOnline()) CardSpinner.openSpinGUI(p);
@@ -47,7 +47,7 @@ public class JoinListener implements Listener {
         }
     }
 
-    // Task check logic (Anti-duplicate)
+    // Task duplicate na ho uske liye check
     private boolean hasTaskBook(Player p) {
         for (ItemStack item : p.getInventory().getContents()) {
             if (item != null && item.getType() == Material.WRITTEN_BOOK) {
@@ -58,4 +58,4 @@ public class JoinListener implements Listener {
         }
         return false;
     }
-    }
+                                           }
