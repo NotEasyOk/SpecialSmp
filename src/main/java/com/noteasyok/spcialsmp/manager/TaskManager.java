@@ -16,23 +16,21 @@ import java.util.Random;
 public class TaskManager {
 
     public static void startGlobalTaskTimer() {
-        // Tip: 1728000L ticks = 24 Hours.
-        // Server restart par ye reset na ho, isliye hum isse har 1 hour (72000L) check kar sakte hain, 
-        // par abhi ke liye aapka logic sahi hai agar server 24/7 chalta hai.
         Bukkit.getScheduler().runTaskTimer(SpcialSmp.get(), () -> {
             for (Player p : Bukkit.getOnlinePlayers()) {
                 p.playSound(p.getLocation(), Sound.BLOCK_BEACON_ACTIVATE, 1f, 1f);
-                p.sendTitle("§6§lNEW TASKS", "§eInventory check karo!", 10, 70, 20);
+                // Fixed: Professional English Title
+                p.sendTitle("§6§lNEW TASKS", "§eCheck your inventory!", 10, 70, 20);
                 
                 p.sendMessage("§8§m-----------------------------------------");
                 p.sendMessage("               §6§lSURVIVAL BOT               ");
-                p.sendMessage("§7   Naye tasks distribute ho gaye hain!      ");
-                p.sendMessage("§7   Ise 24h mein pura karo warna §c§lBAN§7!   ");
+                p.sendMessage("§7   New tasks have been distributed!         ");
+                p.sendMessage("§7   Complete within 24h or face a §c§lBAN§7! ");
                 p.sendMessage("§8§m-----------------------------------------");
                 
                 giveRandomTask(p);
             }
-        }, 1200L, 1728000L); // Maine 0L ko 1200L (1 min) kiya hai taaki server start hote hi lag na ho.
+        }, 1200L, 1728000L); 
     }
 
     public static void giveRandomTask(Player p) {
@@ -43,13 +41,15 @@ public class TaskManager {
         BookMeta meta = (BookMeta) book.getItemMeta();
 
         if (meta != null) {
-            meta.setDisplayName("§6§lAaj Ka Task §7(Right Click)");
+            // Fixed: Display name now shows player's name
+            meta.setDisplayName("§6§lAaj ka task: §e" + p.getName());
             meta.setTitle("Task Book");
             meta.setAuthor("Survival Bot");
             
             List<String> pages = new ArrayList<>();
-            pages.add("§0Hello §l" + p.getName() + ",\n\n§0Aapka aaj ka task hai:\n\n§1" + 
-                    randomTask.getDescription() + "\n\n§0Ise pura karo aur §lSoul Potion §0pao warna 24h baad fuel khatam ho jayega!");
+            // Fixed: No Hinglish in book pages
+            pages.add("§0Hello §l" + p.getName() + ",\n\n§0Your task for today is:\n\n§1" + 
+                    randomTask.getDescription() + "\n\n§0Complete this to receive a §lSoul Potion §0or your fuel will expire in 24h!");
             
             meta.setPages(pages);
             book.setItemMeta(meta);
@@ -71,7 +71,8 @@ public class TaskManager {
             
             List<String> lore = new ArrayList<>();
             lore.add("§8§m-----------------------");
-            lore.add("§7Aapki aatma ko shakti deta hai.");
+            // Fixed: English lore
+            lore.add("§7Empowers your soul.");
             lore.add(" ");
             lore.add("§e§lREWARD:");
             lore.add("§f +24 Hours Soul Fuel");
@@ -79,17 +80,14 @@ public class TaskManager {
             meta.setLore(lore);
             meta.setColor(Color.AQUA);
             
-            // ✅ Fix for all versions
             try {
                 Enchantment glow = Enchantment.getByKey(NamespacedKey.minecraft("unbreaking"));
                 if (glow != null) meta.addEnchant(glow, 1, true);
             } catch (Exception e) {
-                // Fallback for older versions
                 meta.addEnchant(Enchantment.getByName("DURABILITY"), 1, true);
             }
             
             meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
-            // Dynamic flag adding for 1.20.5+ tooltips
             for (ItemFlag flag : ItemFlag.values()) {
                 if (flag.name().contains("HIDE_ADDITIONAL_TOOLTIP") || flag.name().contains("HIDE_POTION_EFFECTS")) {
                     meta.addItemFlags(flag);
@@ -110,4 +108,4 @@ public class TaskManager {
         }
         loc.getWorld().spawnParticle(Particle.ENCHANT, loc, 3, 0.1, 0.1, 0.1, 0.1);
     }
-                }
+    }
