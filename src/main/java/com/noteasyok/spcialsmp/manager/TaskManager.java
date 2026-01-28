@@ -16,6 +16,9 @@ import java.util.Random;
 public class TaskManager {
 
     public static void startGlobalTaskTimer() {
+        // Tip: 1728000L ticks = 24 Hours.
+        // Server restart par ye reset na ho, isliye hum isse har 1 hour (72000L) check kar sakte hain, 
+        // par abhi ke liye aapka logic sahi hai agar server 24/7 chalta hai.
         Bukkit.getScheduler().runTaskTimer(SpcialSmp.get(), () -> {
             for (Player p : Bukkit.getOnlinePlayers()) {
                 p.playSound(p.getLocation(), Sound.BLOCK_BEACON_ACTIVATE, 1f, 1f);
@@ -29,7 +32,7 @@ public class TaskManager {
                 
                 giveRandomTask(p);
             }
-        }, 0L, 1728000L);
+        }, 1200L, 1728000L); // Maine 0L ko 1200L (1 min) kiya hai taaki server start hote hi lag na ho.
     }
 
     public static void giveRandomTask(Player p) {
@@ -76,16 +79,19 @@ public class TaskManager {
             meta.setLore(lore);
             meta.setColor(Color.AQUA);
             
-            // ✅ FIX: Cross-version Enchantment Glow (Using NamespacedKey)
-            Enchantment glow = Enchantment.getByKey(NamespacedKey.minecraft("unbreaking"));
-            if (glow != null) {
-                meta.addEnchant(glow, 1, true);
+            // ✅ Fix for all versions
+            try {
+                Enchantment glow = Enchantment.getByKey(NamespacedKey.minecraft("unbreaking"));
+                if (glow != null) meta.addEnchant(glow, 1, true);
+            } catch (Exception e) {
+                // Fallback for older versions
+                meta.addEnchant(Enchantment.getByName("DURABILITY"), 1, true);
             }
             
-            // ✅ FIX: Cross-version ItemFlags
             meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
+            // Dynamic flag adding for 1.20.5+ tooltips
             for (ItemFlag flag : ItemFlag.values()) {
-                if (flag.name().equals("HIDE_ADDITIONAL_TOOLTIP") || flag.name().equals("HIDE_POTION_EFFECTS")) {
+                if (flag.name().contains("HIDE_ADDITIONAL_TOOLTIP") || flag.name().contains("HIDE_POTION_EFFECTS")) {
                     meta.addItemFlags(flag);
                 }
             }
@@ -95,19 +101,13 @@ public class TaskManager {
         return potion;
     }
 
-    /**
-     * ✅ Fancy Particles for Card Spinning
-     * Ise CardSpinner mein ArmorStand ke paas call karein.
-     */
     public static void playSpinParticles(org.bukkit.entity.Entity stand) {
         Location loc = stand.getLocation().add(0, 0.5, 0);
-        // Golden Ring Effect
         for (double i = 0; i <= Math.PI * 2; i += Math.PI / 8) {
             double x = Math.cos(i) * 0.6;
             double z = Math.sin(i) * 0.6;
             loc.getWorld().spawnParticle(Particle.END_ROD, loc.clone().add(x, 0, z), 1, 0, 0, 0, 0.02);
         }
-        // Small center spark
         loc.getWorld().spawnParticle(Particle.ENCHANT, loc, 3, 0.1, 0.1, 0.1, 0.1);
     }
-                                       }
+                }
