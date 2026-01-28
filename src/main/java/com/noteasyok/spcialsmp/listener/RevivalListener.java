@@ -2,9 +2,9 @@ package com.noteasyok.spcialsmp.listener;
 
 import com.noteasyok.spcialsmp.manager.RevivalManager;
 import com.noteasyok.spcialsmp.manager.FuelManager;
+import com.noteasyok.spcialsmp.SpcialSmp;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
-import org.bukkit.OfflinePlayer;
 import org.bukkit.BanEntry;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -19,6 +19,7 @@ import org.bukkit.inventory.meta.SkullMeta;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 
 public class RevivalListener implements Listener {
 
@@ -41,6 +42,11 @@ public class RevivalListener implements Listener {
         Inventory inv = Bukkit.createInventory(null, 27, menuTitle);
         Set<BanEntry> bans = Bukkit.getBanList(org.bukkit.BanList.Type.NAME).getBanEntries();
 
+        if (bans.isEmpty()) {
+            p.sendMessage("§cNo souls are currently banned.");
+            return;
+        }
+
         for (BanEntry entry : bans) {
             ItemStack head = new ItemStack(Material.PLAYER_HEAD);
             SkullMeta meta = (SkullMeta) head.getItemMeta();
@@ -48,7 +54,7 @@ public class RevivalListener implements Listener {
                 meta.setDisplayName("§b" + entry.getTarget());
                 List<String> lore = new ArrayList<>();
                 lore.add("§7Reason: " + entry.getReason());
-                lore.add("§eClick to Revive!");
+                lore.add("§eClick to Revive with 24h Fuel!");
                 meta.setLore(lore);
                 meta.setOwningPlayer(Bukkit.getOfflinePlayer(entry.getTarget()));
                 head.setItemMeta(meta);
@@ -67,15 +73,23 @@ public class RevivalListener implements Listener {
 
         Player p = (Player) e.getWhoClicked();
         String targetName = e.getCurrentItem().getItemMeta().getDisplayName().substring(2);
+        UUID targetUUID = Bukkit.getOfflinePlayer(targetName).getUniqueId();
 
-        // Logic: Unban and give 1 hour fuel
+        // 1. Unban the player
         RevivalManager.unbanPlayer(targetName);
         
-        // Remove 1 card from hand
-        p.getInventory().getItemInMainHand().setAmount(p.getInventory().getItemInMainHand().getAmount() - 1);
+        // 2. Set Fuel to 24 Hours (86400 seconds)
+        // Direct PlayerDataManager use kar rahe hain taaki offline save ho jaye
+        SpcialSmp.get().getPlayerDataManager().setFuel(targetUUID, 86400);
+        
+        // 3. Remove 1 Revival Card from hand
+        ItemStack itemInHand = p.getInventory().getItemInMainHand();
+        itemInHand.setAmount(itemInHand.getAmount() - 1);
+        
         p.closeInventory();
         
-        p.sendMessage("§a§l✔ §f" + targetName + " has been revived!");
-        Bukkit.broadcastMessage("§d§lREVIVAL! §b" + targetName + " §fhas been brought back by §e" + p.getName());
+        // 4. Announcements
+        p.sendMessage("§a§l✔ §fSuccess! §b" + targetName + " §fhas been revived with 24h fuel.");
+        Bukkit.broadcastMessage("§d§lREVIVAL! §b" + targetName + " §fwas brought back to life by §e" + p.getName());
     }
-          }
+            }
