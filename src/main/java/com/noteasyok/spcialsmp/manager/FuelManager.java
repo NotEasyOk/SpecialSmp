@@ -4,96 +4,128 @@ import com.noteasyok.spcialsmp.SpcialSmp;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
-import org.bukkit.NamespacedKey;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
-import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.scheduler.BukkitRunnable;
+
+import java.util.HashMap;
+import java.util.UUID;
 
 public class FuelManager {
 
-    private static final NamespacedKey FUEL_KEY = new NamespacedKey(SpcialSmp.get(), "soul_fuel");
-    private static final int MAX_FUEL = 1440; // 24 hours in minutes
+    // Cache to store player fuel in SECONDS (Real Time calculation ke liye)
+    private static final HashMap<UUID, Integer> fuelCache = new HashMap<>();
 
-    /**
-     * Fuel system ko start karta hai (Main class se call hoga)
-     */
-    public static void startFuelTask() {
-        // Task 1: Har 1 minute mein fuel -1 karega
-        Bukkit.getScheduler().runTaskTimer(SpcialSmp.get(), () -> {
-            for (Player p : Bukkit.getOnlinePlayers()) {
-                reduceFuel(p, 1);
+    public static void setupFuelSystem() {
+        // Har 1 second (20 ticks) mein timer chalega
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                for (Player p : Bukkit.getOnlinePlayers()) {
+                    updateFuel(p);
+                }
             }
-        }, 1200L, 1200L);
-
-        // Task 2: Action bar ko har 2 second mein refresh karega
-        Bukkit.getScheduler().runTaskTimer(SpcialSmp.get(), () -> {
-            for (Player p : Bukkit.getOnlinePlayers()) {
-                updateActionBar(p);
-            }
-        }, 40L, 40L);
+        }.runTaskTimer(SpcialSmp.get(), 0L, 20L);
     }
 
-    public static void setFuel(Player p, int minutes) {
-        p.getPersistentDataContainer().set(FUEL_KEY, PersistentDataType.INTEGER, Math.min(minutes, MAX_FUEL));
-    }
-
-    public static int getFuel(Player p) {
-        return p.getPersistentDataContainer().getOrDefault(FUEL_KEY, PersistentDataType.INTEGER, MAX_FUEL);
-    }
-
-    public static void reduceFuel(Player p, int amount) {
-        int current = getFuel(p);
-        int next = current - amount;
-
-        if (next <= 0) {
-            setFuel(p, 0);
-            handleBan(p);
-        } else {
-            setFuel(p, next);
-            // Agar fuel 1 ghante se kam bacha ho toh warning sound
-            if (next <= 60 && next % 10 == 0) {
-                p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_BASS, 1f, 0.5f);
-                p.sendMessage("§c§lWARNING: §7Aapka Soul Fuel khatam hone wala hai!");
-            }
+    private static void updateFuel(Player p) {
+        UUID uid = p.getUniqueId();
+        
+        // Agar cache mein nahi hai to DB se load karo
+        if (!fuelCache.containsKey(uid)) {
+            // Default 24 Hours = 86400 Seconds
+            int savedFuel = SpcialSmp.get().getPlayerDataManager().getFuel(uid);
+            fuelCache.put(uid, savedFuel > 0 ? savedFuel : 86400); 
         }
-    }
 
-    private static void handleBan(Player p) {
-        Bukkit.getScheduler().runTask(SpcialSmp.get(), () -> {
-            p.getWorld().strikeLightningEffect(p.getLocation()); // Fancy Lightning sound
-            p.sendMessage("§c§lAapka waqt khatam ho gaya...");
+        int currentFuel = fuelCache.get(uid);
+
+        // Fuel kam karna (Real Life 1 Second)
+        if (currentFuel > 0) {
+            currentFuel--;
+            fuelCache.put(uid, currentFuel);
             
-            // 2 second ka delay taaki player message dekh sake
-            Bukkit.getScheduler().runTaskLater(SpcialSmp.get(), () -> {
-                p.kickPlayer("§c§lSOUL DEPLETED\n\n§7Aapka fuel khatam ho gaya hai.\n§eAgli baar task time par pura karein!");
-            }, 40L);
-        });
+            // Database mein async save karo taaki lag na ho
+            if (currentFuel % 60 == 0) { // Har 1 minute mein save
+                SpcialSmp.get().getPlayerDataManager().setFuel(uid, currentFuel);
+            }
+        } else {
+            // GAME OVER - BAN LOGIC
+            p.kickPlayer("§c§lSOUL DEAD! \n\n§7Aapka waqt khatam ho gaya.");
+            Bukkit.getBanList(org.bukkit.BanList.Type.NAME).addBan(p.getName(), "§cSoul Fuel Empty", null, "Console");
+            return;
+        }
+
+        // --- ACTION BAR DISPLAY (Real Time 24h Style) ---
+        String timeString = formatTime(currentFuel);
+        String progressBar = getProgressBar(currentFuel, 86400); // 86400 sec = 24 hours
+        
+        String actionBarMsg = "§b§lSoul Fuel: §8[" + progressBar + "§8] §f" + timeString;
+        
+        // Player ko message bhejo (Jahan aapne white mark kiya hai)
+        p.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(actionBarMsg));
+        
+        // Low Fuel Warning Sound
+        if (currentFuel == 3600) { // Last 1 hour warning
+            p.playSound(p.getLocation(), Sound.ENTITY_ENDER_DRAGON_GROWL, 1f, 1f);
+            p.sendTitle("§c§lWARNING!", "§eOnly 1 Hour Left!", 10, 70, 20);
+        }
     }
 
-    public static void updateActionBar(Player p) {
-        int fuel = getFuel(p);
-        int hours = fuel / 60;
-        int mins = fuel % 60;
-
-        // Progress Bar (10 Blocks)
-        int totalBars = 10;
-        int filledBars = (int) (((double) fuel / MAX_FUEL) * totalBars);
+    // Helper: Fuel set karne ke liye (Potion peene par)
+    public static void addFuel(Player p, int hours) {
+        int secondsToAdd = hours * 3600;
+        int current = fuelCache.getOrDefault(p.getUniqueId(), 0);
+        int newFuel = Math.min(current + secondsToAdd, 86400); // Max 24 hours cap
         
-        StringBuilder barStr = new StringBuilder("§8[");
-        for (int i = 0; i < totalBars; i++) {
-            if (i < filledBars) {
-                barStr.append("§a┃"); // Green for filled
-            } else {
-                barStr.append("§r┃"); // Gray for empty
-            }
+        fuelCache.put(p.getUniqueId(), newFuel);
+        SpcialSmp.get().getPlayerDataManager().setFuel(p.getUniqueId(), newFuel);
+    }
+    
+    // Naye player ke liye set karna
+    public static void setFuel(Player p, int minutes) {
+        int seconds = minutes * 60;
+        fuelCache.put(p.getUniqueId(), seconds);
+        SpcialSmp.get().getPlayerDataManager().setFuel(p.getUniqueId(), seconds);
+    }
+
+    // --- UTILS ---
+
+    // Seconds ko "23h 59m 30s" format mein badalna
+    private static String formatTime(int totalSeconds) {
+        int hours = totalSeconds / 3600;
+        int minutes = (totalSeconds % 3600) / 60;
+        int seconds = totalSeconds % 60;
+
+        // Agar 1 ghante se kam hai to Seconds dikhao, warna sirf H aur M
+        if (hours > 0) {
+            return String.format("%02dh %02dm", hours, minutes);
+        } else {
+            return String.format("%02dm %02ds", minutes, seconds); // Last moments mein seconds dikhenge
         }
-        barStr.append("§8]");
+    }
 
-        // Color toggle: 5 ghante se kam par Red
-        String color = (fuel > 300) ? "§b" : "§c";
+    // Progress Bar generator (Green to Red)
+    private static String getProgressBar(int current, int max) {
+        int totalBars = 10;
+        float percent = (float) current / max;
+        int filledBars = (int) (totalBars * percent);
+
+        StringBuilder bar = new StringBuilder();
         
-        String message = "§fSoul Fuel: " + barStr + " " + color + hours + "h " + mins + "m remaining";
-        
-        p.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(message));
+        // Color changing logic
+        String color = "§a"; // Green
+        if (percent < 0.5) color = "§e"; // Yellow
+        if (percent < 0.2) color = "§c"; // Red
+
+        bar.append(color);
+        for (int i = 0; i < filledBars; i++) {
+            bar.append("|");
+        }
+        bar.append("§7"); // Grey for empty
+        for (int i = 0; i < totalBars - filledBars; i++) {
+            bar.append("|");
+        }
+        return bar.toString();
     }
             }
