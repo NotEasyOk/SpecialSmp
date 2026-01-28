@@ -39,11 +39,11 @@ public class TaskCompletionListener implements Listener {
         for (ItemStack item : p.getInventory().getContents()) {
             if (item != null && item.getType() == Material.WRITTEN_BOOK) {
                 BookMeta meta = (BookMeta) item.getItemMeta();
-                // Matches the display name set in TaskManager.java
-                if (meta != null && meta.getDisplayName().equals("§6§lAaj Ka Task §7(Right Click)")) {
-                    // Logic: Complete task if a player performs the relevant action while holding the book
-                    // Or simply having it in inventory for testing purposes
-                    if (Math.random() < 0.10) { // 10% chance to complete on every relevant action
+                
+                // Fixed: Ab ye check karega ki book ka naam "§6§lAaj ka task:" se shuru hota hai ya nahi
+                if (meta != null && meta.getDisplayName().startsWith("§6§lAaj ka task:")) {
+                    // Logic: 10% chance to complete on every relevant action
+                    if (Math.random() < 0.10) { 
                          completeTask(p, item);
                          break;
                     }
@@ -55,7 +55,9 @@ public class TaskCompletionListener implements Listener {
     private void completeTask(Player p, ItemStack book) {
         p.getInventory().remove(book);
         p.getInventory().addItem(TaskManager.getSoulPotion());
-        p.sendMessage("§a§lCONGRATULATIONS! §fTask completed. You received a Soul Potion!");
+        
+        // Fixed: Professional English messages
+        p.sendMessage("§a§lCONGRATULATIONS! §fTask completed successfully. You received a Soul Potion!");
         p.playSound(p.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 1f, 1f);
     }
 
@@ -64,13 +66,16 @@ public class TaskCompletionListener implements Listener {
         ItemStack item = e.getItem();
         if (item.getType() == Material.POTION && item.hasItemMeta()) {
             String displayName = item.getItemMeta().getDisplayName();
-            // Crucial Fix: Must match TaskManager's name exactly
+            
+            // Fixed: "SOUL REFILL POTION" check logic exactly matching TaskManager
             if (displayName.contains("SOUL REFILL POTION")) {
                 Player p = e.getPlayer();
-                FuelManager.addFuel(p, 24); // Adds 24 hours
-                p.sendMessage("§b§lENERGY REFILLED! §fYour Soul Fuel is now set for 24 hours.");
+                FuelManager.addFuel(p, 24); // Adds 24 hours of fuel
+                
+                // Fixed: Professional English message
+                p.sendMessage("§b§lENERGY REFILLED! §fYour Soul Fuel has been extended by 24 hours.");
                 p.playSound(p.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1f, 0.5f);
             }
         }
     }
-                }
+            }
