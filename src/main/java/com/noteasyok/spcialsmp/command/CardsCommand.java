@@ -15,8 +15,10 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.util.StringUtil;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -142,32 +144,33 @@ public class CardsCommand implements CommandExecutor, TabCompleter {
     private void openReviveRecipeGUI(Player p) {
         Inventory inv = Bukkit.createInventory(null, 27, "§0Revival Card Recipe");
         
-        // Background slots
-        ItemStack glass = new ItemStack(Material.GRAY_STAINED_GLASS_PANE);
+        ItemStack glass = new ItemStack(Material.BLACK_STAINED_GLASS_PANE);
         ItemMeta gMeta = glass.getItemMeta();
-        gMeta.setDisplayName(" ");
-        glass.setItemMeta(gMeta);
+        if (gMeta != null) { gMeta.setDisplayName(" "); glass.setItemMeta(gMeta); }
         for (int i = 0; i < 27; i++) inv.setItem(i, glass);
 
-        // Crafting Grid (Center)
-        // Row 1: D C D
-        inv.setItem(10, new ItemStack(Material.DIAMOND_BLOCK));
-        inv.setItem(11, new ItemStack(Material.PAPER)); // Card
-        inv.setItem(12, new ItemStack(Material.DIAMOND_BLOCK));
-        // Row 2: T S T
-        inv.setItem(19, new ItemStack(Material.TOTEM_OF_UNDYING));
-        inv.setItem(20, new ItemStack(Material.NETHER_STAR));
-        inv.setItem(21, new ItemStack(Material.TOTEM_OF_UNDYING));
-        // Row 3: D B D
-        inv.setItem(1, new ItemStack(Material.DIAMOND_BLOCK)); // Using top-down visual
-        inv.setItem(2, new ItemStack(Material.BEACON));
-        inv.setItem(3, new ItemStack(Material.DIAMOND_BLOCK));
+        // ✅ Updated: Recipe with ECHO SHARD instead of Paper
+        inv.setItem(2, new ItemStack(Material.DIAMOND_BLOCK));
+        inv.setItem(3, new ItemStack(Material.ECHO_SHARD)); // Middle card base
+        inv.setItem(4, new ItemStack(Material.DIAMOND_BLOCK));
 
-        // Result Slot
+        inv.setItem(11, new ItemStack(Material.TOTEM_OF_UNDYING));
+        inv.setItem(12, new ItemStack(Material.NETHER_STAR));
+        inv.setItem(13, new ItemStack(Material.TOTEM_OF_UNDYING));
+
+        inv.setItem(20, new ItemStack(Material.DIAMOND_BLOCK));
+        inv.setItem(21, new ItemStack(Material.BEACON));
+        inv.setItem(22, new ItemStack(Material.DIAMOND_BLOCK));
+
         ItemStack result = new ItemStack(Material.ECHO_SHARD);
         ItemMeta rMeta = result.getItemMeta();
-        rMeta.setDisplayName("§d§lREVIVAL CARD");
-        result.setItemMeta(rMeta);
+        if (rMeta != null) {
+            rMeta.setDisplayName("§d§lREVIVAL CARD");
+            List<String> lore = new ArrayList<>();
+            lore.add("§7The core of resurrection.");
+            rMeta.setLore(lore);
+            result.setItemMeta(rMeta);
+        }
         inv.setItem(15, result);
 
         p.openInventory(inv);
@@ -189,12 +192,28 @@ public class CardsCommand implements CommandExecutor, TabCompleter {
         return out.toArray(new String[0]);
     }
 
+    // ✅ FIXED: Tab Completion Logic
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         if (!sender.hasPermission("spcialsmp.admin")) return new ArrayList<>();
-        if (args.length == 1) return List.of("list", "give", "reroll", "getbook", "revive", "reload").stream().filter(s -> s.startsWith(args[0].toLowerCase())).collect(Collectors.toList());
-        if (args.length == 2 && args[0].equalsIgnoreCase("revive")) return List.of("recipe");
-        // ... (remaining tab complete logic)
+
+        if (args.length == 1) {
+            return StringUtil.copyPartialMatches(args[0], Arrays.asList("list", "give", "reroll", "getbook", "revive", "reload"), new ArrayList<>());
+        }
+
+        if (args.length == 2) {
+            if (args[0].equalsIgnoreCase("revive")) return List.of("recipe");
+            if (args[0].equalsIgnoreCase("give") || args[0].equalsIgnoreCase("reroll") || args[0].equalsIgnoreCase("getbook")) {
+                return null; // Show online players
+            }
+        }
+
+        if (args.length == 3 && args[0].equalsIgnoreCase("give")) {
+            List<String> cardNames = new ArrayList<>(CardRegistry.getCards().keySet());
+            cardNames.add("all");
+            return StringUtil.copyPartialMatches(args[2], cardNames, new ArrayList<>());
+        }
+
         return new ArrayList<>();
     }
                     }
