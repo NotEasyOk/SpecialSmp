@@ -50,7 +50,6 @@ public class TaskManager {
             
             meta.setPages(pages);
 
-            // ✅ CRITICAL FIX: Lore add kiya taaki Listener progress track kar sake
             List<String> lore = new ArrayList<>();
             lore.add("§7Progress: §e0/" + randomTask.getAmount());
             meta.setLore(lore);
@@ -82,12 +81,17 @@ public class TaskManager {
             meta.setLore(lore);
             meta.setColor(Color.AQUA);
             
-            // Item Glow Effect
-            meta.addEnchant(Enchantment.DURABILITY, 1, true);
+            // ✅ FIX: Modern versions use UNBREAKING instead of DURABILITY
+            meta.addEnchant(Enchantment.UNBREAKING, 1, true);
             meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
             
-            // Hide potion effects tooltips
-            meta.addItemFlags(ItemFlag.HIDE_POTION_EFFECTS);
+            // ✅ FIX: Compatible way to hide potion effects tooltips
+            try {
+                meta.addItemFlags(ItemFlag.valueOf("HIDE_ADDITIONAL_TOOLTIP"));
+            } catch (Exception e) {
+                // Fallback for older Spigot versions
+                meta.addItemFlags(ItemFlag.HIDE_POTION_EFFECTS);
+            }
             
             potion.setItemMeta(meta);
         }
@@ -102,4 +106,4 @@ public class TaskManager {
             loc.getWorld().spawnParticle(Particle.END_ROD, loc.clone().add(x, 0, z), 1, 0, 0, 0, 0.02);
         }
     }
-                      }
+    }
