@@ -75,10 +75,6 @@ public class SpcialSmp extends JavaPlugin {
               new RevivalListener(), this
         );
 
-        // ✅ ADDED: Player Join Listener (Unban ke baad task dene ke liye)
-        Bukkit.getPluginManager().registerEvents(
-              new PlayerJoinListener(), this
-        );
 
         // Command
         if (getCommand("cards") != null) {
