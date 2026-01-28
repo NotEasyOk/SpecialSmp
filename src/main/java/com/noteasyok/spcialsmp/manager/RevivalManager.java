@@ -26,7 +26,7 @@ public class RevivalManager {
         recipe.shape("DCD", "TST", "DBD");
         
         recipe.setIngredient('D', Material.DIAMOND_BLOCK);
-        recipe.setIngredient('C', Material.PAPER); // Ye Card ko represent karega
+        recipe.setIngredient('C', Material.ECHO_SHARD); // Ye Card ko represent karega
         recipe.setIngredient('T', Material.TOTEM_OF_UNDYING);
         recipe.setIngredient('S', Material.NETHER_STAR);
         recipe.setIngredient('B', Material.BEACON);
