@@ -3,6 +3,8 @@ package com.noteasyok.spcialsmp.command;
 import com.noteasyok.spcialsmp.SpcialSmp;
 import com.noteasyok.spcialsmp.cards.BaseCard;
 import com.noteasyok.spcialsmp.manager.CardRegistry;
+import com.noteasyok.spcialsmp.manager.CardSpinner;
+import com.noteasyok.spcialsmp.manager.TaskManager;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -26,11 +28,19 @@ public class CardsCommand implements CommandExecutor, TabCompleter {
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
 
+        // --- GLOBAL ADMIN SECURITY ---
+        // Iske bina koi bhi niche ka code run nahi kar payega
+        if (!sender.hasPermission("spcialsmp.admin")) {
+            sender.sendMessage("§c§lERROR! §7Aapke paas ye admin command use karne ki permission nahi hai.");
+            return true;
+        }
+
         if (args.length == 0) {
             sender.sendMessage("§6§lSpcialSmp §7- §eAdmin Commands");
             sender.sendMessage("§8» §f/cards list");
-            sender.sendMessage("§8» §f/cards give <player> <cardName>");
-            sender.sendMessage("§8» §f/cards info <cardName>");
+            sender.sendMessage("§8» §f/cards give <player> <cardName/all>");
+            sender.sendMessage("§8» §f/cards reroll <player>");
+            sender.sendMessage("§8» §f/cards getbook <player>");
             sender.sendMessage("§8» §f/cards reload");
             return true;
         }
@@ -42,12 +52,8 @@ public class CardsCommand implements CommandExecutor, TabCompleter {
                 return true;
             }
             case "give" -> {
-                if (!sender.hasPermission("spcialsmp.admin")) {
-                    sender.sendMessage("§cNo permission!");
-                    return true;
-                }
                 if (args.length < 3) {
-                    sender.sendMessage("§cUsage: /cards give <player> <cardName>");
+                    sender.sendMessage("§cUsage: /cards give <player> <cardName/all>");
                     return true;
                 }
                 Player target = Bukkit.getPlayer(args[1]);
@@ -56,11 +62,17 @@ public class CardsCommand implements CommandExecutor, TabCompleter {
                     return true;
                 }
 
-                // Card name build karna (Support for spaces)
+                if (args[2].equalsIgnoreCase("all")) {
+                    for (BaseCard card : CardRegistry.getCards().values()) {
+                        target.getInventory().addItem(card.getItemStackWithLore(card.getName()));
+                    }
+                    sender.sendMessage("§a§l✔ §fSaare cards §b" + target.getName() + " §fko de diye gaye!");
+                    return true;
+                }
+
                 String inputName = String.join(" ", slice(args, 2));
                 String fullName = inputName.toLowerCase().endsWith(" card") ? inputName : inputName + " Card";
                 
-                // Case-insensitive check
                 BaseCard foundCard = null;
                 for (String key : CardRegistry.getCards().keySet()) {
                     if (key.equalsIgnoreCase(fullName)) {
@@ -74,35 +86,45 @@ public class CardsCommand implements CommandExecutor, TabCompleter {
                     return true;
                 }
 
-                // ✅ FIX: Registry aur BaseCard ka method use karna taaki NBT Tag lag jaye
                 ItemStack cardItem = foundCard.getItemStackWithLore(foundCard.getName());
-                
                 target.getInventory().addItem(cardItem);
                 sender.sendMessage("§a§l✔ §fGiven §e" + foundCard.getName() + " §fto §b" + target.getName());
                 return true;
             }
-            case "info" -> {
+
+            case "reroll" -> {
                 if (args.length < 2) {
-                    sender.sendMessage("§cUsage: /cards info <cardName>");
+                    sender.sendMessage("§cUsage: /cards reroll <player>");
                     return true;
                 }
-                String inputName = String.join(" ", slice(args, 1));
-                String fullName = inputName.toLowerCase().endsWith(" card") ? inputName : inputName + " Card";
-
-                if (!CardRegistry.getCards().containsKey(fullName)) {
-                    sender.sendMessage("§cCard not found!");
+                Player target = Bukkit.getPlayer(args[1]);
+                if (target == null) {
+                    sender.sendMessage("§cPlayer offline hai!");
                     return true;
                 }
 
-                sender.sendMessage("§a§l" + fullName + " §eLore:");
-                CardRegistry.getDescriptionLore(fullName).forEach(line -> sender.sendMessage("  " + line));
+                CardSpinner.openSpinGUI(target);
+                sender.sendMessage("§a§l✔ §fReroll starting for §b" + target.getName());
                 return true;
             }
-            case "reload" -> {
-                if (!sender.hasPermission("spcialsmp.admin")) {
-                    sender.sendMessage("§cNo permission!");
+
+            case "getbook" -> {
+                if (args.length < 2) {
+                    sender.sendMessage("§cUsage: /cards getbook <player>");
                     return true;
                 }
+                Player target = Bukkit.getPlayer(args[1]);
+                if (target == null) {
+                    sender.sendMessage("§cPlayer offline hai!");
+                    return true;
+                }
+
+                TaskManager.giveRandomTask(target);
+                sender.sendMessage("§a§l✔ §fTask Book sent to §b" + target.getName());
+                return true;
+            }
+
+            case "reload" -> {
                 SpcialSmp.get().reloadConfig();
                 sender.sendMessage("§aConfig reloaded successfully!");
                 return true;
@@ -121,21 +143,26 @@ public class CardsCommand implements CommandExecutor, TabCompleter {
 
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
+        // --- SECURITY: Tab-complete hide karna deop players se ---
+        if (!sender.hasPermission("spcialsmp.admin")) return new ArrayList<>();
+
         if (args.length == 1) {
-            return List.of("list", "give", "info", "reload").stream()
+            return List.of("list", "give", "reroll", "getbook", "reload").stream()
                     .filter(s -> s.startsWith(args[0].toLowerCase()))
                     .collect(Collectors.toList());
         }
-        if (args.length == 2 && args[0].equalsIgnoreCase("give")) {
+        if (args.length == 2 && (args[0].equalsIgnoreCase("give") || args[0].equalsIgnoreCase("reroll") || args[0].equalsIgnoreCase("getbook"))) {
             return Bukkit.getOnlinePlayers().stream().map(Player::getName)
                     .filter(n -> n.toLowerCase().startsWith(args[1].toLowerCase()))
                     .collect(Collectors.toList());
         }
-        if (args.length >= 3 && (args[0].equalsIgnoreCase("give") || args[0].equalsIgnoreCase("info"))) {
-            return CardRegistry.getCards().keySet().stream()
+        if (args.length >= 3 && args[0].equalsIgnoreCase("give")) {
+            List<String> options = new ArrayList<>(CardRegistry.getCards().keySet());
+            options.add("all");
+            return options.stream()
                     .filter(k -> k.toLowerCase().contains(args[args.length-1].toLowerCase()))
                     .collect(Collectors.toList());
         }
         return new ArrayList<>();
     }
-                    }
+                         }
