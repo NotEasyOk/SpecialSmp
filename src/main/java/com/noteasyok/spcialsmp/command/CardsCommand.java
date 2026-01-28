@@ -5,6 +5,7 @@ import com.noteasyok.spcialsmp.cards.BaseCard;
 import com.noteasyok.spcialsmp.manager.CardRegistry;
 import com.noteasyok.spcialsmp.manager.CardSpinner;
 import com.noteasyok.spcialsmp.manager.TaskManager;
+import com.noteasyok.spcialsmp.manager.RevivalManager;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.command.Command;
@@ -144,14 +145,15 @@ public class CardsCommand implements CommandExecutor, TabCompleter {
     private void openReviveRecipeGUI(Player p) {
         Inventory inv = Bukkit.createInventory(null, 27, "§0Revival Card Recipe");
         
+        // Background: Black Glass for better contrast
         ItemStack glass = new ItemStack(Material.BLACK_STAINED_GLASS_PANE);
         ItemMeta gMeta = glass.getItemMeta();
         if (gMeta != null) { gMeta.setDisplayName(" "); glass.setItemMeta(gMeta); }
         for (int i = 0; i < 27; i++) inv.setItem(i, glass);
 
-        // ✅ Updated: Recipe with ECHO SHARD instead of Paper
+        // Grid (Matching RecipeManager: DED, TNT, DBD)
         inv.setItem(2, new ItemStack(Material.DIAMOND_BLOCK));
-        inv.setItem(3, new ItemStack(Material.ECHO_SHARD)); // Middle card base
+        inv.setItem(3, new ItemStack(Material.ECHO_SHARD)); // Middle - Echo Shard
         inv.setItem(4, new ItemStack(Material.DIAMOND_BLOCK));
 
         inv.setItem(11, new ItemStack(Material.TOTEM_OF_UNDYING));
@@ -162,16 +164,8 @@ public class CardsCommand implements CommandExecutor, TabCompleter {
         inv.setItem(21, new ItemStack(Material.BEACON));
         inv.setItem(22, new ItemStack(Material.DIAMOND_BLOCK));
 
-        ItemStack result = new ItemStack(Material.ECHO_SHARD);
-        ItemMeta rMeta = result.getItemMeta();
-        if (rMeta != null) {
-            rMeta.setDisplayName("§d§lREVIVAL CARD");
-            List<String> lore = new ArrayList<>();
-            lore.add("§7The core of resurrection.");
-            rMeta.setLore(lore);
-            result.setItemMeta(rMeta);
-        }
-        inv.setItem(15, result);
+        // Result Item
+        inv.setItem(15, RevivalManager.getRevivalCard());
 
         p.openInventory(inv);
     }
@@ -192,7 +186,6 @@ public class CardsCommand implements CommandExecutor, TabCompleter {
         return out.toArray(new String[0]);
     }
 
-    // ✅ FIXED: Tab Completion Logic
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         if (!sender.hasPermission("spcialsmp.admin")) return new ArrayList<>();
@@ -203,17 +196,17 @@ public class CardsCommand implements CommandExecutor, TabCompleter {
 
         if (args.length == 2) {
             if (args[0].equalsIgnoreCase("revive")) return List.of("recipe");
-            if (args[0].equalsIgnoreCase("give") || args[0].equalsIgnoreCase("reroll") || args[0].equalsIgnoreCase("getbook")) {
+            if (Arrays.asList("give", "reroll", "getbook").contains(args[0].toLowerCase())) {
                 return null; // Show online players
             }
         }
 
         if (args.length == 3 && args[0].equalsIgnoreCase("give")) {
-            List<String> cardNames = new ArrayList<>(CardRegistry.getCards().keySet());
-            cardNames.add("all");
-            return StringUtil.copyPartialMatches(args[2], cardNames, new ArrayList<>());
+            List<String> cards = new ArrayList<>(CardRegistry.getCards().keySet());
+            cards.add("all");
+            return StringUtil.copyPartialMatches(args[2], cards, new ArrayList<>());
         }
 
         return new ArrayList<>();
     }
-                    }
+                }
