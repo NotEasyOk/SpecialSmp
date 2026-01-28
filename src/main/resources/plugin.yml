@@ -3,10 +3,16 @@ version: 1.0.0
 main: com.noteasyok.spcialsmp.SpcialSmp
 api-version: 1.21
 author: NotEasyOk
-description: Super Cards SMP Plugi
+description: Super Cards SMP Plugin
 
 commands:
   cards:
-    description: Cards command
+    description: Main admin command for Cards and Tasks
     usage: /cards
-    
+    permission: spcialsmp.admin
+    permission-message: §c§lERROR! §7You do not have permission to use this command.
+
+permissions:
+  spcialsmp.admin:
+    description: Allows access to all admin commands
+    default: op
