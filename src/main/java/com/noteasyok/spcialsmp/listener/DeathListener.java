@@ -21,7 +21,7 @@ public class DeathListener implements Listener {
     public void onPlayerDeath(PlayerDeathEvent e) {
         Player dead = e.getEntity();
         
-        // PvP death mein normal behavior (drops allow)
+        // PvP death mein drops allow rahenge (Normal behavior)
         if (dead.getKiller() != null) {
             return;
         }
@@ -45,7 +45,7 @@ public class DeathListener implements Listener {
 
             if (isCard || isTaskBook) {
                 toSave.add(item);
-                it.remove(); // Zameen par nahi girega
+                it.remove(); // Drops se hata diya gaya
             }
         }
 
@@ -65,8 +65,8 @@ public class DeathListener implements Listener {
                 p.getInventory().addItem(item);
             }
 
-            p.sendMessage("§a§l✔ §fAapke Cards aur Task Book save kar liye gaye!");
+            // Message removed as per request
             savedCards.remove(p.getUniqueId());
         }
     }
-                }
+        }
