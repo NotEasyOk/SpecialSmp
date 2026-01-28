@@ -26,6 +26,18 @@ public class PlayerDataManager {
         data = YamlConfiguration.loadConfiguration(file);
     }
 
+    /* ================= FUEL SYSTEM (ADDED TO FIX ERRORS) ================= */
+
+    public int getFuel(UUID uuid) {
+        // Default 24 hours (86400 seconds) agar data nahi mila
+        return data.getInt("players." + uuid + ".fuel", 86400);
+    }
+
+    public void setFuel(UUID uuid, int amount) {
+        data.set("players." + uuid + ".fuel", amount);
+        save();
+    }
+
     /* ================= JOIN TRACKING ================= */
 
     public boolean hasJoinedBefore(UUID uuid) {
@@ -69,4 +81,4 @@ public class PlayerDataManager {
             e.printStackTrace();
         }
     }
-}
+    }
