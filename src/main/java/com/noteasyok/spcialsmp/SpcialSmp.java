@@ -30,12 +30,14 @@ public class SpcialSmp extends JavaPlugin {
 
         // Recipes
         RecipeManager.registerUltimateRecipe(this);
+        // ✅ ADDED: Revival Totem/Card Recipe (Diamond blocks + Totem + Beacon)
+        RevivalManager.registerRevivalRecipe();
 
-        // ✅ Fuel System & Task Timer Start
+        // Fuel System & Task Timer Start
         FuelManager.startFuelTask();
         TaskManager.startGlobalTaskTimer();
 
-        // ✅ FIX: Explicitly cast to Map<String, BaseCard> to avoid compilation error
+        // FIX: Explicitly cast to Map<String, BaseCard> to avoid compilation error
         Map<String, BaseCard> cardsMap = CardRegistry.getCards();
 
         // Listeners
@@ -63,9 +65,19 @@ public class SpcialSmp extends JavaPlugin {
               new InventoryListener(), this
         );
 
-        // ✅ Naye Task System Listeners
+        // Naye Task System Listeners
         Bukkit.getPluginManager().registerEvents(
               new TaskCompletionListener(), this
+        );
+
+        // ✅ ADDED: Revival Listener (GUI & Unban Logic)
+        Bukkit.getPluginManager().registerEvents(
+              new RevivalListener(), this
+        );
+
+        // ✅ ADDED: Player Join Listener (Unban ke baad task dene ke liye)
+        Bukkit.getPluginManager().registerEvents(
+              new PlayerJoinListener(), this
         );
 
         // Command
@@ -73,7 +85,7 @@ public class SpcialSmp extends JavaPlugin {
             getCommand("cards").setExecutor(new CardsCommand());
         }
 
-        getLogger().info("SpcialSmp plugin ENABLED successfully with Fuel & Task System");
+        getLogger().info("SpcialSmp plugin ENABLED successfully with Fuel, Task & Revival System");
     }
 
     @Override
@@ -92,4 +104,4 @@ public class SpcialSmp extends JavaPlugin {
     public PlayerDataManager getPlayerDataManager() {
         return playerDataManager;
     }
-}
+    }
