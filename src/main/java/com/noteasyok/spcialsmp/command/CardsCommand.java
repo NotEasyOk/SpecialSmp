@@ -29,9 +29,9 @@ public class CardsCommand implements CommandExecutor, TabCompleter {
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
 
         // --- GLOBAL ADMIN SECURITY ---
-        // Iske bina koi bhi niche ka code run nahi kar payega
         if (!sender.hasPermission("spcialsmp.admin")) {
-            sender.sendMessage("§c§lERROR! §7Aapke paas ye admin command use karne ki permission nahi hai.");
+            // Fixed: English message
+            sender.sendMessage("§c§lERROR! §7You do not have permission to use this admin command.");
             return true;
         }
 
@@ -66,7 +66,8 @@ public class CardsCommand implements CommandExecutor, TabCompleter {
                     for (BaseCard card : CardRegistry.getCards().values()) {
                         target.getInventory().addItem(card.getItemStackWithLore(card.getName()));
                     }
-                    sender.sendMessage("§a§l✔ §fSaare cards §b" + target.getName() + " §fko de diye gaye!");
+                    // Fixed: English message
+                    sender.sendMessage("§a§l✔ §fAll cards have been added to §b" + target.getName() + "'s §finventory.");
                     return true;
                 }
 
@@ -99,12 +100,13 @@ public class CardsCommand implements CommandExecutor, TabCompleter {
                 }
                 Player target = Bukkit.getPlayer(args[1]);
                 if (target == null) {
-                    sender.sendMessage("§cPlayer offline hai!");
+                    // Fixed: English message
+                    sender.sendMessage("§cPlayer is currently offline!");
                     return true;
                 }
 
                 CardSpinner.openSpinGUI(target);
-                sender.sendMessage("§a§l✔ §fReroll starting for §b" + target.getName());
+                sender.sendMessage("§a§l✔ §fStarting reroll animation for §b" + target.getName());
                 return true;
             }
 
@@ -115,7 +117,8 @@ public class CardsCommand implements CommandExecutor, TabCompleter {
                 }
                 Player target = Bukkit.getPlayer(args[1]);
                 if (target == null) {
-                    sender.sendMessage("§cPlayer offline hai!");
+                    // Fixed: English message
+                    sender.sendMessage("§cPlayer is currently offline!");
                     return true;
                 }
 
@@ -143,7 +146,6 @@ public class CardsCommand implements CommandExecutor, TabCompleter {
 
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
-        // --- SECURITY: Tab-complete hide karna deop players se ---
         if (!sender.hasPermission("spcialsmp.admin")) return new ArrayList<>();
 
         if (args.length == 1) {
@@ -165,4 +167,4 @@ public class CardsCommand implements CommandExecutor, TabCompleter {
         }
         return new ArrayList<>();
     }
-                         }
+                        }
