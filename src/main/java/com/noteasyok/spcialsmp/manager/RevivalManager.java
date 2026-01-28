@@ -35,7 +35,7 @@ public class RevivalManager {
     }
 
     public static ItemStack getRevivalCard() {
-        ItemStack item = new ItemStack(Material.PAPER);
+        ItemStack item = new ItemStack(Material.ECHO_SHARD);
         ItemMeta meta = item.getItemMeta();
         if (meta != null) {
             meta.setDisplayName("§d§lREVIVAL CARD");
