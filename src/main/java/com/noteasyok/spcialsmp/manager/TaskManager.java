@@ -81,16 +81,21 @@ public class TaskManager {
             meta.setLore(lore);
             meta.setColor(Color.AQUA);
             
-            // ✅ FIX: Modern versions use UNBREAKING instead of DURABILITY
+            // ✅ Fix: 1.20+ uses UNBREAKING
             meta.addEnchant(Enchantment.UNBREAKING, 1, true);
             meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
             
-            // ✅ FIX: Compatible way to hide potion effects tooltips
+            // ✅ Fix: Safe cross-version tooltip hiding
             try {
+                // For Minecraft 1.20.5+
                 meta.addItemFlags(ItemFlag.valueOf("HIDE_ADDITIONAL_TOOLTIP"));
             } catch (Exception e) {
-                // Fallback for older Spigot versions
-                meta.addItemFlags(ItemFlag.HIDE_POTION_EFFECTS);
+                // For Minecraft 1.20.4 and below
+                try {
+                    meta.addItemFlags(ItemFlag.valueOf("HIDE_POTION_EFFECTS"));
+                } catch (Exception e2) {
+                    // Ignore if both fail
+                }
             }
             
             potion.setItemMeta(meta);
@@ -106,4 +111,4 @@ public class TaskManager {
             loc.getWorld().spawnParticle(Particle.END_ROD, loc.clone().add(x, 0, z), 1, 0, 0, 0, 0.02);
         }
     }
-    }
+                }
