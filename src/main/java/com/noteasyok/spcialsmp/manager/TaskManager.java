@@ -19,7 +19,6 @@ public class TaskManager {
         Bukkit.getScheduler().runTaskTimer(SpcialSmp.get(), () -> {
             for (Player p : Bukkit.getOnlinePlayers()) {
                 p.playSound(p.getLocation(), Sound.BLOCK_BEACON_ACTIVATE, 1f, 1f);
-                // Fixed: Professional English Title
                 p.sendTitle("§6§lNEW TASKS", "§eCheck your inventory!", 10, 70, 20);
                 
                 p.sendMessage("§8§m-----------------------------------------");
@@ -41,17 +40,21 @@ public class TaskManager {
         BookMeta meta = (BookMeta) book.getItemMeta();
 
         if (meta != null) {
-            // Fixed: Display name now shows player's name
             meta.setDisplayName("§6§lAaj ka task: §e" + p.getName());
             meta.setTitle("Task Book");
             meta.setAuthor("Survival Bot");
             
             List<String> pages = new ArrayList<>();
-            // Fixed: No Hinglish in book pages
             pages.add("§0Hello §l" + p.getName() + ",\n\n§0Your task for today is:\n\n§1" + 
                     randomTask.getDescription() + "\n\n§0Complete this to receive a §lSoul Potion §0or your fuel will expire in 24h!");
             
             meta.setPages(pages);
+
+            // ✅ CRITICAL FIX: Lore add kiya taaki Listener progress track kar sake
+            List<String> lore = new ArrayList<>();
+            lore.add("§7Progress: §e0/" + randomTask.getAmount());
+            meta.setLore(lore);
+
             book.setItemMeta(meta);
         }
 
@@ -71,7 +74,6 @@ public class TaskManager {
             
             List<String> lore = new ArrayList<>();
             lore.add("§8§m-----------------------");
-            // Fixed: English lore
             lore.add("§7Empowers your soul.");
             lore.add(" ");
             lore.add("§e§lREWARD:");
@@ -80,19 +82,12 @@ public class TaskManager {
             meta.setLore(lore);
             meta.setColor(Color.AQUA);
             
-            try {
-                Enchantment glow = Enchantment.getByKey(NamespacedKey.minecraft("unbreaking"));
-                if (glow != null) meta.addEnchant(glow, 1, true);
-            } catch (Exception e) {
-                meta.addEnchant(Enchantment.getByName("DURABILITY"), 1, true);
-            }
-            
+            // Item Glow Effect
+            meta.addEnchant(Enchantment.DURABILITY, 1, true);
             meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
-            for (ItemFlag flag : ItemFlag.values()) {
-                if (flag.name().contains("HIDE_ADDITIONAL_TOOLTIP") || flag.name().contains("HIDE_POTION_EFFECTS")) {
-                    meta.addItemFlags(flag);
-                }
-            }
+            
+            // Hide potion effects tooltips
+            meta.addItemFlags(ItemFlag.HIDE_POTION_EFFECTS);
             
             potion.setItemMeta(meta);
         }
@@ -106,6 +101,5 @@ public class TaskManager {
             double z = Math.sin(i) * 0.6;
             loc.getWorld().spawnParticle(Particle.END_ROD, loc.clone().add(x, 0, z), 1, 0, 0, 0, 0.02);
         }
-        loc.getWorld().spawnParticle(Particle.ENCHANT, loc, 3, 0.1, 0.1, 0.1, 0.1);
     }
-    }
+                      }
