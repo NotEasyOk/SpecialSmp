@@ -1,7 +1,7 @@
 package com.noteasyok.spcialsmp.manager;
 
 import com.noteasyok.spcialsmp.SpcialSmp;
-import com.noteasyok.spcialsmp.cards.CardRegistry;
+import com.noteasyok.spcialsmp.manager.CardRegistry;
 import org.bukkit.*;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.ShapedRecipe;
