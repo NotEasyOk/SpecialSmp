@@ -164,7 +164,7 @@ public class CardsCommand implements CommandExecutor, TabCompleter {
         inv.setItem(3, new ItemStack(Material.DIAMOND_BLOCK));
 
         // Result Slot
-        ItemStack result = new ItemStack(Material.PAPER);
+        ItemStack result = new ItemStack(Material.ECHO_SHARD);
         ItemMeta rMeta = result.getItemMeta();
         rMeta.setDisplayName("§d§lREVIVAL CARD");
         result.setItemMeta(rMeta);
