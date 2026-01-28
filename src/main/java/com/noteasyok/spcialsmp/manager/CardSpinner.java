@@ -19,17 +19,17 @@ import java.util.stream.Collectors;
 public class CardSpinner {
 
     public static void openSpinGUI(Player player) {
-        // Ultimate card ko chhod kar baaki cards ka pool filter karna
+        // Filter out the Ultimate Card from the pool
         List<BaseCard> allCards = CardRegistry.getCards().values().stream()
                 .filter(c -> !c.getName().equalsIgnoreCase("Ultimate Card"))
                 .collect(Collectors.toList());
 
         if (allCards.isEmpty()) return;
 
-        // Player ke samne location set karna
+        // Set location in front of the player
         Location loc = player.getLocation().add(player.getLocation().getDirection().multiply(2)).add(0, 0.8, 0);
         
-        // Armor Stand spawn karna (Physical animation ke liye)
+        // Spawn invisible Armor Stand for the animation
         ArmorStand stand = (ArmorStand) player.getWorld().spawnEntity(loc, EntityType.ARMOR_STAND);
         stand.setVisible(false);
         stand.setGravity(false);
@@ -44,53 +44,54 @@ public class CardSpinner {
 
             @Override
             public void run() {
-                if (!player.isOnline() || ticks >= 60) {
+                // End spin after 40 ticks (~2 seconds) or if player leaves
+                if (!player.isOnline() || ticks >= 40) {
                     this.cancel();
                     
-                    // Final winner select karna
+                    // Select final winner
                     BaseCard winner = allCards.get(random.nextInt(allCards.size()));
                     finishSpin(player, stand, winner);
                     return;
                 }
 
-                // Randomly change card and name during spin
+                // Rapidly swap card and name (One-by-one style)
                 BaseCard current = allCards.get(random.nextInt(allCards.size()));
                 
-                // Item aur Name set karna
+                // Update Item and Name
                 stand.getEquipment().setHelmet(current.getItemStackWithLore(current.getName()));
                 stand.setCustomName("§f§l" + current.getName());
 
-                // Rotation animation
+                // Smooth rotation animation
                 Location teleportLoc = stand.getLocation();
-                teleportLoc.setYaw(teleportLoc.getYaw() + 25f);
+                teleportLoc.setYaw(teleportLoc.getYaw() + 30f);
                 stand.teleport(teleportLoc);
 
-                // Spin sound
+                // Tick sound effect
                 player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_HAT, 0.5f, 1.8f);
                 
                 ticks++;
             }
-        }.runTaskTimer(SpcialSmp.get(), 0L, 1L);
+        }.runTaskTimer(SpcialSmp.get(), 0L, 2L); // Run every 2 ticks for a smoother cycling look
     }
 
     private static void finishSpin(Player player, ArmorStand stand, BaseCard winner) {
-        // Winner card display
+        // Display winning card
         ItemStack winningItem = winner.getItemStackWithLore(winner.getName());
         stand.getEquipment().setHelmet(winningItem);
         stand.setCustomName("§a§l★ " + winner.getName() + " ★");
 
-        // Player effects
-        player.sendTitle("§a§l" + winner.getName(), "§fAapko ye card mila!", 10, 40, 10);
+        // Professional English Title (Hinglish removed)
+        player.sendTitle("§a§l" + winner.getName(), "§fYou received this card!", 10, 40, 10);
         player.playSound(player.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 1f, 1.2f);
         
-        // Inventory mein card dena
+        // Give card to player and save data
         player.getInventory().addItem(winningItem);
-
-        // Data save karna
         SpcialSmp.get().getPlayerDataManager().setReceivedFirstCard(player.getUniqueId(), winner.getName());
-        player.sendMessage("§a§l✔ §fYou won: " + winner.getName());
 
-        // 3 second baad armor stand remove karna
+        // English confirmation message
+        player.sendMessage("§a§l✔ §fSuccess! You have been awarded the §e" + winner.getName());
+
+        // Remove armor stand after 3 seconds
         Bukkit.getScheduler().runTaskLater(SpcialSmp.get(), stand::remove, 60L);
     }
-            }
+                    }
