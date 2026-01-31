@@ -20,12 +20,12 @@ public class CardRegistry {
         register(enderman, List.of("§7Left: Teleport", "§7Right: GUI Player Pull", "§7Shift+R: Dragon Breath"));
         Bukkit.getPluginManager().registerEvents(enderman, SpcialSmp.get()); 
 
-        // --- Zombie Card Registration (Naya Logic Enable Kiya) ---
+        // --- Zombie Card Registration ---
         ZombieCard zombie = new ZombieCard();
         register(zombie, List.of("§7Left: Summon Zombie", "§7Right: Instant Feed", "§7Shift+R: Zombie Disguise"));
         Bukkit.getPluginManager().registerEvents(zombie, SpcialSmp.get());
-        // ---------------------------------------------------------
 
+        // --- Baki Cards Registration ---
         register(new HerobrineCard(), List.of("§7Left: Lightning", "§7Right: Darkness + Fly", "§7Shift+R: Giant/Tiny Mode"));
         register(new NothingCard(), List.of("§7Left: Time Set", "§7Right: Mind Control", "§7Shift+R: No Fall"));
         register(new WardenCard(), List.of("§7Left: Darkness", "§7Right: Sonic Boom", "§7Shift+R: Tank Mode"));
@@ -34,7 +34,10 @@ public class CardRegistry {
         register(new GhostCard(), List.of("§7Left: Wall Clip", "§7Right: Fly", "§7Shift+R: Invisibility"));
         register(new RuinCard(), List.of("§7Left: Infection", "§7Right: Silverfish", "§7Shift+R: Poison Area"));
         
-        register(new UltimateCard(), List.of("§6§lGOD MODE", "§eCraft Only"));
+        // --- Ultimate Card Registration (FIXED: Register Events added) ---
+        UltimateCard ultimate = new UltimateCard();
+        register(ultimate, List.of("§6§lGOD MODE", "§eCraft Only"));
+        Bukkit.getPluginManager().registerEvents(ultimate, SpcialSmp.get()); // Yeh zaroori tha
     }
 
     private static void register(BaseCard card, List<String> description) {
@@ -80,4 +83,4 @@ public class CardRegistry {
 
         return item;
     }
-    }
+        }
