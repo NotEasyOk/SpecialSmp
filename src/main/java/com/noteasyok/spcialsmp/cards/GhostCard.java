@@ -26,6 +26,11 @@ public class GhostCard extends BaseCard {
 public int getModelData() {
     return 3;
 }
+
+    @Override
+public Material getMaterial() {
+    return Material.WHITE_DYE;
+}
     
     /* ---------------- LEFT CLICK (Slow Falling) ---------------- */
     @Override
