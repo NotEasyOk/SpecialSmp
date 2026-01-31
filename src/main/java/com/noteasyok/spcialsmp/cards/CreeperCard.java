@@ -3,6 +3,7 @@ package com.noteasyok.spcialsmp.cards;
 import com.noteasyok.spcialsmp.SpcialSmp;
 import org.bukkit.*;
 import org.bukkit.entity.Player;
+import org.bukkit.Material;
 import org.bukkit.entity.TNTPrimed;
 import org.bukkit.util.RayTraceResult;
 import org.bukkit.util.Vector;
