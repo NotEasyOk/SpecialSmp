@@ -152,7 +152,7 @@ public class UltimateCard extends BaseCard implements Listener {
             Material.YELLOW_DYE,      // Lightning
             Material.GRAY_DYE,        // Ruin
             Material.MUSIC_DISC_5,    // Warden
-            Material.RECOVERY_COMPASS // Nothing
+            Material.PINK_DYE,        // Nothing
         );
 
         List<ArmorStand> cards = new ArrayList<>();
