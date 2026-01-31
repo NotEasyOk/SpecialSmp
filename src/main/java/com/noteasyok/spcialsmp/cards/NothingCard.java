@@ -33,7 +33,7 @@ public int getModelData() {
 
     @Override
 public Material getMaterial() {
-    return Material.RECOVERY_COMPASS;
+    return Material.PINK_DYE;
 }
     
     /* ================= LEFT CLICK: TIME CHANGE ================= */
