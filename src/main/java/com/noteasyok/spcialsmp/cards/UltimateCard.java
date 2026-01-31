@@ -18,7 +18,7 @@ import org.bukkit.util.Vector;
 
 import java.util.*;
 
-public class UltimateCard extends BaseCard {
+public class UltimateCard extends BaseCard implements Listener {
 
     private final Map<UUID, List<ArmorStand>> orbiting = new HashMap<>();
     private final Map<String, Long> cooldowns = new HashMap<>();
