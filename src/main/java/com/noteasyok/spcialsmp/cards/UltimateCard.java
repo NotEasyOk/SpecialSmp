@@ -28,13 +28,18 @@ public class UltimateCard extends BaseCard {
     
     @Override
     public int getModelData() {
-        return 8;
+        return 0; // Ab CMD ki zarurat nahi hai
     }
 
-    // ✅ FIX: Crafting result should be Paper with Custom Model Data 8
+    // Naya method BaseCard ke hisaab se
+    @Override
+    public Material getMaterial() {
+        return Material.GREEN_DYE; // Ultimate Card ke liye best item
+    }
+
     @Override
     public ItemStack getItemStackWithLore(String name) {
-        ItemStack item = new ItemStack(Material.PAPER); // Echo Shard ki jagah Paper taaki logic match kare
+        ItemStack item = new ItemStack(getMaterial()); 
         ItemMeta meta = item.getItemMeta();
         if (meta != null) {
             meta.setDisplayName("§6§l" + name);
@@ -47,7 +52,6 @@ public class UltimateCard extends BaseCard {
             meta.setLore(lore);
             meta.setCustomModelData(getModelData());
             
-            // Add NBT for Ability Trigger
             NamespacedKey key = new NamespacedKey(SpcialSmp.get(), "card_id");
             meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, getName());
             
@@ -132,24 +136,33 @@ public class UltimateCard extends BaseCard {
         }.runTaskTimer(SpcialSmp.get(), 0L, 1L);
     }
 
-    /* ================= ORBIT LOGIC ================= */
+    /* ================= ORBIT LOGIC (FIXED FOR MULTI-MATERIAL) ================= */
     public void startOrbit(Player p) {
         if (orbiting.containsKey(p.getUniqueId())) return;
 
+        // Sabhi 9 cards ke materials ki list
+        List<Material> cardMaterials = Arrays.asList(
+            Material.DISC_FRAGMENT_5, // Creeper
+            Material.CHORUS_FRUIT,     // Enderman
+            Material.PURPLE_DYE,      // Herobrine
+            Material.BLACK_DYE,       // Zombie
+            Material.WHITE_DYE,       // Ghost
+            Material.YELLOW_DYE,      // Lightning
+            Material.GRAY_DYE,        // Ruin
+            Material.MUSIC_DISC_5,    // Warden
+            Material.RECOVERY_COMPASS // Nothing
+        );
+
         List<ArmorStand> cards = new ArrayList<>();
-        for (int i = 0; i < 9; i++) {
+        for (int i = 0; i < cardMaterials.size(); i++) {
             ArmorStand as = p.getWorld().spawn(p.getLocation(), ArmorStand.class);
             as.setInvisible(true);
             as.setMarker(true);
             as.setGravity(false);
             as.setSmall(true);
 
-            ItemStack cardItem = new ItemStack(Material.PAPER);
-            ItemMeta meta = cardItem.getItemMeta();
-            if (meta != null) {
-                meta.setCustomModelData(i + 1); 
-                cardItem.setItemMeta(meta);
-            }
+            // FIXED: Ab ye Material.PAPER nahi lega, balki list se item uthayega
+            ItemStack cardItem = new ItemStack(cardMaterials.get(i)); 
             as.getEquipment().setItemInMainHand(cardItem);
 
             as.setRightArmPose(new EulerAngle(Math.toRadians(-90), 0, 0));
@@ -212,4 +225,4 @@ public class UltimateCard extends BaseCard {
         cooldowns.put(mapKey, now + (seconds * 1000L));
         return true;
     }
-                }
+            }
