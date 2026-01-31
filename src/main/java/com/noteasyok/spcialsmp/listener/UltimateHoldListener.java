@@ -71,12 +71,15 @@ public class UltimateHoldListener implements Listener {
     }
 
     private boolean isUltimate(ItemStack item) {
-        if (item == null || !item.hasItemMeta()) return false;
+        // FIXED: Pehle check karega ki item Green Dye hai ya nahi
+        if (item == null || item.getType() != Material.GREEN_DYE) return false;
+        if (!item.hasItemMeta()) return false;
+        
         NamespacedKey key = new NamespacedKey(SpcialSmp.get(), "card_id");
         String id = item.getItemMeta().getPersistentDataContainer().get(key, PersistentDataType.STRING);
         if (id != null && id.equals("Ultimate Card")) return true;
         
         String name = ChatColor.stripColor(item.getItemMeta().getDisplayName());
-        return name.equals("Ultimate Card");
+        return name != null && name.equals("Ultimate Card");
     }
-                                }
+                    }
