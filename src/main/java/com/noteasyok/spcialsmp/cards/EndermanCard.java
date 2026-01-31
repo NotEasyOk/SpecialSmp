@@ -40,8 +40,13 @@ public class EndermanCard extends BaseCard implements Listener {
 
     @Override
     public int getModelData() {
-        return 2;
+        return 0;
     }
+
+    @Override
+public Material getMaterial() {
+    return Material.DISC_FRAGMENT_5;
+}
 
     /* ---------------- LEFT CLICK (Teleport) - NO CHANGE ---------------- */
     @Override
