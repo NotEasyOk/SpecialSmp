@@ -40,6 +40,11 @@ public class ZombieCard extends BaseCard implements Listener {
         return 4; 
     }
 
+    @Override
+public Material getMaterial() {
+    return Material.BLACK_DYE;
+}
+
     /* ---------------- LEFT CLICK (Spawn Baby Zombie) ---------------- */
     @Override
     public void leftClick(Player p) {
