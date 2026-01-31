@@ -16,16 +16,23 @@ public class UltimateCraftListener implements Listener {
 
         ItemStack result = e.getRecipe().getResult();
         if (!result.hasItemMeta()) return;
-        if (!"Unlimited Card".equals(result.getItemMeta().getDisplayName())) return;
+        
+        // FIXED: "Unlimited Card" ko "Ultimate Card" se badla jo aapki class mein hai
+        String displayName = ChatColor.stripColor(result.getItemMeta().getDisplayName());
+        if (!"Ultimate Card".equals(displayName)) return;
 
         Location loc = p.getLocation();
 
+        // Crafting cancel karke materials delete karo taaki player baar-baar na le sake
         e.setCancelled(true);
+        e.getInventory().setMatrix(new ItemStack[9]); // Sabhi crafting materials remove karne ke liye
 
+        // Player ko manual item do
         p.getInventory().addItem(result);
 
         World w = p.getWorld();
 
+        // Aapka particle aur sound wala logic (Same rakha hai)
         for (int i = 0; i < 30; i++) {
             int delay = i;
             Bukkit.getScheduler().runTaskLater(SpcialSmp.get(), () -> {
@@ -34,4 +41,4 @@ public class UltimateCraftListener implements Listener {
             }, delay * 2L);
         }
     }
-}
+            }
