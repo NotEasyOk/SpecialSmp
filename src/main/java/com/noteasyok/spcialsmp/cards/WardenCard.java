@@ -30,6 +30,11 @@ public class WardenCard extends BaseCard {
 public int getModelData() {
     return 9;
 }
+
+    @Override
+public Material getMaterial() {
+    return Material.MUSIC_DISC_5;
+}
     
     /* ---------------- LEFT CLICK (Health Boost) ---------------- */
     @Override
