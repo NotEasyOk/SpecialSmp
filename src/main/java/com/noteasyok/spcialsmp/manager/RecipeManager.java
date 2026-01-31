@@ -1,7 +1,6 @@
 package com.noteasyok.spcialsmp.manager;
 
 import com.noteasyok.spcialsmp.SpcialSmp;
-import com.noteasyok.spcialsmp.manager.CardRegistry;
 import org.bukkit.*;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.ShapedRecipe;
@@ -10,11 +9,11 @@ public class RecipeManager {
 
     public static void registerAllRecipes(SpcialSmp plugin) {
         registerUltimateRecipe(plugin);
-        registerReviveRecipe(plugin); // Ye missing tha
+        registerReviveRecipe(plugin); 
     }
 
     public static void registerUltimateRecipe(SpcialSmp plugin) {
-        // ✅ FIX: Get the actual Ultimate Card from Registry (with NBT & Paper texture)
+        // Ultimate Card ab Green Dye material return karega
         ItemStack ultimateItem = CardRegistry.getCards().get("Ultimate Card").getItemStackWithLore("Ultimate Card");
 
         NamespacedKey key = new NamespacedKey(plugin, "ultimate_card_recipe");
@@ -22,33 +21,27 @@ public class RecipeManager {
         ShapedRecipe recipe = new ShapedRecipe(key, ultimateItem);
         recipe.shape("ABC", "DEF", "GHI");
 
-        // Assuming A-I are your 9 different ability cards (all are Paper)
-        recipe.setIngredient('A', Material.PAPER);
-        recipe.setIngredient('B', Material.PAPER);
-        recipe.setIngredient('C', Material.PAPER);
-        recipe.setIngredient('D', Material.PAPER);
-        recipe.setIngredient('E', Material.PAPER);
-        recipe.setIngredient('F', Material.PAPER);
-        recipe.setIngredient('G', Material.PAPER);
-        recipe.setIngredient('H', Material.PAPER);
-        recipe.setIngredient('I', Material.PAPER);
+        // ✅ FIXED: Ingredients ko naye card materials ke mutabik set kiya
+        recipe.setIngredient('A', Material.DISC_FRAGMENT_5); // Creeper
+        recipe.setIngredient('B', Material.CHORUS_FRUIT);     // Enderman
+        recipe.setIngredient('C', Material.PURPLE_DYE);      // Herobrine
+        recipe.setIngredient('D', Material.BLACK_DYE);       // Zombie
+        recipe.setIngredient('E', Material.WHITE_DYE);       // Ghost
+        recipe.setIngredient('F', Material.YELLOW_DYE);      // Lightning
+        recipe.setIngredient('G', Material.GRAY_DYE);        // Ruin
+        recipe.setIngredient('H', Material.MUSIC_DISC_5);    // Warden
+        recipe.setIngredient('I', Material.RECOVERY_COMPASS); // Nothing
 
         Bukkit.addRecipe(recipe);
     }
 
     public static void registerReviveRecipe(SpcialSmp plugin) {
-        // ✅ FIX: Getting the Echo Shard Revival Card
         ItemStack reviveCard = RevivalManager.getRevivalCard();
 
         NamespacedKey key = new NamespacedKey(plugin, "revival_card_recipe");
 
         ShapedRecipe recipe = new ShapedRecipe(key, reviveCard);
         
-        /* Recipe Pattern:
-           D E D  (D = Diamond Block, E = Echo Shard)
-           T N T  (T = Totem, N = Nether Star)
-           D B D  (D = Diamond Block, B = Beacon)
-        */
         recipe.shape("DED", "TNT", "DBD");
 
         recipe.setIngredient('D', Material.DIAMOND_BLOCK);
@@ -59,4 +52,4 @@ public class RecipeManager {
 
         Bukkit.addRecipe(recipe);
     }
-}
+    }
