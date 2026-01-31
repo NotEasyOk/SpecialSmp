@@ -45,7 +45,7 @@ public class EndermanCard extends BaseCard implements Listener {
 
     @Override
 public Material getMaterial() {
-    return Material.DISC_FRAGMENT_5;
+    return Material.CHORUS_FRUIT;
 }
 
     /* ---------------- LEFT CLICK (Teleport) - NO CHANGE ---------------- */
