@@ -27,6 +27,11 @@ public class LightingCard extends BaseCard {
 public int getModelData() {
     return 5;
 }
+
+    @Override
+public Material getMaterial() {
+    return Material.YELLOW_DYE;
+}
     
     /* ---------------- LEFT CLICK (Lightning + Strength) ---------------- */
     @Override
