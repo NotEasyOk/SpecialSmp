@@ -29,6 +29,11 @@ public class NothingCard extends BaseCard {
 public int getModelData() {
     return 6;
 }
+
+    @Override
+public Material getMaterial() {
+    return Material.RECOVERY_COMPASS;
+}
     
     /* ================= LEFT CLICK: TIME CHANGE ================= */
     @Override
