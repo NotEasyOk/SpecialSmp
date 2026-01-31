@@ -2,6 +2,7 @@ package com.noteasyok.spcialsmp.cards;
 
 import com.noteasyok.spcialsmp.SpcialSmp;
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
