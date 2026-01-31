@@ -11,6 +11,11 @@ import java.util.Map;
 public class RecipeManager {
 
     public static void registerAllRecipes(SpcialSmp plugin) {
+        // Zaroori: Pehle check karo ki cards load hue hain ya nahi
+        if (CardRegistry.getCards().isEmpty()) {
+            Bukkit.getLogger().severe("[SpcialSmp] Recipes skip ho rahi hain kyunki CardRegistry khali hai!");
+            return;
+        }
         registerUltimateRecipe(plugin);
         registerReviveRecipe(plugin); 
     }
@@ -18,11 +23,16 @@ public class RecipeManager {
     public static void registerUltimateRecipe(SpcialSmp plugin) {
         Map<String, BaseCard> cards = CardRegistry.getCards();
         
-        // Ultimate Card result item
-        ItemStack ultimateItem = cards.get("Ultimate Card").getItemStackWithLore("Ultimate Card");
+        // Safety Check: Agar Ultimate Card nahi mila toh crash mat ho
+        BaseCard ultimateCard = cards.get("Ultimate Card");
+        if (ultimateCard == null) {
+            Bukkit.getLogger().severe("[SpcialSmp] ERROR: Ultimate Card registry mein nahi mila!");
+            return;
+        }
+
+        ItemStack ultimateItem = ultimateCard.getItemStackWithLore("Ultimate Card");
         NamespacedKey key = new NamespacedKey(plugin, "ultimate_card_recipe");
 
-        // Purani recipe remove karo agar exist karti ho (to avoid conflicts)
         if (Bukkit.getRecipe(key) != null) {
             Bukkit.removeRecipe(key);
         }
@@ -30,27 +40,36 @@ public class RecipeManager {
         ShapedRecipe recipe = new ShapedRecipe(key, ultimateItem);
         recipe.shape("ABC", "DEF", "GHI");
 
-        // Har slot ke liye card ka exact ItemStack check hoga
-        recipe.setIngredient('A', new RecipeChoice.ExactChoice(cards.get("Creeper Card").getItemStackWithLore("Creeper Card")));
-        recipe.setIngredient('B', new RecipeChoice.ExactChoice(cards.get("Enderman Card").getItemStackWithLore("Enderman Card")));
-        recipe.setIngredient('C', new RecipeChoice.ExactChoice(cards.get("Herobrine Card").getItemStackWithLore("Herobrine Card")));
-        recipe.setIngredient('D', new RecipeChoice.ExactChoice(cards.get("Zombie Card").getItemStackWithLore("Zombie Card")));
-        recipe.setIngredient('E', new RecipeChoice.ExactChoice(cards.get("Ghost Card").getItemStackWithLore("Ghost Card")));
-        recipe.setIngredient('F', new RecipeChoice.ExactChoice(cards.get("Lightning Card").getItemStackWithLore("Lightning Card")));
-        recipe.setIngredient('G', new RecipeChoice.ExactChoice(cards.get("Ruin Card").getItemStackWithLore("Ruin Card")));
-        recipe.setIngredient('H', new RecipeChoice.ExactChoice(cards.get("Warden Card").getItemStackWithLore("Warden Card")));
-        recipe.setIngredient('I', new RecipeChoice.ExactChoice(cards.get("Nothing Card").getItemStackWithLore("Nothing Card")));
+        // Helper method use kar rahe hain taaki NullPointerException kabhi na aaye
+        recipe.setIngredient('A', getCardChoice(cards, "Creeper Card", Material.DISC_FRAGMENT_5));
+        recipe.setIngredient('B', getCardChoice(cards, "Enderman Card", Material.CHORUS_FRUIT));
+        recipe.setIngredient('C', getCardChoice(cards, "Herobrine Card", Material.PURPLE_DYE));
+        recipe.setIngredient('D', getCardChoice(cards, "Zombie Card", Material.BLACK_DYE));
+        recipe.setIngredient('E', getCardChoice(cards, "Ghost Card", Material.WHITE_DYE));
+        recipe.setIngredient('F', getCardChoice(cards, "Lightning Card", Material.YELLOW_DYE));
+        recipe.setIngredient('G', getCardChoice(cards, "Ruin Card", Material.GRAY_DYE));
+        recipe.setIngredient('H', getCardChoice(cards, "Warden Card", Material.MUSIC_DISC_5));
+        recipe.setIngredient('I', getCardChoice(cards, "Nothing Card", Material.PINK_DYE));
 
         Bukkit.addRecipe(recipe);
     }
 
+    // Naya Safe Helper Method
+    private static RecipeChoice getCardChoice(Map<String, BaseCard> cards, String name, Material fallback) {
+        BaseCard card = cards.get(name);
+        if (card != null) {
+            return new RecipeChoice.ExactChoice(card.getItemStackWithLore(name));
+        }
+        // Agar card registry mein nahi hai, toh fallback material use karo (taki crash na ho)
+        return new RecipeChoice.MaterialChoice(fallback);
+    }
+
     public static void registerReviveRecipe(SpcialSmp plugin) {
         ItemStack reviveCard = RevivalManager.getRevivalCard();
-        NamespacedKey key = new NamespacedKey(plugin, "revival_card_recipe");
+        if (reviveCard == null) return;
 
-        if (Bukkit.getRecipe(key) != null) {
-            Bukkit.removeRecipe(key);
-        }
+        NamespacedKey key = new NamespacedKey(plugin, "revival_card_recipe");
+        if (Bukkit.getRecipe(key) != null) Bukkit.removeRecipe(key);
 
         ShapedRecipe recipe = new ShapedRecipe(key, reviveCard);
         recipe.shape("DED", "TNT", "DBD");
@@ -63,4 +82,4 @@ public class RecipeManager {
 
         Bukkit.addRecipe(recipe);
     }
-            }
+    }
