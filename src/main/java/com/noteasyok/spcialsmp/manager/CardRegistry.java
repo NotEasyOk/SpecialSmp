@@ -25,22 +25,28 @@ public class CardRegistry {
         register(zombie, List.of("§7Left: Summon Zombie", "§7Right: Instant Feed", "§7Shift+R: Zombie Disguise"));
         Bukkit.getPluginManager().registerEvents(zombie, SpcialSmp.get());
 
-        // --- Baki Cards Registration ---
+        // --- Baki Cards Registration (FIXED NAMES to match RecipeManager) ---
         register(new HerobrineCard(), List.of("§7Left: Lightning", "§7Right: Darkness + Fly", "§7Shift+R: Giant/Tiny Mode"));
         register(new NothingCard(), List.of("§7Left: Time Set", "§7Right: Mind Control", "§7Shift+R: No Fall"));
         register(new WardenCard(), List.of("§7Left: Darkness", "§7Right: Sonic Boom", "§7Shift+R: Tank Mode"));
         register(new CreeperCard(), List.of("§7Left: Explosion", "§7Right: Airstrike", "§7Shift+R: Nuke Rain"));
-        register(new LightingCard(), List.of("§7Left: Strike", "§7Right: Storm", "§7Shift+R: Trail"));
+        
+        // Fix: Spelling matched with "Lightning Card" in RecipeManager
+        LightingCard lightning = new LightingCard();
+        register(lightning, List.of("§7Left: Strike", "§7Right: Storm", "§7Shift+R: Trail"));
+        Bukkit.getPluginManager().registerEvents(lightning, SpcialSmp.get());
+
         register(new GhostCard(), List.of("§7Left: Wall Clip", "§7Right: Fly", "§7Shift+R: Invisibility"));
         register(new RuinCard(), List.of("§7Left: Infection", "§7Right: Silverfish", "§7Shift+R: Poison Area"));
         
-        // --- Ultimate Card Registration (FIXED: Register Events added) ---
+        // --- Ultimate Card Registration ---
         UltimateCard ultimate = new UltimateCard();
         register(ultimate, List.of("§6§lGOD MODE", "§eCraft Only"));
-        Bukkit.getPluginManager().registerEvents(ultimate, SpcialSmp.get()); // Yeh zaroori tha
+        Bukkit.getPluginManager().registerEvents(ultimate, SpcialSmp.get());
     }
 
     private static void register(BaseCard card, List<String> description) {
+        // Zaroori: Card ke getName() method ka hi use karein
         CARDS.put(card.getName(), card);
         DESC.put(card.getName(), description);
     }
@@ -83,4 +89,4 @@ public class CardRegistry {
 
         return item;
     }
-        }
+                                 }
