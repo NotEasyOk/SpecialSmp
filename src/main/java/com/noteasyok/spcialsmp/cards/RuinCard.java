@@ -25,6 +25,11 @@ public class RuinCard extends BaseCard {
 public int getModelData() {
     return 7;
 }
+
+    @Override
+public Material getMaterial() {
+    return Material.GRAY_DYE;
+}
     
     @Override
     public void leftClick(Player p) {
