@@ -1,5 +1,6 @@
 package com.noteasyok.spcialsmp.cards;
 
+import org.bukkit.event.Listener;
 import com.noteasyok.spcialsmp.SpcialSmp;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
@@ -14,7 +15,6 @@ import org.bukkit.util.EulerAngle;
 import org.bukkit.util.RayTraceResult;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.util.Vector;
-import org.bukkit.event.Listener;
 
 import java.util.*;
 
