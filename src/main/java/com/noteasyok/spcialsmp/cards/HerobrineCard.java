@@ -31,6 +31,11 @@ public class HerobrineCard extends BaseCard {
 public int getModelData() {
     return 4;
 }
+
+    @Override
+public Material getMaterial() {
+    return Material.PURPLE_DYE;
+}
     
     /* ---------------- LEFT CLICK (Lightning) ---------------- */
     @Override
