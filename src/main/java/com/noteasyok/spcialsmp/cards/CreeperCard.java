@@ -23,8 +23,13 @@ public class CreeperCard extends BaseCard {
     
       @Override
        public int getModelData() {
-          return 1;
+          return 0;
     }
+
+      @Override
+        public Material getMaterial() {
+           return Material.DISC_FRAGMENT_5;
+     }
     
     /* ================= LEFT CLICK (Big Explosion) ================= */
     @Override
