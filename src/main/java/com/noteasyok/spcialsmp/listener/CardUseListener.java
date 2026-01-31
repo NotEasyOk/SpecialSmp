@@ -22,7 +22,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class CardUseListener implements Listener {
 
-    // ✅ FIXED: Using BaseCard instead of Card
     private final Map<String, BaseCard> cards;
     private final Map<String, Integer> actionBarTasks = new ConcurrentHashMap<>();
 
@@ -37,12 +36,15 @@ public class CardUseListener implements Listener {
     @EventHandler
     public void onUse(PlayerInteractEvent e) {
         ItemStack it = e.getItem();
+        
+        // Safety check: Material koi bhi ho, bas NBT hona chahiye
         if (it == null || !it.hasItemMeta()) return;
 
-        // ✅ FIXED: Display name ki jagah NBT Tag (card_id) se card pehchano
+        // Display name ki jagah NBT Tag (card_id) se card pehchano
         NamespacedKey key = new NamespacedKey(SpcialSmp.get(), "card_id");
         String cardID = it.getItemMeta().getPersistentDataContainer().get(key, PersistentDataType.STRING);
         
+        // Agar cardID null hai ya registry mein nahi hai, toh return
         if (cardID == null || !cards.containsKey(cardID)) return;
 
         Player p = e.getPlayer();
