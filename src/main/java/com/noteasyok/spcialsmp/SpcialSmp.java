@@ -25,56 +25,29 @@ public class SpcialSmp extends JavaPlugin {
         cooldownManager = new CooldownManager(this);
         playerDataManager = new PlayerDataManager(this);
 
-        // Register cards
+        // 1. Sabse pehle Cards register karo (Taki RecipeManager ko "null" na mile)
         CardRegistry.registerAll();
 
-        // Recipes
-        RecipeManager.registerUltimateRecipe(this);
-        // ✅ ADDED: Revival Totem/Card Recipe (Diamond blocks + Totem + Beacon)
-        RevivalManager.registerRevivalRecipe();
+        // 2. Ab saari Recipes ek saath register karo
+        RecipeManager.registerAllRecipes(this);
 
         // Fuel System & Task Timer Start
         FuelManager.startFuelTask();
         TaskManager.startGlobalTaskTimer();
 
-        // FIX: Explicitly cast to Map<String, BaseCard> to avoid compilation error
+        // Map for listeners
         Map<String, BaseCard> cardsMap = CardRegistry.getCards();
 
         // Listeners
-        Bukkit.getPluginManager().registerEvents(
-              new CardUseListener(cardsMap), this
-        );  
-        Bukkit.getPluginManager().registerEvents(
-              new ZombieOwnerListener(), this
-        );    
-        Bukkit.getPluginManager().registerEvents(
-              new UltimateHoldListener(),this    
-        );
-        Bukkit.getPluginManager().registerEvents(
-              new JoinListener(), this
-        );
-        Bukkit.getPluginManager().registerEvents(
-              new DeathListener(), this
-        );
-        Bukkit.getPluginManager().registerEvents(
-              new UltimateCraftListener(), this
-        );
-        
-        // Spin GUI Protection
-        Bukkit.getPluginManager().registerEvents(
-              new InventoryListener(), this
-        );
-
-        // Naye Task System Listeners
-        Bukkit.getPluginManager().registerEvents(
-              new TaskCompletionListener(), this
-        );
-
-        // ✅ ADDED: Revival Listener (GUI & Unban Logic)
-        Bukkit.getPluginManager().registerEvents(
-              new RevivalListener(), this
-        );
-
+        Bukkit.getPluginManager().registerEvents(new CardUseListener(cardsMap), this);  
+        Bukkit.getPluginManager().registerEvents(new ZombieOwnerListener(), this);    
+        Bukkit.getPluginManager().registerEvents(new UltimateHoldListener(), this);    
+        Bukkit.getPluginManager().registerEvents(new JoinListener(), this);
+        Bukkit.getPluginManager().registerEvents(new DeathListener(), this);
+        Bukkit.getPluginManager().registerEvents(new UltimateCraftListener(), this);
+        Bukkit.getPluginManager().registerEvents(new InventoryListener(), this);
+        Bukkit.getPluginManager().registerEvents(new TaskCompletionListener(), this);
+        Bukkit.getPluginManager().registerEvents(new RevivalListener(), this);
 
         // Command
         if (getCommand("cards") != null) {
@@ -100,4 +73,4 @@ public class SpcialSmp extends JavaPlugin {
     public PlayerDataManager getPlayerDataManager() {
         return playerDataManager;
     }
-    }
+                                                 }
