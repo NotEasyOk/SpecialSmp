@@ -1,6 +1,7 @@
 package com.noteasyok.spcialsmp.listener;
 
 import com.noteasyok.spcialsmp.SpcialSmp;
+import org.bukkit.ChatColor; // Added for stripping colors
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
@@ -39,13 +40,15 @@ public class DeathListener implements Listener {
             // 1. Check for Special Cards (Tag Based)
             boolean isCard = item.getItemMeta().getPersistentDataContainer().has(key, PersistentDataType.STRING);
             
-            // 2. Check for Task Book (Name Based)
+            // 2. Check for Task Book (Fixed Logic)
+            // Pehle color codes hataye, fir check kiya taaki galti na ho
+            String name = ChatColor.stripColor(item.getItemMeta().getDisplayName());
             boolean isTaskBook = item.getType() == Material.WRITTEN_BOOK && 
-                                 item.getItemMeta().getDisplayName().contains("Aaj Ka Task");
+                                 (name.contains("Aaj ka task") || name.contains("Aaj Ka Task"));
 
             if (isCard || isTaskBook) {
                 toSave.add(item);
-                it.remove(); // Drops se hata diya gaya
+                it.remove(); // Drops se hata diya gaya (Saved)
             }
         }
 
@@ -65,8 +68,7 @@ public class DeathListener implements Listener {
                 p.getInventory().addItem(item);
             }
 
-            // Message removed as per request
             savedCards.remove(p.getUniqueId());
         }
     }
-        }
+}
