@@ -20,21 +20,25 @@ public abstract class BaseCard {
     public abstract void rightClick(Player p);
     public abstract void shiftRightClick(Player p);
     
-    // Naya method: Har card apni unique ID yahan se dega
+    // Naya method: Har card apna material (item) yahan se batayega
+    public abstract Material getMaterial();
+
+    // Custom Model Data (CMD) agar use karna ho, warna 0 return kar dena
     public abstract int getModelData();
 
     /**
      * Standard card creation with NBT Tags and Glow
      */
     public ItemStack createItem() {
-        ItemStack item = new ItemStack(Material.PAPER); 
+        // FIXED: Ab ye Material.PAPER nahi, balki getMaterial() use karega
+        ItemStack item = new ItemStack(getMaterial()); 
         ItemMeta meta = item.getItemMeta();
 
         if (meta != null) {
             // 1. Name
             meta.setDisplayName("§6§l" + getName());
 
-            // 2. Custom Model Data (Fixed: Ab ye har card ke liye alag hoga)
+            // 2. Custom Model Data (CMD)
             meta.setCustomModelData(getModelData()); 
 
             // 3. Shiny Effect
@@ -66,4 +70,4 @@ public abstract class BaseCard {
         }
         return item;
     }
-                                                  }
+    }
