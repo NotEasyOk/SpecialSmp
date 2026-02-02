@@ -1,11 +1,13 @@
 package com.noteasyok.spcialsmp;
 
 import com.noteasyok.spcialsmp.cards.BaseCard;
+import com.noteasyok.spcialsmp.cards.RuinWorldGenerator; // Naya import
 import com.noteasyok.spcialsmp.command.CardsCommand;
 import com.noteasyok.spcialsmp.listener.*;
 import com.noteasyok.spcialsmp.manager.*;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.generator.ChunkGenerator; // Naya import
 import java.util.Map;
 
 public class SpcialSmp extends JavaPlugin {
@@ -64,7 +66,17 @@ public class SpcialSmp extends JavaPlugin {
         }
 
         getLogger().info("SpcialSmp plugin ENABLED successfully with Fuel, Task & Revival System");
-            }
+    }
+
+    // ================== RUIN DIMENSION GENERATOR REGISTRATION ==================
+    @Override
+    public ChunkGenerator getDefaultWorldGenerator(String worldName, String id) {
+        if (worldName.equals("world_ruin_dimension")) {
+            return new RuinWorldGenerator();
+        }
+        return null;
+    }
+    // ===========================================================================
 
     @Override
     public void onDisable() {
@@ -82,4 +94,4 @@ public class SpcialSmp extends JavaPlugin {
     public PlayerDataManager getPlayerDataManager() {
         return playerDataManager;
     }
-                                                 }
+    }
