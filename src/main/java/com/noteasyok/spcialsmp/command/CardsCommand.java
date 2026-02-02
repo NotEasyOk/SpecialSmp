@@ -6,8 +6,11 @@ import com.noteasyok.spcialsmp.manager.CardRegistry;
 import com.noteasyok.spcialsmp.manager.CardSpinner;
 import com.noteasyok.spcialsmp.manager.TaskManager;
 import com.noteasyok.spcialsmp.manager.RevivalManager;
+import com.noteasyok.spcialsmp.manager.SoulFuelManager; // Added Fuel Manager
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
+import org.bukkit.Sound;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -16,12 +19,12 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.util.StringUtil;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class CardsCommand implements CommandExecutor, TabCompleter {
 
@@ -34,13 +37,47 @@ public class CardsCommand implements CommandExecutor, TabCompleter {
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
 
-        if (!sender.hasPermission("spcialsmp.admin")) {
-            sender.sendMessage("§c§lERROR! §7You do not have permission to use this admin command.");
+        if (args.length == 0) {
+            sendHelp(sender);
             return true;
         }
 
-        if (args.length == 0) {
-            sendHelp(sender);
+        // --- FUEL WITHDRAW LOGIC (D-OP and OP both can use) ---
+        if (args[0].equalsIgnoreCase("fuel") && args.length >= 3 && args[1].equalsIgnoreCase("withdraw")) {
+            if (!(sender instanceof Player p)) {
+                sender.sendMessage("Only players can withdraw fuel!");
+                return true;
+            }
+
+            try {
+                int amount = Integer.parseInt(args[2]);
+                if (amount <= 0) {
+                    p.sendMessage("§c§l[!] §7Amount must be positive.");
+                    return true;
+                }
+
+                int currentFuel = SoulFuelManager.getFuel(p); 
+                if (currentFuel < amount) {
+                    p.sendMessage("§c§l[!] §7You don't have enough Soul Fuel! (Available: " + currentFuel + "h)");
+                    return true;
+                }
+
+                // Deduct fuel and give bottle
+                SoulFuelManager.setFuel(p, currentFuel - amount);
+                p.getInventory().addItem(createFuelBottle(amount));
+                
+                p.sendMessage("§a§l[!] §7Withdrew §e" + amount + "h §7Soul Fuel into a bottle!");
+                p.playSound(p.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1f, 1f);
+
+            } catch (NumberFormatException e) {
+                p.sendMessage("§c§l[!] §7Invalid amount number!");
+            }
+            return true;
+        }
+
+        // --- ADMIN COMMANDS CHECK ---
+        if (!sender.hasPermission("spcialsmp.admin")) {
+            sender.sendMessage("§c§lERROR! §7You do not have permission to use this admin command.");
             return true;
         }
 
@@ -142,42 +179,54 @@ public class CardsCommand implements CommandExecutor, TabCompleter {
         return true;
     }
 
+    private ItemStack createFuelBottle(int amount) {
+        ItemStack bottle = new ItemStack(Material.EXPERIENCE_BOTTLE); // Using EXP bottle look
+        ItemMeta meta = bottle.getItemMeta();
+        if (meta != null) {
+            meta.setDisplayName("§b§lSoul Fuel Bottle §7(§e" + amount + "h§7)");
+            List<String> lore = new ArrayList<>();
+            lore.add("§8------------------");
+            lore.add("§7Throw this to claim fuel.");
+            lore.add("§7Contains: §e" + amount + " hours");
+            lore.add("§8------------------");
+            NamespacedKey key = new NamespacedKey(SpcialSmp.get(), "fuel_amount");
+            meta.getPersistentDataContainer().set(key, PersistentDataType.INTEGER, amount);
+            bottle.setItemMeta(meta);
+        }
+        return bottle;
+    }
+
     private void openReviveRecipeGUI(Player p) {
         Inventory inv = Bukkit.createInventory(null, 27, "§0Revival Card Recipe");
-        
-        // Background: Black Glass for better contrast
         ItemStack glass = new ItemStack(Material.BLACK_STAINED_GLASS_PANE);
         ItemMeta gMeta = glass.getItemMeta();
         if (gMeta != null) { gMeta.setDisplayName(" "); glass.setItemMeta(gMeta); }
         for (int i = 0; i < 27; i++) inv.setItem(i, glass);
 
-        // Grid (Matching RecipeManager: DED, TNT, DBD)
         inv.setItem(2, new ItemStack(Material.DIAMOND_BLOCK));
-        inv.setItem(3, new ItemStack(Material.ECHO_SHARD)); // Middle - Echo Shard
+        inv.setItem(3, new ItemStack(Material.ECHO_SHARD));
         inv.setItem(4, new ItemStack(Material.DIAMOND_BLOCK));
-
         inv.setItem(11, new ItemStack(Material.TOTEM_OF_UNDYING));
         inv.setItem(12, new ItemStack(Material.NETHER_STAR));
         inv.setItem(13, new ItemStack(Material.TOTEM_OF_UNDYING));
-
         inv.setItem(20, new ItemStack(Material.DIAMOND_BLOCK));
         inv.setItem(21, new ItemStack(Material.BEACON));
         inv.setItem(22, new ItemStack(Material.DIAMOND_BLOCK));
-
-        // Result Item
         inv.setItem(15, RevivalManager.getRevivalCard());
-
         p.openInventory(inv);
     }
 
     private void sendHelp(CommandSender sender) {
-        sender.sendMessage("§6§lSpcialSmp §7- §eAdmin Commands");
-        sender.sendMessage("§8» §f/cards list");
-        sender.sendMessage("§8» §f/cards give <player> <cardName/all>");
-        sender.sendMessage("§8» §f/cards reroll <player>");
-        sender.sendMessage("§8» §f/cards getbook <player>");
-        sender.sendMessage("§8» §f/cards revive recipe");
-        sender.sendMessage("§8» §f/cards reload");
+        sender.sendMessage("§6§lSpcialSmp §7- §eCommands");
+        sender.sendMessage("§8» §a/cards fuel withdraw <hours> §7(Public)");
+        if (sender.hasPermission("spcialsmp.admin")) {
+            sender.sendMessage("§8» §f/cards list");
+            sender.sendMessage("§8» §f/cards give <player> <cardName/all>");
+            sender.sendMessage("§8» §f/cards reroll <player>");
+            sender.sendMessage("§8» §f/cards getbook <player>");
+            sender.sendMessage("§8» §f/cards revive recipe");
+            sender.sendMessage("§8» §f/cards reload");
+        }
     }
 
     private String[] slice(String[] arr, int start) {
@@ -188,16 +237,22 @@ public class CardsCommand implements CommandExecutor, TabCompleter {
 
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
-        if (!sender.hasPermission("spcialsmp.admin")) return new ArrayList<>();
-
         if (args.length == 1) {
-            return StringUtil.copyPartialMatches(args[0], Arrays.asList("list", "give", "reroll", "getbook", "revive", "reload"), new ArrayList<>());
+            List<String> subs = new ArrayList<>(Arrays.asList("fuel"));
+            if (sender.hasPermission("spcialsmp.admin")) {
+                subs.addAll(Arrays.asList("list", "give", "reroll", "getbook", "revive", "reload"));
+            }
+            return StringUtil.copyPartialMatches(args[0], subs, new ArrayList<>());
         }
+
+        if (args.length == 2 && args[0].equalsIgnoreCase("fuel")) return List.of("withdraw");
+        
+        if (!sender.hasPermission("spcialsmp.admin")) return new ArrayList<>();
 
         if (args.length == 2) {
             if (args[0].equalsIgnoreCase("revive")) return List.of("recipe");
             if (Arrays.asList("give", "reroll", "getbook").contains(args[0].toLowerCase())) {
-                return null; // Show online players
+                return null; 
             }
         }
 
@@ -209,4 +264,4 @@ public class CardsCommand implements CommandExecutor, TabCompleter {
 
         return new ArrayList<>();
     }
-                }
+            }
