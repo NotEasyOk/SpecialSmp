@@ -55,30 +55,29 @@ public class RuinCard extends BaseCard implements Listener {
         p.sendMessage("§2§l[!] §aOpening Toxic Rift... You are being pulled in!");
         p.playSound(p.getLocation(), Sound.BLOCK_BEACON_ACTIVATE, 1f, 0.5f);
 
-        // STUCK MECHANIC: Player ko portal ke upar teleport karke freeze karna
-        p.teleport(loc);
-
+        // Stuck Mechanic Start
         new BukkitRunnable() {
             int t = 0;
             @Override
             public void run() {
-                if (t >= 40) { // 2 seconds delay
+                if (t >= 40) { // 2 seconds
                     teleportToRuin(p, loc);
                     this.cancel();
                     return;
                 }
 
-                // Portal Effects (Advanced)
-                loc.getWorld().spawnParticle(Particle.SQUID_INK, loc, 20, 0.3, 0.3, 0.3, 0.05);
-                loc.getWorld().spawnParticle(Particle.DRAGON_BREATH, loc, 10, 0.5, 0.5, 0.5, 0.02);
-                loc.getWorld().spawnParticle(Particle.SMOKE, loc, 5, 0.1, 0.1, 0.1, 0.01);
-                
-                // Keep player stuck and vibrating
-                p.teleport(loc.clone().setDirection(p.getLocation().getDirection()));
-                p.setVelocity(new Vector(0, 0.05, 0)); 
+                // Keep player STUCK in the center of the portal
+                Location stuckLoc = loc.clone();
+                stuckLoc.setDirection(p.getLocation().getDirection());
+                p.teleport(stuckLoc);
+                p.setVelocity(new Vector(0, 0, 0)); // Kill momentum
+
+                // Portal Effects
+                loc.getWorld().spawnParticle(Particle.SQUID_INK, loc, 25, 0.3, 0.5, 0.3, 0.05);
+                loc.getWorld().spawnParticle(Particle.DRAGON_BREATH, loc, 15, 0.4, 0.4, 0.4, 0.02);
                 
                 if (t % 10 == 0) {
-                    p.playSound(p.getLocation(), Sound.BLOCK_PORTAL_AMBIENT, 0.8f, 0.5f);
+                    p.playSound(p.getLocation(), Sound.BLOCK_PORTAL_AMBIENT, 1f, 0.5f);
                 }
                 t += 2;
             }
@@ -89,16 +88,22 @@ public class RuinCard extends BaseCard implements Listener {
         World ruinWorld = Bukkit.getWorld(DIM_NAME);
         if (ruinWorld == null) {
             WorldCreator wc = new WorldCreator(DIM_NAME);
-            // Assuming RuinWorldGenerator is defined elsewhere in your project
-            // wc.generator(new RuinWorldGenerator()); 
+            wc.environment(World.Environment.NORMAL); // Safe default
             wc.type(WorldType.NORMAL);
             ruinWorld = wc.createWorld();
+            if (ruinWorld != null) ruinWorld.setKeepSpawnInMemory(true);
         }
 
-        Location target = ruinWorld.getHighestBlockAt(0, 0).getLocation().add(0, 2, 0);
+        if (ruinWorld == null) {
+            p.sendMessage("§c§l[!] §7Dimension creation failed. Rift collapsed!");
+            return;
+        }
+
+        // Teleport to the safe highest block in the new dimension
+        Location target = ruinWorld.getHighestBlockAt(0, 0).getLocation().add(0.5, 2, 0.5);
         p.teleport(target);
         p.playSound(p.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1f, 0.5f);
-        p.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 40, 1));
+        p.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 60, 1));
 
         BossBar bar = Bukkit.createBossBar("§2§lTOXIC ATMOSPHERE", BarColor.GREEN, BarStyle.SEGMENTED_10);
         bar.addPlayer(p);
@@ -109,17 +114,18 @@ public class RuinCard extends BaseCard implements Listener {
             @Override
             public void run() {
                 if (time <= 0 || !p.isOnline() || !p.getWorld().getName().equals(DIM_NAME)) {
-                    p.teleport(oldLoc);
-                    p.sendMessage("§c§l[!] §7The Rift has collapsed.");
+                    p.teleport(oldLoc); // Wapas purani jagah portal par
+                    p.sendMessage("§c§l[!] §7The Rift has collapsed. You have returned.");
                     bar.removeAll();
                     activeBars.remove(p);
                     this.cancel();
                     return;
                 }
                 
-                p.getWorld().spawnParticle(Particle.FALLING_SPORE_BLOSSOM, p.getLocation().add(0, 10, 0), 30, 5, 2, 5, 0.05);
+                // Poisonous Particles
+                p.getWorld().spawnParticle(Particle.FALLING_SPORE_BLOSSOM, p.getLocation().add(0, 5, 0), 50, 4, 3, 4, 0.02);
 
-                if (time % 8 == 0) spawnToxicMob(p.getLocation());
+                if (time % 10 == 0) spawnToxicMob(p.getLocation());
                 
                 bar.setProgress(time / 60.0);
                 bar.setTitle("§2§lCollapse in: " + time + "s");
@@ -129,7 +135,7 @@ public class RuinCard extends BaseCard implements Listener {
     }
 
     private void spawnToxicMob(Location center) {
-        Location spawnLoc = center.clone().add(random.nextInt(12) - 6, 0, random.nextInt(12) - 6);
+        Location spawnLoc = center.clone().add(random.nextInt(10) - 5, 0, random.nextInt(10) - 5);
         spawnLoc.setY(spawnLoc.getWorld().getHighestBlockYAt(spawnLoc) + 1);
 
         World w = center.getWorld();
@@ -147,7 +153,7 @@ public class RuinCard extends BaseCard implements Listener {
             mob.setCustomName("§5§lVoid Stalker");
         }
 
-        mob.addPotionEffect(new PotionEffect(PotionEffectType.FIRE_RESISTANCE, 99999, 1, false, false));
+        mob.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 99999, 1, false, false));
         mob.setCustomNameVisible(true);
     }
 
@@ -155,8 +161,8 @@ public class RuinCard extends BaseCard implements Listener {
     public void rightClick(Player p) {
         if (!isCool(p, "shield", 40)) return;
         p.sendMessage("§8§l[!] §7Shadow Shield Active!");
-        p.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, 60, 3));
-        p.getWorld().spawnParticle(Particle.SOUL_FIRE_FLAME, p.getLocation(), 40, 0.5, 1, 0.5, 0.1);
+        p.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, 100, 3));
+        p.getWorld().spawnParticle(Particle.SOUL_FIRE_FLAME, p.getLocation().add(0,1,0), 40, 0.5, 0.5, 0.5, 0.1);
     }
 
     @Override
@@ -211,4 +217,4 @@ public class RuinCard extends BaseCard implements Listener {
         }
         return item;
     }
-                                             }
+            }
