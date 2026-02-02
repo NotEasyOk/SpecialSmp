@@ -9,7 +9,6 @@ import org.bukkit.boss.BossBar;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -54,7 +53,7 @@ public class RuinCard extends BaseCard implements Listener {
             lore.add("");
             lore.add("§eLeft-Click: §2Ruin Dimension");
             lore.add("§eRight-Click: §8Dark Shield");
-            lore.add("§eShift + Right: §aMinion Army");
+            lore.add("§eShift + Right: §aSilverfish Guard");
             meta.setLore(lore);
             
             NamespacedKey key = new NamespacedKey(SpcialSmp.get(), "card_id");
@@ -66,8 +65,7 @@ public class RuinCard extends BaseCard implements Listener {
 
     @Override
     public void leftClick(Player p) {
-        int cd = 120;
-        if (!isCool(p, "dimension", cd)) return;
+        if (!isCool(p, "dimension", 120)) return;
 
         Block target = p.getTargetBlock(null, 5);
         if (target.getType() == Material.AIR) {
@@ -100,6 +98,7 @@ public class RuinCard extends BaseCard implements Listener {
         if (ruinWorld == null) {
             WorldCreator wc = new WorldCreator(DIM_NAME);
             wc.generator(new RuinWorldGenerator());
+            wc.type(WorldType.NORMAL); // FIX: Flat nahi, normal world terrain hoga
             ruinWorld = wc.createWorld();
         }
 
@@ -117,12 +116,17 @@ public class RuinCard extends BaseCard implements Listener {
             public void run() {
                 if (time <= 0 || !p.isOnline() || !p.getWorld().getName().equals(DIM_NAME)) {
                     p.teleport(oldLoc);
-                    bar.removePlayer(p);
+                    bar.removeAll();
                     activeBars.remove(p);
                     this.cancel();
                     return;
                 }
-                if (time % 5 == 0) spawnWeirdMob(p.getLocation());
+                
+                // Environment: Particles dropping from sky
+                p.getWorld().spawnParticle(Particle.FALLING_SPORE_BLOSSOM, p.getLocation().add(0, 10, 0), 50, 5, 5, 5, 0.05);
+
+                if (time % 5 == 0) spawnToxicMob(p.getLocation());
+                
                 bar.setProgress(time / 60.0);
                 bar.setTitle("§2§lCollapse in: " + time + "s");
                 time--;
@@ -130,57 +134,29 @@ public class RuinCard extends BaseCard implements Listener {
         }.runTaskTimer(SpcialSmp.get(), 0L, 20L);
     }
 
-    private void spawnWeirdMob(Location center) {
-        Location spawnLoc = center.clone().add(random.nextInt(10) - 5, 1, random.nextInt(10) - 5);
-        if (spawnLoc.getBlock().getType().isSolid()) return;
+    private void spawnToxicMob(Location center) {
+        Location spawnLoc = center.clone().add(random.nextInt(14) - 7, 1, random.nextInt(14) - 7);
+        spawnLoc.setY(spawnLoc.getWorld().getHighestBlockYAt(spawnLoc) + 1);
 
-        int type = random.nextInt(3);
         World w = center.getWorld();
+        LivingEntity mob;
+        int type = random.nextInt(3);
 
         if (type == 0) {
-            Zombie z = w.spawn(spawnLoc, Zombie.class);
-            z.setCustomName("§2§lToxic Walker");
-            z.setCustomNameVisible(true);
-            z.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 9999, 2));
-            EntityEquipment eq = z.getEquipment();
-            if (eq != null) {
-                ItemStack chest = new ItemStack(Material.LEATHER_CHESTPLATE);
-                LeatherArmorMeta meta = (LeatherArmorMeta) chest.getItemMeta();
-                if (meta != null) {
-                    meta.setColor(Color.GREEN);
-                    chest.setItemMeta(meta);
-                }
-                eq.setChestplate(chest);
-            }
-        } 
-        else if (type == 1) {
-            Spider s = w.spawn(spawnLoc, Spider.class);
-            s.setCustomName("§c§lThe Watcher");
-            s.addPotionEffect(new PotionEffect(PotionEffectType.INVISIBILITY, 9999, 1));
-            s.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH, 9999, 1));
-            new BukkitRunnable() {
-                @Override
-                public void run() {
-                    if (s.isDead()) this.cancel();
-                    s.getWorld().spawnParticle(Particle.ENTITY_EFFECT, s.getLocation(), 3, 0.2, 0.2, 0.2, 1);
-                }
-            }.runTaskTimer(SpcialSmp.get(), 0, 10);
+            mob = (Zombie) w.spawn(spawnLoc, Zombie.class);
+            mob.setCustomName("§2§lToxic Walker");
+        } else if (type == 1) {
+            mob = (Skeleton) w.spawn(spawnLoc, Skeleton.class);
+            mob.setCustomName("§8§lRuin Archer");
+        } else {
+            mob = (Enderman) w.spawn(spawnLoc, Enderman.class);
+            mob.setCustomName("§5§lVoid Stalker");
         }
-        else {
-            Silverfish rat = w.spawn(spawnLoc, Silverfish.class);
-            rat.setCustomName("§4§lBomb Rat");
-            new BukkitRunnable() {
-                @Override
-                public void run() {
-                    if (rat.isDead() || !rat.isValid()) { this.cancel(); return; }
-                    if (rat.getTarget() != null && rat.getLocation().distance(rat.getTarget().getLocation()) < 2) {
-                        rat.getWorld().createExplosion(rat.getLocation(), 2f, false, false);
-                        rat.remove();
-                        this.cancel();
-                    }
-                }
-            }.runTaskTimer(SpcialSmp.get(), 0, 5);
-        }
+
+        // Hostile Mob Protection (Sun se nahi marenge)
+        mob.addPotionEffect(new PotionEffect(PotionEffectType.FIRE_RESISTANCE, 99999, 1, false, false));
+        mob.setCustomNameVisible(true);
+        mob.setRemoveWhenFarAway(true);
     }
 
     @Override
@@ -194,13 +170,23 @@ public class RuinCard extends BaseCard implements Listener {
     @Override
     public void shiftRightClick(Player p) {
         if (!isCool(p, "summon", 60)) return;
-        p.sendMessage("§2§l[!] §7Summoning Corrupted Minions...");
-        for (int i = 0; i < 4; i++) {
-            Zombie z = p.getWorld().spawn(p.getLocation(), Zombie.class);
-            z.setBaby(true);
-            z.setCustomName("§aMinion");
-            EntityEquipment eq = z.getEquipment();
-            if (eq != null) eq.setHelmet(new ItemStack(Material.TURTLE_HELMET));
+        p.sendMessage("§2§l[!] §7Summoning Silverfish Guards...");
+        
+        for (int i = 0; i < 6; i++) {
+            Silverfish s = (Silverfish) p.getWorld().spawn(p.getLocation(), Silverfish.class);
+            s.setCustomName("§a" + p.getName() + "'s Guard");
+            s.setCustomNameVisible(true);
+            
+            // Silverfish Owner ko attack nahi karegi
+            new BukkitRunnable() {
+                @Override
+                public void run() {
+                    if (s.isDead() || !s.isValid()) { this.cancel(); return; }
+                    if (s.getTarget() != null && s.getTarget().equals(p)) {
+                        s.setTarget(null);
+                    }
+                }
+            }.runTaskTimer(SpcialSmp.get(), 0, 5);
         }
     }
 
@@ -211,4 +197,4 @@ public class RuinCard extends BaseCard implements Listener {
         cooldowns.put(k, now + (seconds * 1000L));
         return true;
     }
-                }
+            }
