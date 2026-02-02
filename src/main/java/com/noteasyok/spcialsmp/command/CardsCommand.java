@@ -6,7 +6,7 @@ import com.noteasyok.spcialsmp.manager.CardRegistry;
 import com.noteasyok.spcialsmp.manager.CardSpinner;
 import com.noteasyok.spcialsmp.manager.TaskManager;
 import com.noteasyok.spcialsmp.manager.RevivalManager;
-import com.noteasyok.spcialsmp.manager.SoulFuelManager; // Added Fuel Manager
+import com.noteasyok.spcialsmp.manager.FuelManager; // Fix: Proper Import
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -50,23 +50,24 @@ public class CardsCommand implements CommandExecutor, TabCompleter {
             }
 
             try {
-                int amount = Integer.parseInt(args[2]);
-                if (amount <= 0) {
+                int amountHours = Integer.parseInt(args[2]);
+                if (amountHours <= 0) {
                     p.sendMessage("§c§l[!] §7Amount must be positive.");
                     return true;
                 }
 
-                int currentFuel = SoulFuelManager.getFuel(p); 
-                if (currentFuel < amount) {
-                    p.sendMessage("§c§l[!] §7You don't have enough Soul Fuel! (Available: " + currentFuel + "h)");
+                // Fix: Sync with FuelManager methods
+                int currentFuelHours = FuelManager.getFuelInHours(p); 
+                if (currentFuelHours < amountHours) {
+                    p.sendMessage("§c§l[!] §7You don't have enough Soul Fuel! (Available: " + currentFuelHours + "h)");
                     return true;
                 }
 
-                // Deduct fuel and give bottle
-                SoulFuelManager.setFuel(p, currentFuel - amount);
-                p.getInventory().addItem(createFuelBottle(amount));
+                // Fix: Withdraw logic (Subtracting by setting new total in hours)
+                FuelManager.setFuel(p, currentFuelHours - amountHours);
+                p.getInventory().addItem(createFuelBottle(amountHours));
                 
-                p.sendMessage("§a§l[!] §7Withdrew §e" + amount + "h §7Soul Fuel into a bottle!");
+                p.sendMessage("§a§l[!] §7Withdrew §e" + amountHours + "h §7Soul Fuel into a bottle!");
                 p.playSound(p.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1f, 1f);
 
             } catch (NumberFormatException e) {
@@ -180,7 +181,7 @@ public class CardsCommand implements CommandExecutor, TabCompleter {
     }
 
     private ItemStack createFuelBottle(int amount) {
-        ItemStack bottle = new ItemStack(Material.EXPERIENCE_BOTTLE); // Using EXP bottle look
+        ItemStack bottle = new ItemStack(Material.EXPERIENCE_BOTTLE); 
         ItemMeta meta = bottle.getItemMeta();
         if (meta != null) {
             meta.setDisplayName("§b§lSoul Fuel Bottle §7(§e" + amount + "h§7)");
@@ -264,4 +265,4 @@ public class CardsCommand implements CommandExecutor, TabCompleter {
 
         return new ArrayList<>();
     }
-            }
+                                                   }
