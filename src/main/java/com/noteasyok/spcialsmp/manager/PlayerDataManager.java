@@ -61,7 +61,7 @@ public class PlayerDataManager {
         save();
     }
 
-    /* ================= ULIIMATE CARD ================= */
+    /* ================= ULTIMATE CARD ================= */
 
     public boolean hasUltimate(UUID uuid) {
         return data.getBoolean("players." + uuid + ".ultimateCrafted", false);
@@ -69,6 +69,19 @@ public class PlayerDataManager {
 
     public void setUltimate(UUID uuid) {
         data.set("players." + uuid + ".ultimateCrafted", true);
+        save();
+    }
+
+    /* ================= YE WALA CODE PASTE KAREIN (FIXED) ================= */
+
+    // Last logout time nikalne ke liye (Offline fuel drain fix)
+    public long getLastLogout(UUID uuid) {
+        return data.getLong("players." + uuid + ".lastLogout", 0L);
+    }
+
+    // Last logout time save karne ke liye
+    public void setLastLogout(UUID uuid, long timestamp) {
+        data.set("players." + uuid + ".lastLogout", timestamp);
         save();
     }
 
@@ -81,4 +94,4 @@ public class PlayerDataManager {
             e.printStackTrace();
         }
     }
-    }
+}
