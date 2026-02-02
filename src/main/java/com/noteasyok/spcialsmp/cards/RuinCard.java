@@ -6,26 +6,27 @@ import org.bukkit.block.Block;
 import org.bukkit.boss.BarColor;
 import org.bukkit.boss.BarStyle;
 import org.bukkit.boss.BossBar;
-import org.bukkit.entity.LivingEntity;
-import org.bukkit.entity.Player;
-import org.bukkit.entity.Silverfish;
+import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 public class RuinCard extends BaseCard implements Listener {
 
     private final Map<String, Long> cooldowns = new HashMap<>();
-    private final String DIM_NAME = "ruin_dimension";
+    private final String DIM_NAME = "world_ruin_dimension";
     private final Map<Player, BossBar> activeBars = new HashMap<>();
+    private final Random random = new Random();
 
     public RuinCard() {
         Bukkit.getPluginManager().registerEvents(this, SpcialSmp.get());
@@ -34,71 +35,67 @@ public class RuinCard extends BaseCard implements Listener {
     @Override
     public String getName() { return "Ruin Card"; }
     @Override
-    public int getModelData() { return 7; }
+    public int getModelData() { return 7; } // Aapka custom model ID
     @Override
     public Material getMaterial() { return Material.GRAY_DYE; }
 
-    // --- LEFT CLICK: AIM-BASED PORTAL ---
+    // --- LEFT CLICK: PORTAL TO TOXIC WORLD ---
     @Override
     public void leftClick(Player p) {
-        int cd = SpcialSmp.get().getConfig().getInt("cards.ruin.dimension_cd", 120);
+        int cd = 120; // 2 Minutes Cooldown
         if (!isCool(p, "dimension", cd)) return;
 
-        // Player kahan dekh raha hai (Target Block)
-        Block targetBlock = p.getTargetBlock(null, 5); // 5 blocks door tak portal khulega
-        if (targetBlock.getType() == Material.AIR) {
-            p.sendMessage(ChatColor.RED + "Look at a block to open the portal!");
+        Block target = p.getTargetBlock(null, 5);
+        if (target.getType() == Material.AIR) {
+            p.sendMessage("§c§l[!] §7Look at a block to summon the portal!");
             return;
         }
 
-        Location portalLoc = targetBlock.getLocation().add(0.5, 1, 0.5);
-        p.sendMessage(ChatColor.GREEN + "Portal opening at your aim...");
+        Location loc = target.getLocation().add(0.5, 1, 0.5);
+        p.sendMessage("§2§l[!] §aOpening Toxic Rift...");
+        p.playSound(p.getLocation(), Sound.BLOCK_END_PORTAL_SPAWN, 1f, 0.5f);
 
-        // Portal Visual (Purple Circle at Aim)
+        // Particle Animation
         new BukkitRunnable() {
-            int timer = 0;
+            int t = 0;
             @Override
             public void run() {
-                if (timer >= 40) { // 2 seconds animation
-                    teleportToDimension(p, portalLoc);
+                if (t >= 30) { 
+                    teleportToRuin(p, loc);
                     this.cancel();
                     return;
                 }
-                // Circle Particles around aim
-                for (double i = 0; i < Math.PI * 2; i += Math.PI / 8) {
-                    double x = Math.cos(i) * 1.2;
-                    double z = Math.sin(i) * 1.2;
-                    portalLoc.getWorld().spawnParticle(Particle.PORTAL, portalLoc.clone().add(x, 0.5, z), 5, 0, 0, 0, 0.1);
-                    portalLoc.getWorld().spawnParticle(Particle.SPORE_BLOSSOM_AIR, portalLoc.clone().add(x, 0.5, z), 2);
-                }
-                timer += 5;
+                loc.getWorld().spawnParticle(Particle.SQUID_INK, loc, 10, 0.5, 1, 0.5, 0.1);
+                loc.getWorld().spawnParticle(Particle.VILLAGER_HAPPY, loc, 5, 0.5, 1, 0.5); // Green particles
+                t += 5;
             }
         }.runTaskTimer(SpcialSmp.get(), 0L, 5L);
     }
 
-    private void teleportToDimension(Player p, Location oldLoc) {
+    private void teleportToRuin(Player p, Location oldLoc) {
         World ruinWorld = Bukkit.getWorld(DIM_NAME);
         if (ruinWorld == null) {
             WorldCreator wc = new WorldCreator(DIM_NAME);
-            wc.type(WorldType.AMPLIFIED); // Photo jaisa terrain
+            wc.generator(new RuinWorldGenerator()); // CUSTOM GENERATOR USE HOGA
             ruinWorld = wc.createWorld();
         }
 
-        Location targetLoc = ruinWorld.getHighestBlockAt(0, 0).getLocation().add(0, 1, 0);
-        p.teleport(targetLoc);
-        p.playSound(p.getLocation(), Sound.BLOCK_PORTAL_TRAVEL, 1f, 1f);
+        // Teleport to safe spot
+        Location target = ruinWorld.getHighestBlockAt(0, 0).getLocation().add(0, 2, 0);
+        p.teleport(target);
+        p.playSound(p.getLocation(), Sound.AMBIENT_BASALT_DELTAS_LOOP, 2f, 0.5f);
 
-        // BossBar Setup for this specific player
-        BossBar bar = Bukkit.createBossBar(ChatColor.DARK_GREEN + "Toxic Dimension", BarColor.GREEN, BarStyle.SOLID);
+        // Effects
+        BossBar bar = Bukkit.createBossBar("§2§lTOXIC ATMOSPHERE", BarColor.GREEN, BarStyle.SEGMENTED_10);
         bar.addPlayer(p);
-        bar.setVisible(true);
         activeBars.put(p, bar);
 
+        // Custom Mobs & Timer Loop
         new BukkitRunnable() {
-            int timeLeft = 60;
+            int time = 60; // 60 Seconds stay
             @Override
             public void run() {
-                if (timeLeft <= 0 || !p.isOnline() || !p.getWorld().getName().equals(DIM_NAME)) {
+                if (time <= 0 || !p.isOnline() || !p.getWorld().getName().equals(DIM_NAME)) {
                     p.teleport(oldLoc);
                     bar.removePlayer(p);
                     activeBars.remove(p);
@@ -106,71 +103,98 @@ public class RuinCard extends BaseCard implements Listener {
                     return;
                 }
 
-                bar.setProgress(timeLeft / 60.0);
-                bar.setTitle(ChatColor.DARK_GREEN + "Ruin Collapse in: " + timeLeft + "s");
-                
-                // Toxic Mist Particles
-                p.spawnParticle(Particle.FALLING_SPORE_BLOSSOM, p.getLocation(), 40, 7, 7, 7);
-                
-                timeLeft--;
+                // Randomly Spawn Weird Mobs near player
+                if (time % 5 == 0) spawnWeirdMob(p.getLocation());
+
+                bar.setProgress(time / 60.0);
+                bar.setTitle("§2§lCollapse in: " + time + "s");
+                time--;
             }
         }.runTaskTimer(SpcialSmp.get(), 0L, 20L);
+    }
+
+    // --- STRANGE MOBS SPAWNER ---
+    private void spawnWeirdMob(Location center) {
+        Location spawnLoc = center.clone().add(random.nextInt(10) - 5, 1, random.nextInt(10) - 5);
+        if (spawnLoc.getBlock().getType().isSolid()) return;
+
+        int type = random.nextInt(3);
+        World w = center.getWorld();
+
+        if (type == 0) {
+            // TYPE 1: THE TOXIC WALKER (Fast Zombie with Green Armor)
+            Zombie z = w.spawn(spawnLoc, Zombie.class);
+            z.setCustomName("§2§lToxic Walker");
+            z.setCustomNameVisible(true);
+            z.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 9999, 2));
+            EntityEquipment eq = z.getEquipment();
+            ItemStack chest = new ItemStack(Material.LEATHER_CHESTPLATE);
+            LeatherArmorMeta meta = (LeatherArmorMeta) chest.getItemMeta();
+            meta.setColor(Color.GREEN);
+            chest.setItemMeta(meta);
+            eq.setChestplate(chest);
+        } 
+        else if (type == 1) {
+            // TYPE 2: THE WATCHER (Invisible Spider with Glowing Eyes)
+            Spider s = w.spawn(spawnLoc, Spider.class);
+            s.setCustomName("§c§lThe Watcher");
+            s.addPotionEffect(new PotionEffect(PotionEffectType.INVISIBILITY, 9999, 1));
+            s.addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE, 9999, 1));
+            // Effect to show where it is
+            new BukkitRunnable() {
+                @Override
+                public void run() {
+                    if (s.isDead()) this.cancel();
+                    s.getWorld().spawnParticle(Particle.SPELL_MOB, s.getLocation(), 3, 0.2, 0.2, 0.2, 1); // Green Swirls
+                }
+            }.runTaskTimer(SpcialSmp.get(), 0, 10);
+        }
+        else {
+            // TYPE 3: EXPLOSIVE RAT (Silverfish that explodes)
+            Silverfish rat = w.spawn(spawnLoc, Silverfish.class);
+            rat.setCustomName("§4§lBomb Rat");
+            rat.setMaxHealth(2);
+            new BukkitRunnable() {
+                @Override
+                public void run() {
+                    if (rat.isDead() || rat.getTarget() != null) {
+                        if (rat.getTarget() != null && rat.getLocation().distance(rat.getTarget().getLocation()) < 2) {
+                            rat.getWorld().createExplosion(rat.getLocation(), 2f, false, false);
+                            rat.remove();
+                        }
+                    }
+                }
+            }.runTaskTimer(SpcialSmp.get(), 0, 5);
+        }
     }
 
     // --- RIGHT CLICK: DARK SHIELD ---
     @Override
     public void rightClick(Player p) {
-        int cd = SpcialSmp.get().getConfig().getInt("cards.ruin.aura_cd", 40);
-        if (!isCool(p, "aura", cd)) return;
-
-        p.sendMessage(ChatColor.DARK_GRAY + "Shadow Shield Active!");
-        new BukkitRunnable() {
-            int ticks = 0;
-            @Override
-            public void run() {
-                if (ticks >= 200) { this.cancel(); return; }
-                p.getWorld().spawnParticle(Particle.SQUID_INK, p.getLocation().add(0, 1, 0), 12, 0.6, 0.8, 0.6, 0.02);
-                ticks += 10;
-            }
-        }.runTaskTimer(SpcialSmp.get(), 0L, 10L);
+        if (!isCool(p, "shield", 40)) return;
+        p.sendMessage("§8§l[!] §7Shadow Shield Active!");
+        p.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, 60, 2));
+        p.getWorld().spawnParticle(Particle.SOUL_FIRE_FLAME, p.getLocation(), 50, 0.5, 1, 0.5, 0.1);
     }
 
-    // --- SHIFT CLICK: SILVERFISH ARMY ---
+    // --- SHIFT CLICK: SUMMON MINIONS ---
     @Override
     public void shiftRightClick(Player p) {
-        int cd = SpcialSmp.get().getConfig().getInt("cards.ruin.summon_cd", 50);
-        if (!isCool(p, "summon", cd)) return;
-
-        for (int i = 0; i < 10; i++) {
-            Silverfish s = p.getWorld().spawn(p.getLocation(), Silverfish.class);
-            s.setCustomName(ChatColor.RED + p.getName() + "'s Minion");
-            s.setCustomNameVisible(true);
-            Bukkit.getScheduler().runTaskLater(SpcialSmp.get(), s::remove, 400L);
-        }
-    }
-
-    // --- POISON FLOOR EVENT ---
-    @EventHandler
-    public void onMove(PlayerMoveEvent e) {
-        Player p = e.getPlayer();
-        if (p.getWorld().getName().equals(DIM_NAME)) {
-            if (p.getLocation().getBlock().getRelative(0, -1, 0).getType() != Material.AIR) {
-                if (p.getTicksLived() % 20 == 0) {
-                    p.damage(1.0);
-                    p.addPotionEffect(new PotionEffect(PotionEffectType.POISON, 60, 0));
-                }
-            }
+        if (!isCool(p, "summon", 60)) return;
+        p.sendMessage("§2§l[!] §7Summoning Corrupted Minions...");
+        for (int i = 0; i < 4; i++) {
+            Zombie z = p.getWorld().spawn(p.getLocation(), Zombie.class);
+            z.setBaby(true);
+            z.setCustomName("§aMinion");
+            z.getEquipment().setHelmet(new ItemStack(Material.TURTLE_HELMET));
         }
     }
 
     private boolean isCool(Player p, String key, int seconds) {
         long now = System.currentTimeMillis();
-        String mapKey = p.getUniqueId().toString() + "_" + key;
-        if (cooldowns.containsKey(mapKey) && cooldowns.get(mapKey) > now) {
-            p.sendMessage(ChatColor.RED + "Cooldown: " + ((cooldowns.get(mapKey) - now) / 1000) + "s");
-            return false;
-        }
-        cooldowns.put(mapKey, now + (seconds * 1000L));
+        String k = p.getUniqueId() + "_" + key;
+        if (cooldowns.containsKey(k) && cooldowns.get(k) > now) return false;
+        cooldowns.put(k, now + (seconds * 1000L));
         return true;
     }
-            }
+                    }
