@@ -40,19 +40,26 @@ public class UltimateCard extends BaseCard implements Listener {
 
     @Override
     public ItemStack getItemStackWithLore(String name) {
-        ItemStack item = new ItemStack(getMaterial()); 
+        // FIXED: createItem() call karne se Enchantment (Glow) apne aap hat jayega
+        ItemStack item = createItem(); 
         ItemMeta meta = item.getItemMeta();
+        
         if (meta != null) {
             meta.setDisplayName("§6§l" + name);
             List<String> lore = new ArrayList<>();
             lore.add("§7The most powerful card in existence.");
             lore.add("");
             lore.add("§eLeft-Click: §fLightning Strike");
-            lore.add("§eRight-Click: §bToggle Hammer Mode");
+            lore.add("§eRight-Click: §b[TOGGLE] Thor Mode"); 
+            lore.add("§f  - Throw: §cAtomic Nuke");
+            lore.add("§f  - Land: §4Earthquake Blast");
             lore.add("§eShift + Right: §fGiant Sword Drop");
             meta.setLore(lore);
+            
+            // NBT Tag detection ke liye zaroori hai
             NamespacedKey key = new NamespacedKey(SpcialSmp.get(), "card_id");
             meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, getName());
+            
             item.setItemMeta(meta);
         }
         return item;
