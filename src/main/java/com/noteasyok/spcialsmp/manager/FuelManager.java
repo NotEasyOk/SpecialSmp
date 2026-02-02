@@ -15,7 +15,6 @@ public class FuelManager {
 
     private static final HashMap<UUID, Integer> fuelCache = new HashMap<>();
 
-    // ✅ Renamed from setupFuelSystem to startFuelTask to match your Main class call
     public static void startFuelTask() {
         new BukkitRunnable() {
             @Override
@@ -31,7 +30,6 @@ public class FuelManager {
         UUID uid = p.getUniqueId();
         
         if (!fuelCache.containsKey(uid)) {
-            // ✅ Ensure PlayerDataManager has getFuel(UUID) method
             int savedFuel = SpcialSmp.get().getPlayerDataManager().getFuel(uid);
             fuelCache.put(uid, savedFuel > 0 ? savedFuel : 86400); 
         }
@@ -43,7 +41,6 @@ public class FuelManager {
             fuelCache.put(uid, currentFuel);
             
             if (currentFuel % 60 == 0) {
-                // ✅ Ensure PlayerDataManager has setFuel(UUID, int) method
                 SpcialSmp.get().getPlayerDataManager().setFuel(uid, currentFuel);
             }
         } else {
@@ -54,7 +51,6 @@ public class FuelManager {
 
         String timeString = formatTime(currentFuel);
         String progressBar = getProgressBar(currentFuel, 86400); 
-        
         String actionBarMsg = "§b§lSoul Fuel: §8[" + progressBar + "§8] §f" + timeString;
         
         p.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(actionBarMsg));
@@ -65,17 +61,24 @@ public class FuelManager {
         }
     }
 
+    // ✅ Added for Command Check (Returns hours for withdraw check)
+    public static int getFuelInHours(Player p) {
+        int seconds = fuelCache.getOrDefault(p.getUniqueId(), 0);
+        return seconds / 3600;
+    }
+
     public static void addFuel(Player p, int hours) {
         int secondsToAdd = hours * 3600;
         int current = fuelCache.getOrDefault(p.getUniqueId(), 0);
-        int newFuel = Math.min(current + secondsToAdd, 86400); 
+        int newFuel = Math.min(current + secondsToAdd, 86400 * 7); // Max limit set to 7 days
         
         fuelCache.put(p.getUniqueId(), newFuel);
         SpcialSmp.get().getPlayerDataManager().setFuel(p.getUniqueId(), newFuel);
     }
     
-    public static void setFuel(Player p, int minutes) {
-        int seconds = minutes * 60;
+    // ✅ Logic updated for Withdraw (Handles subtraction properly)
+    public static void setFuel(Player p, int hours) {
+        int seconds = hours * 3600;
         fuelCache.put(p.getUniqueId(), seconds);
         SpcialSmp.get().getPlayerDataManager().setFuel(p.getUniqueId(), seconds);
     }
@@ -95,22 +98,17 @@ public class FuelManager {
     private static String getProgressBar(int current, int max) {
         int totalBars = 10;
         float percent = (float) current / max;
-        int filledBars = (int) (totalBars * percent);
+        int filledBars = (int) (totalBars * Math.min(percent, 1.0f));
 
         StringBuilder bar = new StringBuilder();
-        
         String color = "§a"; 
         if (percent < 0.5) color = "§e"; 
         if (percent < 0.2) color = "§c"; 
 
         bar.append(color);
-        for (int i = 0; i < filledBars; i++) {
-            bar.append("|");
-        }
+        for (int i = 0; i < filledBars; i++) bar.append("|");
         bar.append("§7"); 
-        for (int i = 0; i < totalBars - filledBars; i++) {
-            bar.append("|");
-        }
+        for (int i = 0; i < totalBars - filledBars; i++) bar.append("|");
         return bar.toString();
     }
-                }
+    }
