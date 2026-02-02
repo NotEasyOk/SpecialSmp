@@ -9,6 +9,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.block.Block;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -17,7 +18,6 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.EulerAngle;
-import org.bukkit.util.RayTraceResult;
 import org.bukkit.util.Vector;
 
 import java.util.*;
@@ -39,12 +39,11 @@ public class UltimateCard extends BaseCard implements Listener {
     @Override
     public Material getMaterial() { return Material.GREEN_DYE; }
 
-    /* ================= 1. FIXED ORBIT SYSTEM (9 CARDS) ================= */
+    /* ================= 1. FIXED ORBIT SYSTEM ================= */
     public void startOrbit(Player p) {
-        stopOrbit(p);
         if (hammerMode.contains(p.getUniqueId())) return;
+        stopOrbit(p);
 
-        // Aapke bataye huye 9 specific materials
         List<Material> mats = Arrays.asList(
             Material.DISC_FRAGMENT_5, Material.CHORUS_FRUIT, Material.PURPLE_DYE, 
             Material.BLACK_DYE, Material.WHITE_DYE, Material.YELLOW_DYE, 
@@ -56,7 +55,6 @@ public class UltimateCard extends BaseCard implements Listener {
             ArmorStand as = p.getWorld().spawn(p.getLocation(), ArmorStand.class);
             as.setInvisible(true); as.setMarker(true); as.setGravity(false); as.setSmall(true);
             as.getEquipment().setItemInMainHand(new ItemStack(mat));
-            // Card jaisa dikhane ke liye angle
             as.setRightArmPose(new EulerAngle(Math.toRadians(-90), 0, 0));
             cards.add(as);
         }
@@ -66,22 +64,17 @@ public class UltimateCard extends BaseCard implements Listener {
             double angle = 0;
             @Override
             public void run() {
-                // FIX: Hath se hata ne par ya online na hone par ORBIT OFF
                 if (!p.isOnline() || !isHoldingCard(p) || hammerMode.contains(p.getUniqueId())) {
                     stopOrbit(p);
                     this.cancel();
                     return;
                 }
-
-                angle += 0.12; // Smooth rotation speed
+                angle += 0.12;
                 Location center = p.getLocation().add(0, 1.2, 0);
-
                 for (int i = 0; i < cards.size(); i++) {
                     double offset = (2 * Math.PI / cards.size()) * i;
                     double x = 2.8 * Math.cos(angle + offset);
                     double z = 2.8 * Math.sin(angle + offset);
-                    
-                    // Smooth teleportation
                     cards.get(i).teleport(center.clone().add(x, 0, z));
                 }
             }
@@ -95,83 +88,94 @@ public class UltimateCard extends BaseCard implements Listener {
         }
     }
 
-    /* ================= 2. THOR MODE (FLIGHT & ATOMIC) ================= */
+    /* ================= 2. THOR MODE (FIXED TOGGLE) ================= */
     @Override
     public void rightClick(Player p) {
-        UUID uuid = p.getUniqueId();
-        if (!hammerMode.contains(uuid)) {
-            hammerMode.add(uuid);
-            p.getInventory().getItemInMainHand().setType(Material.WARPED_FUNGUS_ON_A_STICK);
-            p.addPotionEffect(new PotionEffect(PotionEffectType.HEALTH_BOOST, Integer.MAX_VALUE, 4, false, false));
-            p.setHealth(p.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue());
-            p.sendMessage("§b§l⚡ THOR MODE: §aENABLED");
-            stopOrbit(p);
-        }
-    }
-
-    private void disableThor(Player p) {
-        hammerMode.remove(p.getUniqueId());
-        if (p.getInventory().getItemInMainHand().getType() == Material.WARPED_FUNGUS_ON_A_STICK) {
-            p.getInventory().getItemInMainHand().setType(Material.GREEN_DYE);
-        }
-        p.removePotionEffect(PotionEffectType.HEALTH_BOOST);
-        p.sendMessage("§b§l⚡ THOR MODE: §cDISABLED");
-        startOrbit(p);
+        // Empty rakha hai taaki onThorInteract handle kare
     }
 
     @EventHandler
     public void onThorInteract(PlayerInteractEvent e) {
         Player p = e.getPlayer();
-        if (!hammerMode.contains(p.getUniqueId())) return;
-        if (p.getInventory().getItemInMainHand().getType() != Material.WARPED_FUNGUS_ON_A_STICK) return;
+        ItemStack item = p.getInventory().getItemInMainHand();
+        if (!isHoldingCard(p)) return;
 
-        e.setCancelled(true);
-
-        // Right Click to Disable
-        if (e.getAction().name().contains("RIGHT") && !p.isSneaking()) {
-            disableThor(p);
-        } 
-        // Shift + Right Click to Fly (Riptide Style)
-        else if (e.getAction().name().contains("RIGHT") && p.isSneaking()) {
-            p.setVelocity(p.getLocation().getDirection().multiply(3.0));
-            p.playSound(p.getLocation(), Sound.ITEM_TRIDENT_RIPTIDE_3, 1f, 1f);
-            
-            new BukkitRunnable() {
-                @Override
-                public void run() {
-                    if (p.isOnGround()) {
-                        createAtomicBoom(p.getLocation(), p);
-                        this.cancel();
+        // RIGHT CLICK: Toggle Thor Mode
+        if (e.getAction() == Action.RIGHT_CLICK_AIR || e.getAction() == Action.RIGHT_CLICK_BLOCK) {
+            if (!p.isSneaking()) {
+                e.setCancelled(true);
+                toggleThorMode(p);
+            } else if (hammerMode.contains(p.getUniqueId())) {
+                // Shift + Right Click: Fly
+                p.setVelocity(p.getLocation().getDirection().multiply(2.5));
+                p.playSound(p.getLocation(), Sound.ITEM_TRIDENT_RIPTIDE_3, 1f, 1f);
+                new BukkitRunnable() {
+                    @Override
+                    public void run() {
+                        if (p.isOnGround()) {
+                            createAtomicBoom(p.getLocation(), p);
+                            this.cancel();
+                        }
                     }
-                }
-            }.runTaskTimer(SpcialSmp.get(), 5L, 1L);
-        }
-        // Left Click to throw Atomic Trident
-        else if (e.getAction().name().contains("LEFT")) {
-            Trident hammer = p.launchProjectile(Trident.class);
-            hammer.setCustomName("AtomicHammer");
-            hammer.setVelocity(p.getLocation().getDirection().multiply(3.5));
+                }.runTaskTimer(SpcialSmp.get(), 5L, 1L);
+            }
         }
     }
 
-    /* ================= 3. EARTHQUAKE & SWORD (ADVANCED) ================= */
+    private void toggleThorMode(Player p) {
+        UUID uuid = p.getUniqueId();
+        if (hammerMode.contains(uuid)) {
+            hammerMode.remove(uuid);
+            p.getInventory().setItemInMainHand(getItemStackWithLore(getName()));
+            p.removePotionEffect(PotionEffectType.HEALTH_BOOST);
+            p.sendMessage("§b§l⚡ THOR MODE: §cDISABLED");
+            p.playSound(p.getLocation(), Sound.BLOCK_BEACON_DEACTIVATE, 1f, 1f);
+            startOrbit(p);
+        } else {
+            hammerMode.add(uuid);
+            stopOrbit(p);
+            ItemStack hammer = new ItemStack(Material.WARPED_FUNGUS_ON_A_STICK);
+            ItemMeta meta = hammer.getItemMeta();
+            meta.setDisplayName("§b§lTHOR'S HAMMER");
+            meta.getPersistentDataContainer().set(new NamespacedKey(SpcialSmp.get(), "card_id"), PersistentDataType.STRING, getName());
+            hammer.setItemMeta(meta);
+            p.getInventory().setItemInMainHand(hammer);
+            p.addPotionEffect(new PotionEffect(PotionEffectType.HEALTH_BOOST, Integer.MAX_VALUE, 4, false, false));
+            p.setHealth(p.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue());
+            p.sendMessage("§b§l⚡ THOR MODE: §aENABLED");
+            p.playSound(p.getLocation(), Sound.ENTITY_LIGHTNING_BOLT_THUNDER, 1f, 1f);
+        }
+    }
+
+    // FIX: Sword Drop Explosion Logic
+    @EventHandler
+    public void onThorDrop(PlayerDropItemEvent e) {
+        Player p = e.getPlayer();
+        if (hammerMode.contains(p.getUniqueId()) && e.getItemDrop().getItemStack().getType() == Material.WARPED_FUNGUS_ON_A_STICK) {
+            e.setCancelled(true);
+            Location loc = p.getLocation();
+            loc.getWorld().strikeLightning(loc);
+            loc.getWorld().createExplosion(loc, 6.0f, false, false, p);
+            p.sendMessage("§e§lTHOR'S WRATH!");
+        }
+    }
+
     private void createAtomicBoom(Location loc, Player p) {
         loc.getWorld().strikeLightning(loc);
-        loc.getWorld().createExplosion(loc, 15f, false, false, p);
-        
-        // Earthquake Visuals (Falling Blocks)
-        for (int i = 0; i < 15; i++) {
-            double rx = (Math.random() - 0.5) * 10;
-            double rz = (Math.random() - 0.5) * 10;
+        loc.getWorld().createExplosion(loc, 10f, false, false, p);
+        for (int i = 0; i < 10; i++) {
+            double rx = (Math.random() - 0.5) * 6;
+            double rz = (Math.random() - 0.5) * 6;
             Block b = loc.clone().add(rx, -1, rz).getBlock();
             if (b.getType() != Material.AIR) {
                 FallingBlock fb = loc.getWorld().spawnFallingBlock(b.getLocation().add(0, 1, 0), b.getBlockData());
-                fb.setVelocity(new Vector(0, 0.5, 0));
+                fb.setVelocity(new Vector(0, 0.4, 0));
                 fb.setDropItem(false);
             }
         }
     }
 
+    /* ================= 3. GIANT SWORD FALL ================= */
     @Override
     public void shiftRightClick(Player p) {
         if (hammerMode.contains(p.getUniqueId()) || !isCool(p, "sword", 15)) return;
@@ -185,9 +189,9 @@ public class UltimateCard extends BaseCard implements Listener {
         new BukkitRunnable() {
             @Override
             public void run() {
-                sword.teleport(sword.getLocation().subtract(0, 1.5, 0));
-                if (sword.getLocation().getY() <= target.getY()) {
-                    p.getWorld().createExplosion(sword.getLocation(), 25f, false, false, p); // Huge Explosion
+                sword.teleport(sword.getLocation().subtract(0, 1.2, 0));
+                if (sword.getLocation().getY() <= target.getY() + 1) {
+                    p.getWorld().createExplosion(sword.getLocation(), 20f, false, false, p);
                     p.getWorld().strikeLightning(sword.getLocation());
                     sword.remove();
                     this.cancel();
@@ -221,9 +225,8 @@ public class UltimateCard extends BaseCard implements Listener {
         ItemStack item = createItem();
         ItemMeta meta = item.getItemMeta();
         meta.setDisplayName("§6§lUltimate Card");
-        NamespacedKey key = new NamespacedKey(SpcialSmp.get(), "card_id");
-        meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, getName());
+        meta.getPersistentDataContainer().set(new NamespacedKey(SpcialSmp.get(), "card_id"), PersistentDataType.STRING, getName());
         item.setItemMeta(meta);
         return item;
     }
-                }
+                    }
