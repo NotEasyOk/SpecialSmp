@@ -27,7 +27,7 @@ public class CardRegistry {
 
         // --- Baki Cards Registration ---
         register(new HerobrineCard(), List.of("§7Left: Lightning", "§7Right: Darkness + Fly", "§7Shift+R: Giant/Tiny Mode"));
-        register(new NothingCard(), List.of("§7Left: Time Set", "§7Right: Mind Control", "§7Shift+R: No Fall"));
+        register(new NothingCard(), List.of("§7Left: Time Set", "§7Right: Mind Control", "§7Shift+R: No Fall damage"));
         register(new WardenCard(), List.of("§7Left: Darkness", "§7Right: Sonic Boom", "§7Shift+R: Tank Mode"));
         register(new CreeperCard(), List.of("§7Left: Explosion", "§7Right: Airstrike", "§7Shift+R: Nuke Rain"));
         
@@ -39,7 +39,7 @@ public class CardRegistry {
         
         // --- Ruin Card Registration (FIXED: Registering Events for Ruin) ---
         RuinCard ruin = new RuinCard();
-        register(ruin, List.of("§7Left: Infection", "§7Right: Silverfish", "§7Shift+R: Poison Area"));
+        register(ruin, List.of("§7Left: Ruin Dimension", "§7Right: Dark Shield", "§7Shift+R: Sliverfish Army"));
         Bukkit.getPluginManager().registerEvents(ruin, SpcialSmp.get()); // Yeh line Ruin ke events ke liye zaroori hai
         
         // --- Ultimate Card Registration ---
