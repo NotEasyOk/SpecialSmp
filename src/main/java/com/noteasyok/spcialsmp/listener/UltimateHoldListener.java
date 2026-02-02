@@ -22,7 +22,7 @@ import java.util.UUID;
 public class UltimateHoldListener implements Listener {
 
     private static final Set<PotionEffectType> ULTIMATE_EFFECTS = new HashSet<>();
-    private final Set<UUID> currentlyHolding = new HashSet<>(); // Track players to prevent orbit spam
+    private final Set<UUID> currentlyHolding = new HashSet<>(); 
 
     static {
         ULTIMATE_EFFECTS.add(PotionEffectType.SPEED);
@@ -39,7 +39,6 @@ public class UltimateHoldListener implements Listener {
         ULTIMATE_EFFECTS.add(PotionEffectType.LUCK);
         ULTIMATE_EFFECTS.add(PotionEffectType.CONDUIT_POWER);
         ULTIMATE_EFFECTS.add(PotionEffectType.DOLPHINS_GRACE);
-        // Health Boost ko static effects se hata diya kyunki ye UltimateCard ke toggle mein handle hota hai
     }
 
     public UltimateHoldListener() {
@@ -47,22 +46,21 @@ public class UltimateHoldListener implements Listener {
             @Override
             public void run() {
                 for (Player p : Bukkit.getOnlinePlayers()) {
-                    if (isUltimate(p.getInventory().getItemInMainHand())) {
-                        // Apply Effects (60 ticks duration for smooth 20 ticks cycle)
+                    ItemStack item = p.getInventory().getItemInMainHand();
+                    if (isUltimate(item)) {
                         for (PotionEffectType type : ULTIMATE_EFFECTS) {
                             p.addPotionEffect(new PotionEffect(type, 65, 1, false, false, true));
                         }
 
-                        // Orbit Logic: Sirf ek baar start karo jab player pehli baar pakde
                         if (!currentlyHolding.contains(p.getUniqueId())) {
                             currentlyHolding.add(p.getUniqueId());
                             BaseCard card = CardRegistry.getCards().get("Ultimate Card");
-                            if (card instanceof UltimateCard uc) {
+                            // FIX: Sirf tabhi orbit start karo jab Thor Mode ON NA HO
+                            if (card instanceof UltimateCard uc && item.getType() == Material.GREEN_DYE) {
                                 uc.startOrbit(p);
                             }
                         }
                     } else {
-                        // Agar haath mein card nahi hai to tracker se hatao
                         currentlyHolding.remove(p.getUniqueId());
                     }
                 }
@@ -79,10 +77,12 @@ public class UltimateHoldListener implements Listener {
             if (!currentlyHolding.contains(p.getUniqueId())) {
                 currentlyHolding.add(p.getUniqueId());
                 BaseCard card = CardRegistry.getCards().get("Ultimate Card");
-                if (card instanceof UltimateCard uc) uc.startOrbit(p);
+                // FIX: Swap par bhi check karo material
+                if (card instanceof UltimateCard uc && newItem.getType() == Material.GREEN_DYE) {
+                    uc.startOrbit(p);
+                }
             }
         } else {
-            // Card slot se hat gaya, stop orbit immediately
             currentlyHolding.remove(p.getUniqueId());
             BaseCard card = CardRegistry.getCards().get("Ultimate Card");
             if (card instanceof UltimateCard uc) uc.stopOrbit(p);
@@ -90,18 +90,13 @@ public class UltimateHoldListener implements Listener {
     }
 
     private boolean isUltimate(ItemStack item) {
-        if (item == null) return false;
-        
-        // Thor mode mein item WARPED_FUNGUS_ON_A_STICK hota hai, aur normal mein GREEN_DYE
+        if (item == null || item.getType() == Material.AIR) return false;
         Material type = item.getType();
         if (type != Material.GREEN_DYE && type != Material.WARPED_FUNGUS_ON_A_STICK) return false;
-        
         if (!item.hasItemMeta()) return false;
         
         NamespacedKey key = new NamespacedKey(SpcialSmp.get(), "card_id");
         String id = item.getItemMeta().getPersistentDataContainer().get(key, PersistentDataType.STRING);
-        
-        // Primary check via PersistentData
         return "Ultimate Card".equals(id);
     }
-                        }
+                                }
