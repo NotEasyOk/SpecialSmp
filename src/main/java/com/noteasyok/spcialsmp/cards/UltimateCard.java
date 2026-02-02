@@ -44,12 +44,22 @@ public class UltimateCard extends BaseCard implements Listener {
         }.runTaskTimer(SpcialSmp.get(), 0L, 5L);
     }
 
-    @Override public String getName() { return "Ultimate Card"; }
-    @Override public Material getMaterial() { return Material.GREEN_DYE; }
     @Override
-public int getModelData() { 
-    return 0; 
-}
+    public String getName() { return "Ultimate Card"; }
+
+    @Override
+    public Material getMaterial() { return Material.GREEN_DYE; }
+
+    @Override
+    public int getModelData() { 
+        return 0; 
+    }
+
+    @Override
+    public void rightClick(Player p) {
+        // Ise khali chhod do kyunki aapne sara logic 
+        // onThorInteract event mein handle kiya hai.
+    }
 
     /* ================= 1. ORBIT SYSTEM (Paas Wala) ================= */
     public void startOrbit(Player p) {
