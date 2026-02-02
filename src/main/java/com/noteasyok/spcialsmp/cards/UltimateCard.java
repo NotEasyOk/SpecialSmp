@@ -46,6 +46,10 @@ public class UltimateCard extends BaseCard implements Listener {
 
     @Override public String getName() { return "Ultimate Card"; }
     @Override public Material getMaterial() { return Material.GREEN_DYE; }
+    @Override
+public int getModelData() { 
+    return 0; 
+}
 
     /* ================= 1. ORBIT SYSTEM (Paas Wala) ================= */
     public void startOrbit(Player p) {
