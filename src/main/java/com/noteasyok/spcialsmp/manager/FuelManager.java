@@ -14,7 +14,8 @@ import java.util.UUID;
 public class FuelManager {
 
     private static final HashMap<UUID, Integer> fuelCache = new HashMap<>();
-    private static final int DEFAULT_FUEL = 86400; // 24 Hours in seconds
+    // FIX: Default fuel 23h 59m (86340 seconds)
+    private static final int DEFAULT_FUEL = 86340; 
 
     public static void startFuelTask() {
         new BukkitRunnable() {
@@ -29,25 +30,24 @@ public class FuelManager {
 
     private static void updateFuel(Player p) {
         UUID uid = p.getUniqueId();
+        long currentTime = System.currentTimeMillis() / 1000;
         
-        // --- OFFLINE DRAIN LOGIC START ---
+        // --- OFFLINE DRAIN LOGIC ---
         if (!fuelCache.containsKey(uid)) {
             int savedFuel = SpcialSmp.get().getPlayerDataManager().getFuel(uid);
-            long lastLogout = SpcialSmp.get().getPlayerDataManager().getLastLogout(uid); // Database se last logout uthao
+            long lastLogout = SpcialSmp.get().getPlayerDataManager().getLastLogout(uid);
             
             if (savedFuel <= 0 && lastLogout == 0) {
-                // Bilkul naya player
+                // Pehli baar join karne wala naya player
                 savedFuel = DEFAULT_FUEL;
             } else if (lastLogout > 0) {
-                // Player pehle khel chuka hai, ab time diff nikalo
-                long currentTime = System.currentTimeMillis() / 1000;
+                // Purana player, offline time calculate karo
                 long secondsPassed = currentTime - lastLogout;
                 savedFuel = (int) (savedFuel - secondsPassed);
             }
             
             fuelCache.put(uid, Math.max(savedFuel, 0));
         }
-        // --- OFFLINE DRAIN LOGIC END ---
 
         int currentFuel = fuelCache.get(uid);
 
@@ -55,23 +55,28 @@ public class FuelManager {
             currentFuel--;
             fuelCache.put(uid, currentFuel);
             
-            // Save fuel and current timestamp
-            if (currentFuel % 10 == 0) { // Thoda jaldi save karte hain security ke liye
+            // Database mein save har 10 seconds mein
+            if (currentFuel % 10 == 0) {
                 SpcialSmp.get().getPlayerDataManager().setFuel(uid, currentFuel);
-                SpcialSmp.get().getPlayerDataManager().setLastLogout(uid, System.currentTimeMillis() / 1000);
+                SpcialSmp.get().getPlayerDataManager().setLastLogout(uid, currentTime);
             }
         } else {
-            p.kickPlayer("§c§lSOUL DEAD! \n\n§7Aapka waqt khatam ho gaya.");
-            Bukkit.getBanList(org.bukkit.BanList.Type.NAME).addBan(p.getName(), "§cSoul Fuel Empty", null, "Console");
+            // Fuel khatam, ban player
+            Bukkit.getScheduler().runTask(SpcialSmp.get(), () -> {
+                p.kickPlayer("§c§lSOUL DEAD! \n\n§7Aapka waqt khatam ho gaya.");
+                Bukkit.getBanList(org.bukkit.BanList.Type.NAME).addBan(p.getName(), "§cSoul Fuel Empty", null, "Console");
+            });
             return;
         }
 
+        // --- ACTION BAR DISPLAY ---
         String timeString = formatTime(currentFuel);
-        String progressBar = getProgressBar(currentFuel, DEFAULT_FUEL); 
+        String progressBar = getProgressBar(currentFuel, 86400); // Progress bar against 24h
         String actionBarMsg = "§b§lSoul Fuel: §8[" + progressBar + "§8] §f" + timeString;
         
         p.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(actionBarMsg));
         
+        // Warning at 1 hour
         if (currentFuel == 3600) { 
             p.playSound(p.getLocation(), Sound.ENTITY_ENDER_DRAGON_GROWL, 1f, 1f);
             p.sendTitle("§c§lWARNING!", "§eOnly 1 Hour Left!", 10, 70, 20);
@@ -92,7 +97,7 @@ public class FuelManager {
     public static void addFuel(Player p, int hours) {
         int secondsToAdd = hours * 3600;
         int current = fuelCache.getOrDefault(p.getUniqueId(), 0);
-        int newFuel = Math.min(current + secondsToAdd, 86400 * 7); 
+        int newFuel = Math.min(current + secondsToAdd, 86400 * 7); // Max 7 days
         
         fuelCache.put(p.getUniqueId(), newFuel);
         SpcialSmp.get().getPlayerDataManager().setFuel(p.getUniqueId(), newFuel);
