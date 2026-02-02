@@ -40,10 +40,8 @@ public class UltimateCard extends BaseCard implements Listener {
 
     @Override
     public ItemStack getItemStackWithLore(String name) {
-        // FIXED: createItem() call karne se Enchantment (Glow) apne aap hat jayega
         ItemStack item = createItem(); 
         ItemMeta meta = item.getItemMeta();
-        
         if (meta != null) {
             meta.setDisplayName("§6§l" + name);
             List<String> lore = new ArrayList<>();
@@ -55,17 +53,14 @@ public class UltimateCard extends BaseCard implements Listener {
             lore.add("§f  - Land: §4Earthquake Blast");
             lore.add("§eShift + Right: §fGiant Sword Drop");
             meta.setLore(lore);
-            
-            // NBT Tag detection ke liye zaroori hai
             NamespacedKey key = new NamespacedKey(SpcialSmp.get(), "card_id");
             meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, getName());
-            
             item.setItemMeta(meta);
         }
         return item;
     }
 
-    /* ================= RIGHT CLICK: TOGGLE & THOR ABILITIES ================= */
+    /* ================= TOGGLE SYSTEM & HEART FIX ================= */
     @Override
     public void rightClick(Player p) {
         UUID uuid = p.getUniqueId();
@@ -74,21 +69,39 @@ public class UltimateCard extends BaseCard implements Listener {
         if (!hammerMode.contains(uuid)) {
             hammerMode.add(uuid);
             item.setType(Material.WARPED_FUNGUS_ON_A_STICK);
-            p.sendMessage("§6§l[!] §eThor Mode: §aENABLED §7(Shift+Right to Fly)");
+            
+            // Fix: Permanent Hearts added on Toggle
+            p.addPotionEffect(new PotionEffect(PotionEffectType.HEALTH_BOOST, Integer.MAX_VALUE, 4, false, false));
+            new BukkitRunnable() {
+                @Override
+                public void run() { p.setHealth(p.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue()); }
+            }.runTaskLater(SpcialSmp.get(), 1L);
+
+            p.sendMessage("§6§l[!] §eThor Mode: §aENABLED");
             p.playSound(p.getLocation(), Sound.BLOCK_ANVIL_USE, 1f, 1.2f);
             if (orbiting.containsKey(uuid)) {
                 orbiting.get(uuid).forEach(Entity::remove);
                 orbiting.remove(uuid);
             }
         } else {
-            hammerMode.remove(uuid);
-            item.setType(Material.GREEN_DYE);
-            p.sendMessage("§6§l[!] §eThor Mode: §cDISABLED §7(Orbit Active)");
-            p.playSound(p.getLocation(), Sound.UI_BUTTON_CLICK, 1f, 1f);
-            startOrbit(p);
+            // Fix: 2nd Time Right click to disable
+            disableThor(p, item);
         }
     }
 
+    private void disableThor(Player p, ItemStack item) {
+        hammerMode.remove(p.getUniqueId());
+        if (item != null) item.setType(Material.GREEN_DYE);
+        
+        // Fix: Heart Remove Logic
+        p.removePotionEffect(PotionEffectType.HEALTH_BOOST);
+        
+        p.sendMessage("§6§l[!] §eThor Mode: §cDISABLED");
+        p.playSound(p.getLocation(), Sound.UI_BUTTON_CLICK, 1f, 1f);
+        startOrbit(p);
+    }
+
+    /* ================= THOR ABILITIES (FIXED TRIDENT & ATOMIC BOOM) ================= */
     @EventHandler
     public void onThorInteract(PlayerInteractEvent e) {
         Player p = e.getPlayer();
@@ -96,57 +109,75 @@ public class UltimateCard extends BaseCard implements Listener {
 
         if (e.getAction() == Action.RIGHT_CLICK_AIR || e.getAction() == Action.RIGHT_CLICK_BLOCK) {
             e.setCancelled(true); 
+
             if (p.isSneaking()) {
-                // RIPTIDE FLIGHT
+                // Riptide Flight
                 Vector dir = p.getLocation().getDirection().multiply(2.5);
                 p.setVelocity(dir);
-                p.getWorld().spawnParticle(Particle.SONIC_BOOM, p.getLocation(), 1);
                 p.playSound(p.getLocation(), Sound.ITEM_TRIDENT_RIPTIDE_3, 1f, 1.2f);
 
-                // THOR LANDING + EARTHQUAKE
                 new BukkitRunnable() {
                     @Override
                     public void run() {
                         if (p.isOnGround()) {
-                            Location loc = p.getLocation();
-                            loc.getWorld().createExplosion(loc, 20.0f, true, true);
-                            loc.getWorld().strikeLightning(loc);
-                            
-                            // Earthquake Effect
-                            loc.getWorld().getNearbyEntities(loc, 15, 8, 15).forEach(entity -> {
-                                if (entity instanceof LivingEntity le && !entity.equals(p)) {
-                                    le.setVelocity(new Vector(0, 1.2, 0)); // Upar uchalna
-                                    le.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 100, 4));
-                                }
-                            });
+                            createAtomicBoom(p.getLocation(), p);
                             this.cancel();
                         }
                         if (!p.isOnline() || !hammerMode.contains(p.getUniqueId())) this.cancel();
                     }
                 }.runTaskTimer(SpcialSmp.get(), 5L, 1L);
             } else {
-                // ATOMIC THROW
-                if (!isCool(p, "hammer_throw", 3)) return;
+                // Fix: Check for toggle off or throw
+                if (!isCool(p, "hammer_throw", 2)) {
+                    disableThor(p, p.getInventory().getItemInMainHand());
+                    return;
+                }
+                
+                // Atomic Throw (Fixed: setShooter so no self-damage)
                 Trident hammer = p.launchProjectile(Trident.class);
+                hammer.setShooter(p); 
                 hammer.setVelocity(p.getLocation().getDirection().multiply(3.0));
                 hammer.setCustomName("AtomicHammer");
-                hammer.setItemStack(new ItemStack(Material.FISHING_ROD));
+                hammer.setPickupStatus(AbstractArrow.PickupStatus.DISALLOWED);
                 p.playSound(p.getLocation(), Sound.ITEM_TRIDENT_THROW, 1f, 0.5f);
             }
         }
     }
 
+    private void createAtomicBoom(Location loc, Player p) {
+        loc.getWorld().strikeLightning(loc);
+        loc.getWorld().createExplosion(loc, 18.0f, false, false, p);
+        
+        // Atomic Mushroom Cloud Animation (Improved)
+        new BukkitRunnable() {
+            int y = 0;
+            @Override
+            public void run() {
+                loc.getWorld().spawnParticle(Particle.EXPLOSION_EMITTER, loc.clone().add(0, y, 0), 3, 1, 0.5, 1, 0.1);
+                loc.getWorld().spawnParticle(Particle.CAMPFIRE_COSY_SMOKE, loc.clone().add(0, y, 0), 15, 0.8, 0.5, 0.8, 0.05);
+                y++;
+                if (y > 6) this.cancel();
+            }
+        }.runTaskTimer(SpcialSmp.get(), 0, 2);
+
+        // Earthquake Effect
+        loc.getWorld().getNearbyEntities(loc, 12, 6, 12).forEach(en -> {
+            if (en instanceof LivingEntity le && !en.equals(p)) {
+                le.setVelocity(new Vector(0, 1.5, 0));
+                le.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 100, 4));
+            }
+        });
+    }
+
     @EventHandler
     public void onNukeHit(ProjectileHitEvent event) {
         if (event.getEntity() instanceof Trident hammer && "AtomicHammer".equals(hammer.getCustomName())) {
-            Location loc = hammer.getLocation();
-            loc.getWorld().createExplosion(loc, 20.0f, true, true);
-            loc.getWorld().spawnParticle(Particle.EXPLOSION_EMITTER, loc, 5);
+            createAtomicBoom(hammer.getLocation(), (Player) hammer.getShooter());
             hammer.remove();
         }
     }
 
-    /* ================= LEFT CLICK: LIGHTNING (UNCHANGED) ================= */
+    /* ================= LEFT CLICK & SWORD (UNCHANGED) ================= */
     @Override
     public void leftClick(Player p) {
         if (hammerMode.contains(p.getUniqueId())) return;
@@ -156,12 +187,10 @@ public class UltimateCard extends BaseCard implements Listener {
         p.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 100, 1));
     }
 
-    /* ================= SHIFT + RIGHT: GIANT SWORD (UNCHANGED) ================= */
     @Override
     public void shiftRightClick(Player p) {
         if (hammerMode.contains(p.getUniqueId())) return;
-        int cd = 30;
-        if (!isCool(p, "ultimate_sword", cd)) return;
+        if (!isCool(p, "ultimate_sword", 30)) return;
         Vector lookDir = p.getLocation().getDirection();
         RayTraceResult ray = p.getWorld().rayTraceBlocks(p.getEyeLocation(), lookDir, 100);
         Location targetLoc = (ray != null && ray.getHitPosition() != null) ? ray.getHitPosition().toLocation(p.getWorld()) : p.getLocation().add(lookDir.multiply(25));
@@ -212,9 +241,7 @@ public class UltimateCard extends BaseCard implements Listener {
                     double offset = (2 * Math.PI / cards.size()) * i;
                     double x = 2.8 * Math.cos(angle + offset);
                     double z = 2.8 * Math.sin(angle + offset);
-                    Location loc = p.getLocation().clone().add(x, 1.2, z);
-                    loc.setDirection(p.getLocation().toVector().subtract(loc.toVector()));
-                    cards.get(i).teleport(loc);
+                    cards.get(i).teleport(p.getLocation().clone().add(x, 1.2, z));
                 }
             }
         }.runTaskTimer(SpcialSmp.get(), 0L, 1L);
@@ -234,4 +261,4 @@ public class UltimateCard extends BaseCard implements Listener {
         cooldowns.put(mapKey, now + (seconds * 1000L));
         return true;
     }
-                              }
+                        }
