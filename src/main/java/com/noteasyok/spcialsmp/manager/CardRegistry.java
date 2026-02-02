@@ -15,48 +15,41 @@ public class CardRegistry {
     private static final Map<String, List<String>> DESC = new HashMap<>();
 
     public static void registerAll() {
-        // --- Enderman Card ---
+        // Clear if already registered (Reload safety)
+        CARDS.clear();
+        DESC.clear();
+
+        // --- Cards Registration ---
         register(new EndermanCard(), List.of("§7Left: Teleport", "§7Right: GUI Player Pull", "§7Shift+R: Dragon Breath"));
-
-        // --- Zombie Card ---
         register(new ZombieCard(), List.of("§7Left: Summon Zombie", "§7Right: Instant Feed", "§7Shift+R: Zombie Disguise"));
-
-        // --- Baki Cards ---
         register(new HerobrineCard(), List.of("§7Left: Lightning", "§7Right: Darkness + Fly", "§7Shift+R: Giant/Tiny Mode"));
         register(new NothingCard(), List.of("§7Left: Time Set", "§7Right: Mind Control", "§7Shift+R: No Fall damage"));
         register(new WardenCard(), List.of("§7Left: Darkness", "§7Right: Sonic Boom", "§7Shift+R: Tank Mode"));
         register(new CreeperCard(), List.of("§7Left: Explosion", "§7Right: Airstrike", "§7Shift+R: Nuke Rain"));
-        
         register(new LightingCard(), List.of("§7Left: Strike", "§7Right: Storm", "§7Shift+R: Trail"));
         register(new GhostCard(), List.of("§7Left: Wall Clip", "§7Right: Fly", "§7Shift+R: Invisibility"));
-        
-        // --- Ruin Card Registration ---
         register(new RuinCard(), List.of("§7Left: Ruin Dimension", "§7Right: Dark Shield", "§7Shift+R: Sliverfish Army"));
         
-        // --- Ultimate Card Registration ---
-        register(new UltimateCard(), List.of("§6§lGOD MODE", "§eCraft Only"));
-
-        // NOTE: Hum yahan individual registerEvents() isliye nahi kar rahe kyunki
-        // SpcialSmp.java ki onEnable() mein humne cardsMap par loop chala kar
-        // auto-register ka logic daal diya hai. Yeh zyada clean tareeka hai.
+        // --- Ultimate Card (Craft Only) ---
+        register(new UltimateCard(), List.of("§6§lGOD MODE", "§eOnly available via special craft", "§bUnstoppable Power"));
     }
 
     private static void register(BaseCard card, List<String> description) {
         CARDS.put(card.getName(), card);
         DESC.put(card.getName(), description);
+        // Tip: Agar aapka loop SpcialSmp mein sahi se kaam nahi kar raha, 
+        // toh aap yahan Bukkit.getPluginManager().registerEvents(card, SpcialSmp.get()) 
+        // likh sakte hain, par constructor mein kabhi nahi!
     }
 
     public static Map<String, BaseCard> getCards() {
         return CARDS;
     }
 
-    public static List<String> getDescriptionLore(String key) {
-        return DESC.getOrDefault(key, new ArrayList<>(List.of("§7No description available.")));
-    }
-
     public static ItemStack getRandomCard() {
         if (CARDS.isEmpty()) return null;
 
+        // Ultimate Card ko random pool se bahar nikalna (Kyuki ye rare/craftable hai)
         List<BaseCard> pool = CARDS.values().stream()
                 .filter(c -> !c.getName().equalsIgnoreCase("Ultimate Card"))
                 .collect(Collectors.toList());
@@ -64,24 +57,25 @@ public class CardRegistry {
         if (pool.isEmpty()) return null;
 
         BaseCard randomCard = pool.get(new Random().nextInt(pool.size()));
+        return getCardItem(randomCard);
+    }
 
-        ItemStack item = randomCard.createItem(); 
+    // New Helper: To get formatted item with Lore easily
+    public static ItemStack getCardItem(BaseCard card) {
+        ItemStack item = card.getItemStackWithLore(card.getName()); 
         ItemMeta meta = item.getItemMeta();
         
         if (meta != null) {
             List<String> lore = new ArrayList<>();
             lore.add("§8------------------");
-            List<String> descLines = DESC.get(randomCard.getName());
-            if (descLines != null) {
-                lore.addAll(descLines);
-            }
+            List<String> descLines = DESC.get(card.getName());
+            if (descLines != null) lore.addAll(descLines);
             lore.add("§8------------------");
             lore.add("§e§lSPECIAL CARD");
             
             meta.setLore(lore);
             item.setItemMeta(meta);
         }
-
         return item;
     }
     }
