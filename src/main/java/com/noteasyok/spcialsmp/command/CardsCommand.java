@@ -28,6 +28,7 @@ import org.bukkit.util.StringUtil;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class CardsCommand implements CommandExecutor, TabCompleter, Listener {
 
@@ -40,13 +41,11 @@ public class CardsCommand implements CommandExecutor, TabCompleter, Listener {
 
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
-
         if (args.length == 0) {
             sendHelp(sender);
             return true;
         }
 
-        // --- FUEL WITHDRAW LOGIC (Advanced Parser) ---
         if (args[0].equalsIgnoreCase("fuel") && args.length >= 3 && args[1].equalsIgnoreCase("withdraw")) {
             if (!(sender instanceof Player p)) {
                 sender.sendMessage("Only players can withdraw fuel!");
@@ -59,7 +58,7 @@ public class CardsCommand implements CommandExecutor, TabCompleter, Listener {
                 if (input.endsWith("h")) secondsToWithdraw = Long.parseLong(input.replace("h", "")) * 3600;
                 else if (input.endsWith("m")) secondsToWithdraw = Long.parseLong(input.replace("m", "")) * 60;
                 else if (input.endsWith("s")) secondsToWithdraw = Long.parseLong(input.replace("s", ""));
-                else secondsToWithdraw = Long.parseLong(input) * 3600; // Default to hours
+                else secondsToWithdraw = Long.parseLong(input) * 3600; 
             } catch (NumberFormatException e) {
                 p.sendMessage("§c§l[!] §7Invalid format! Use 1h, 10m, or 30s.");
                 return true;
@@ -191,7 +190,6 @@ public class CardsCommand implements CommandExecutor, TabCompleter, Listener {
         if (gMeta != null) { gMeta.setDisplayName(" "); glass.setItemMeta(gMeta); }
         for (int i = 0; i < 27; i++) inv.setItem(i, glass);
 
-        // --- RESTORED ORIGINAL RECIPE MATERIALS ---
         inv.setItem(2, new ItemStack(Material.DIAMOND_BLOCK));
         inv.setItem(3, new ItemStack(Material.ECHO_SHARD));
         inv.setItem(4, new ItemStack(Material.DIAMOND_BLOCK));
@@ -226,10 +224,27 @@ public class CardsCommand implements CommandExecutor, TabCompleter, Listener {
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         if (args.length == 1) {
             List<String> subs = new ArrayList<>(Arrays.asList("fuel"));
-            if (sender.hasPermission("spcialsmp.admin")) subs.addAll(Arrays.asList("list", "give", "reroll", "getbook", "revive", "reload"));
+            if (sender.hasPermission("spcialsmp.admin")) {
+                subs.addAll(Arrays.asList("list", "give", "reroll", "getbook", "revive", "reload"));
+            }
             return StringUtil.copyPartialMatches(args[0], subs, new ArrayList<>());
         }
-        if (args.length == 2 && args[0].equalsIgnoreCase("fuel")) return List.of("withdraw");
+
+        if (args.length == 2) {
+            if (args[0].equalsIgnoreCase("fuel")) return List.of("withdraw");
+            if (args[0].equalsIgnoreCase("give") || args[0].equalsIgnoreCase("reroll") || args[0].equalsIgnoreCase("getbook")) {
+                return null; // Username list auto-show
+            }
+            if (args[0].equalsIgnoreCase("revive")) return List.of("recipe");
+        }
+
+        // --- FIXED: CARD LIST ON TAB COMPLETE ---
+        if (args.length == 3 && args[0].equalsIgnoreCase("give")) {
+            List<String> cardNames = new ArrayList<>(CardRegistry.getCards().keySet());
+            cardNames.add("all");
+            return StringUtil.copyPartialMatches(args[2], cardNames, new ArrayList<>());
+        }
+
         return new ArrayList<>();
     }
-                    }
+            }
