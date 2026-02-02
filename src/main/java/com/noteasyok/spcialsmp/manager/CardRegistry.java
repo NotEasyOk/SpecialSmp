@@ -15,37 +15,30 @@ public class CardRegistry {
     private static final Map<String, List<String>> DESC = new HashMap<>();
 
     public static void registerAll() {
-        // --- Enderman Card Registration ---
-        EndermanCard enderman = new EndermanCard();
-        register(enderman, List.of("§7Left: Teleport", "§7Right: GUI Player Pull", "§7Shift+R: Dragon Breath"));
-        Bukkit.getPluginManager().registerEvents(enderman, SpcialSmp.get()); 
+        // --- Enderman Card ---
+        register(new EndermanCard(), List.of("§7Left: Teleport", "§7Right: GUI Player Pull", "§7Shift+R: Dragon Breath"));
 
-        // --- Zombie Card Registration ---
-        ZombieCard zombie = new ZombieCard();
-        register(zombie, List.of("§7Left: Summon Zombie", "§7Right: Instant Feed", "§7Shift+R: Zombie Disguise"));
-        Bukkit.getPluginManager().registerEvents(zombie, SpcialSmp.get());
+        // --- Zombie Card ---
+        register(new ZombieCard(), List.of("§7Left: Summon Zombie", "§7Right: Instant Feed", "§7Shift+R: Zombie Disguise"));
 
-        // --- Baki Cards Registration ---
+        // --- Baki Cards ---
         register(new HerobrineCard(), List.of("§7Left: Lightning", "§7Right: Darkness + Fly", "§7Shift+R: Giant/Tiny Mode"));
         register(new NothingCard(), List.of("§7Left: Time Set", "§7Right: Mind Control", "§7Shift+R: No Fall damage"));
         register(new WardenCard(), List.of("§7Left: Darkness", "§7Right: Sonic Boom", "§7Shift+R: Tank Mode"));
         register(new CreeperCard(), List.of("§7Left: Explosion", "§7Right: Airstrike", "§7Shift+R: Nuke Rain"));
         
-        LightingCard lightning = new LightingCard();
-        register(lightning, List.of("§7Left: Strike", "§7Right: Storm", "§7Shift+R: Trail"));
-        Bukkit.getPluginManager().registerEvents(lightning, SpcialSmp.get());
-
+        register(new LightingCard(), List.of("§7Left: Strike", "§7Right: Storm", "§7Shift+R: Trail"));
         register(new GhostCard(), List.of("§7Left: Wall Clip", "§7Right: Fly", "§7Shift+R: Invisibility"));
         
-        // --- Ruin Card Registration (FIXED: Registering Events for Ruin) ---
-        RuinCard ruin = new RuinCard();
-        register(ruin, List.of("§7Left: Ruin Dimension", "§7Right: Dark Shield", "§7Shift+R: Sliverfish Army"));
-        Bukkit.getPluginManager().registerEvents(ruin, SpcialSmp.get()); // Yeh line Ruin ke events ke liye zaroori hai
+        // --- Ruin Card Registration ---
+        register(new RuinCard(), List.of("§7Left: Ruin Dimension", "§7Right: Dark Shield", "§7Shift+R: Sliverfish Army"));
         
         // --- Ultimate Card Registration ---
-        UltimateCard ultimate = new UltimateCard();
-        register(ultimate, List.of("§6§lGOD MODE", "§eCraft Only"));
-        Bukkit.getPluginManager().registerEvents(ultimate, SpcialSmp.get());
+        register(new UltimateCard(), List.of("§6§lGOD MODE", "§eCraft Only"));
+
+        // NOTE: Hum yahan individual registerEvents() isliye nahi kar rahe kyunki
+        // SpcialSmp.java ki onEnable() mein humne cardsMap par loop chala kar
+        // auto-register ka logic daal diya hai. Yeh zyada clean tareeka hai.
     }
 
     private static void register(BaseCard card, List<String> description) {
