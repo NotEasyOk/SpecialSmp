@@ -61,26 +61,30 @@ public class FuelManager {
         }
     }
 
-    // ✅ Added for Command Check (Returns hours for withdraw check)
+    // ✅ FIXED: Returns total seconds for precise calculation
+    public static long getFuel(Player p) {
+        return fuelCache.getOrDefault(p.getUniqueId(), 0);
+    }
+
+    // ✅ FIXED: Takes total seconds so 10m or 30s can be subtracted/added correctly
+    public static void setFuel(Player p, long totalSeconds) {
+        int seconds = (int) totalSeconds;
+        fuelCache.put(p.getUniqueId(), seconds);
+        SpcialSmp.get().getPlayerDataManager().setFuel(p.getUniqueId(), seconds);
+    }
+
+    // Keep this for any old code that still needs hours
     public static int getFuelInHours(Player p) {
-        int seconds = fuelCache.getOrDefault(p.getUniqueId(), 0);
-        return seconds / 3600;
+        return fuelCache.getOrDefault(p.getUniqueId(), 0) / 3600;
     }
 
     public static void addFuel(Player p, int hours) {
         int secondsToAdd = hours * 3600;
         int current = fuelCache.getOrDefault(p.getUniqueId(), 0);
-        int newFuel = Math.min(current + secondsToAdd, 86400 * 7); // Max limit set to 7 days
+        int newFuel = Math.min(current + secondsToAdd, 86400 * 7); 
         
         fuelCache.put(p.getUniqueId(), newFuel);
         SpcialSmp.get().getPlayerDataManager().setFuel(p.getUniqueId(), newFuel);
-    }
-    
-    // ✅ Logic updated for Withdraw (Handles subtraction properly)
-    public static void setFuel(Player p, int hours) {
-        int seconds = hours * 3600;
-        fuelCache.put(p.getUniqueId(), seconds);
-        SpcialSmp.get().getPlayerDataManager().setFuel(p.getUniqueId(), seconds);
     }
 
     private static String formatTime(int totalSeconds) {
@@ -111,4 +115,4 @@ public class FuelManager {
         for (int i = 0; i < totalBars - filledBars; i++) bar.append("|");
         return bar.toString();
     }
-            }
+    }
