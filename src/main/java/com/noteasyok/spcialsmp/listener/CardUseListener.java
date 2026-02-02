@@ -35,7 +35,7 @@ public class CardUseListener implements Listener {
         return uuid.toString() + ":" + card + ":" + action;
     }
 
-    @EventHandler(priority = EventPriority.LOW) // Priority set ki taaki UltimateCard ka apna logic pehle chale
+    @EventHandler(priority = EventPriority.LOW)
     public void onUse(PlayerInteractEvent e) {
         ItemStack it = e.getItem();
         if (it == null || !it.hasItemMeta()) return;
@@ -47,10 +47,8 @@ public class CardUseListener implements Listener {
 
         Player p = e.getPlayer();
 
-        // --- CRITICAL FIX: THOR MODE CHECK ---
-        // Agar Thor Mode active hai aur Stick pakdi hai, toh is listener ko kuch nahi karna chahiye
         if (cardID.equals("Ultimate Card") && it.getType() == Material.WARPED_FUNGUS_ON_A_STICK) {
-            return; // Thor mode ka logic UltimateCard.java mein handle hoga
+            return; 
         }
 
         BaseCard card = cards.get(cardID);
@@ -70,21 +68,16 @@ public class CardUseListener implements Listener {
             return;
         }
 
-        // Cooldown Check
         if (!cd.canUse(p, cardID, actionKey)) {
-            long left = cd.getRemainingSeconds(p, cardID, actionKey);
-            p.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent("§c" + cardID + " §7" + actionKey + " cooldown: §e" + left + "s"));
-            return;
+            return; // Action bar niche wale task se handle hogi
         }
 
-        // Execute Ability
         switch (actionKey) {
             case "left" -> card.leftClick(p);
             case "right" -> card.rightClick(p);
             case "shift_right" -> card.shiftRightClick(p);
         }
 
-        // Apply Cooldown & Actionbar Countdown
         cd.applyCooldown(p, cardID, actionKey);
         startActionBarCountdown(p, cardID, actionKey, cd);
     }
@@ -102,12 +95,20 @@ public class CardUseListener implements Listener {
                 return;
             }
             long left = cd.getRemainingSeconds(p, cardID, actionKey);
+            
             if (left <= 0) {
-                p.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent("§a§l✔ " + cardID + " " + actionKey + " READY!"));
+                p.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent("§a§l✔ §f" + cardID + " §a§lREADY!"));
                 Bukkit.getScheduler().cancelTask(actionBarTasks.remove(tk));
                 return;
             }
-            p.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent("§6" + cardID + " §7" + actionKey + " cooldown: §c" + left + "s"));
+
+            // --- CUSTOM DESIGN: CARD NAME [||||||] TIME ---
+            // Yahan humne design ko simple rakha hai taaki Soul Fuel ke paas sahi dikhe
+            String bar = "§8[§f||||||§8]"; 
+            String message = "§e" + cardID + " " + bar + " §c" + left + "s";
+            
+            p.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(message));
+
         }, 0L, 20L).getTaskId();
 
         actionBarTasks.put(tk, taskId);
