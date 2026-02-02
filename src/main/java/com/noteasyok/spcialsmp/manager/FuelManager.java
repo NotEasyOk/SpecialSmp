@@ -111,4 +111,4 @@ public class FuelManager {
         for (int i = 0; i < totalBars - filledBars; i++) bar.append("|");
         return bar.toString();
     }
-    }
+            }
