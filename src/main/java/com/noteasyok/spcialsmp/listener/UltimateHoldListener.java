@@ -48,25 +48,20 @@ public class UltimateHoldListener implements Listener {
                 for (Player p : Bukkit.getOnlinePlayers()) {
                     ItemStack item = p.getInventory().getItemInMainHand();
                     if (isUltimate(item)) {
-                        // Effects dena (Dono modes mein)
+                        // Effects dena: Level 2 (index 1) taaki player ko 'Ultimate' feel aaye
                         for (PotionEffectType type : ULTIMATE_EFFECTS) {
-                            p.addPotionEffect(new PotionEffect(type, 65, 1, false, false, true));
+                            p.addPotionEffect(new PotionEffect(type, 100, 1, false, false, true));
                         }
 
+                        // Orbit Trigger logic (Sirf tab jab pehli baar pakda ho)
                         if (!currentlyHolding.contains(p.getUniqueId())) {
                             currentlyHolding.add(p.getUniqueId());
-                            BaseCard card = CardRegistry.getCards().get("Ultimate Card");
-                            // Orbit sirf Green Dye (Normal Mode) par start hoga
-                            if (card instanceof UltimateCard uc && item.getType() == Material.GREEN_DYE) {
-                                uc.startOrbit(p);
-                            }
+                            triggerOrbit(p, item);
                         }
                     } else {
-                        // Agar haath mein card nahi hai toh state clear karo
                         if (currentlyHolding.contains(p.getUniqueId())) {
                             currentlyHolding.remove(p.getUniqueId());
-                            BaseCard card = CardRegistry.getCards().get("Ultimate Card");
-                            if (card instanceof UltimateCard uc) uc.stopOrbit(p);
+                            stopOrbit(p);
                         }
                     }
                 }
@@ -82,30 +77,38 @@ public class UltimateHoldListener implements Listener {
         if (isUltimate(newItem)) {
             if (!currentlyHolding.contains(p.getUniqueId())) {
                 currentlyHolding.add(p.getUniqueId());
-                BaseCard card = CardRegistry.getCards().get("Ultimate Card");
-                // Swap par bhi sirf Green Dye par orbit start
-                if (card instanceof UltimateCard uc && newItem.getType() == Material.GREEN_DYE) {
-                    uc.startOrbit(p);
-                }
+                triggerOrbit(p, newItem);
             }
         } else {
+            // Agar slot change kiya aur wahan card nahi hai
             currentlyHolding.remove(p.getUniqueId());
-            BaseCard card = CardRegistry.getCards().get("Ultimate Card");
-            if (card instanceof UltimateCard uc) uc.stopOrbit(p);
+            stopOrbit(p);
+        }
+    }
+
+    private void triggerOrbit(Player p, ItemStack item) {
+        BaseCard card = CardRegistry.getCards().get("Ultimate Card");
+        // Orbit sirf tab start hoga jab Thor mode OFF ho (Green Dye)
+        if (card instanceof UltimateCard uc && item.getType() == Material.GREEN_DYE) {
+            uc.startOrbit(p);
+        }
+    }
+
+    private void stopOrbit(Player p) {
+        BaseCard card = CardRegistry.getCards().get("Ultimate Card");
+        if (card instanceof UltimateCard uc) {
+            uc.stopOrbit(p);
         }
     }
 
     private boolean isUltimate(ItemStack item) {
         if (item == null || item.getType() == Material.AIR) return false;
-        
-        // Dono materials ko allow karna zaroori hai
         Material type = item.getType();
         if (type != Material.GREEN_DYE && type != Material.WARPED_FUNGUS_ON_A_STICK) return false;
-        
         if (!item.hasItemMeta()) return false;
         
         NamespacedKey key = new NamespacedKey(SpcialSmp.get(), "card_id");
         String id = item.getItemMeta().getPersistentDataContainer().get(key, PersistentDataType.STRING);
         return "Ultimate Card".equals(id);
     }
-                                    }
+            }
