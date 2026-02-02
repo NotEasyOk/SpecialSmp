@@ -25,7 +25,7 @@ public class SpcialSmp extends JavaPlugin {
         cooldownManager = new CooldownManager(this);
         playerDataManager = new PlayerDataManager(this);
 
-        // 1. Sabse pehle Cards register karo (Taki RecipeManager ko "null" na mile)
+        // 1. Sabse pehle Cards register karo
         CardRegistry.registerAll();
 
         // 2. Ab saari Recipes ek saath register karo
@@ -37,6 +37,15 @@ public class SpcialSmp extends JavaPlugin {
 
         // Map for listeners
         Map<String, BaseCard> cardsMap = CardRegistry.getCards();
+
+        // ================== YEH ADD KARNA HAI ==================
+        // Kyunki Ultimate aur Ruin mein custom Events (@EventHandler) hain
+        cardsMap.values().forEach(card -> {
+            if (card instanceof org.bukkit.event.Listener) {
+                Bukkit.getPluginManager().registerEvents((org.bukkit.event.Listener) card, this);
+            }
+        });
+        // =======================================================
 
         // Listeners
         Bukkit.getPluginManager().registerEvents(new CardUseListener(cardsMap), this);  
@@ -55,7 +64,7 @@ public class SpcialSmp extends JavaPlugin {
         }
 
         getLogger().info("SpcialSmp plugin ENABLED successfully with Fuel, Task & Revival System");
-    }
+            }
 
     @Override
     public void onDisable() {
