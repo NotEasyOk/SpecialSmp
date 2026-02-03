@@ -15,11 +15,9 @@ public class CardRegistry {
     private static final Map<String, List<String>> DESC = new HashMap<>();
 
     public static void registerAll() {
-        // Clear if already registered (Reload safety)
         CARDS.clear();
         DESC.clear();
 
-        // --- Cards Registration ---
         register(new EndermanCard(), List.of("§7Left: Teleport", "§7Right: GUI Player Pull", "§7Shift+R: Dragon Breath"));
         register(new ZombieCard(), List.of("§7Left: Summon Zombie", "§7Right: Instant Feed", "§7Shift+R: Zombie Disguise"));
         register(new HerobrineCard(), List.of("§7Left: Lightning", "§7Right: Darkness + Fly", "§7Shift+R: Giant/Tiny Mode"));
@@ -30,16 +28,18 @@ public class CardRegistry {
         register(new GhostCard(), List.of("§7Left: Wall Clip", "§7Right: Fly", "§7Shift+R: Invisibility"));
         register(new RuinCard(), List.of("§7Left: Ruin Dimension", "§7Right: Dark Shield", "§7Shift+R: Sliverfish Army"));
         
-        // --- Ultimate Card (Craft Only) ---
         register(new UltimateCard(), List.of("§6§lGOD MODE", "§eOnly available via special craft", "§bUnstoppable Power"));
     }
+
+    // ================== FIXED ERROR: ADDED MISSING METHOD ==================
+    public static List<String> getDescriptionLore(String cardName) {
+        return DESC.getOrDefault(cardName, new ArrayList<>());
+    }
+    // =======================================================================
 
     private static void register(BaseCard card, List<String> description) {
         CARDS.put(card.getName(), card);
         DESC.put(card.getName(), description);
-        // Tip: Agar aapka loop SpcialSmp mein sahi se kaam nahi kar raha, 
-        // toh aap yahan Bukkit.getPluginManager().registerEvents(card, SpcialSmp.get()) 
-        // likh sakte hain, par constructor mein kabhi nahi!
     }
 
     public static Map<String, BaseCard> getCards() {
@@ -49,7 +49,6 @@ public class CardRegistry {
     public static ItemStack getRandomCard() {
         if (CARDS.isEmpty()) return null;
 
-        // Ultimate Card ko random pool se bahar nikalna (Kyuki ye rare/craftable hai)
         List<BaseCard> pool = CARDS.values().stream()
                 .filter(c -> !c.getName().equalsIgnoreCase("Ultimate Card"))
                 .collect(Collectors.toList());
@@ -60,7 +59,6 @@ public class CardRegistry {
         return getCardItem(randomCard);
     }
 
-    // New Helper: To get formatted item with Lore easily
     public static ItemStack getCardItem(BaseCard card) {
         ItemStack item = card.getItemStackWithLore(card.getName()); 
         ItemMeta meta = item.getItemMeta();
