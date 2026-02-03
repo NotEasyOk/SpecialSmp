@@ -144,7 +144,7 @@ public class RuinCard extends BaseCard implements Listener {
         mutant.getEquipment().setHelmet(new ItemStack(Material.NETHERITE_HELMET)); // Prevents burning
         mutant.getEquipment().setHelmetDropChance(0.0f);
         mutant.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 99999, 1));
-        mutant.addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE, 99999, 1));
+        mutant.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH, 99999, 1));
         
         if (mutant.getAttribute(Attribute.GENERIC_MAX_HEALTH) != null) {
             mutant.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(40.0);
