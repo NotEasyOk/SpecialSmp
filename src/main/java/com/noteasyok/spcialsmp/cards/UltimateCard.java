@@ -191,4 +191,13 @@ public class UltimateCard extends BaseCard implements Listener {
         }
         return item;
     }
-            }
+            // ================= FIX: ADDING THE MISSING METHOD =================
+    private ArmorStand createThronePart(Location l, Material m) {
+        ArmorStand as = l.getWorld().spawn(l, ArmorStand.class);
+        as.setInvisible(true); 
+        as.setGravity(false); 
+        as.setMarker(true);
+        as.getEquipment().setHelmet(new ItemStack(m));
+        return as;
+    }
+}
