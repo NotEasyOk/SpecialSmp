@@ -10,6 +10,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public abstract class BaseCard {
@@ -29,10 +30,11 @@ public abstract class BaseCard {
             meta.setDisplayName("§6§l" + getName());
             meta.setCustomModelData(getModelData()); 
 
-            // REMOVED: Enchantment wala shiny effect hata diya gaya hai
             meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
             meta.addItemFlags(ItemFlag.HIDE_UNBREAKABLE);
+            meta.addItemFlags(ItemFlag.HIDE_DESTROYS); // Safety flags
 
+            // Persistent Data fix: Use a standard identifier
             NamespacedKey key = new NamespacedKey(SpcialSmp.get(), "card_id");
             meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, getName());
 
@@ -41,22 +43,25 @@ public abstract class BaseCard {
         return item;
     }
 
+    // Is method ko abstract nahi rakha hai taaki common cards registry use karein, 
+    // lekin Ultimate Card isse Override kar sake bina kisi logic conflict ke.
     public ItemStack getItemStackWithLore(String cardName) {
-        // SMART FIX: Agar card ne apna custom lore (like UltimateCard) diya hai toh wahi use karega
-        // Warna Registry se default lore uthayega.
         ItemStack item = createItem();
         ItemMeta meta = item.getItemMeta();
         
         if (meta != null) {
-            // Sirf tabhi registry se lore uthayega agar meta mein pehle se lore na ho
-            if (meta.getLore() == null || meta.getLore().isEmpty()) {
-                List<String> lore = CardRegistry.getDescriptionLore(cardName);
-                if (lore != null && !lore.isEmpty()) {
-                    meta.setLore(lore);
-                }
+            // Priority Check: Pehle Registry se lore uthao
+            List<String> registryLore = CardRegistry.getDescriptionLore(cardName);
+            List<String> finalLore = new ArrayList<>();
+            
+            if (registryLore != null && !registryLore.isEmpty()) {
+                finalLore.addAll(registryLore);
             }
+            
+            // Agar extra meta attributes hain (like Unbreakable), toh wo yahan set honge
+            meta.setLore(finalLore);
             item.setItemMeta(meta);
         }
         return item;
     }
-}
+    }
