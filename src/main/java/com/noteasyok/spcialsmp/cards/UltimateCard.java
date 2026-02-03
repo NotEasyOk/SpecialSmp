@@ -14,7 +14,7 @@ import org.bukkit.util.RayTraceResult;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.util.Vector;
 import org.bukkit.event.EventHandler;
-import org.spigotmc.event.entity.EntityMountEvent; // FIXED: Added correct import
+import org.bukkit.event.entity.EntityMountEvent; // FIXED: Added correct import
 import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.*;
