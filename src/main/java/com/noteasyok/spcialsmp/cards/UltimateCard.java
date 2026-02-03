@@ -32,59 +32,62 @@ public class UltimateCard extends BaseCard implements Listener {
     @Override public int getModelData() { return 0; }
     @Override public Material getMaterial() { return Material.GREEN_DYE; }
 
-    /* ================= LEFT CLICK: RISING & HOVERING THRONE ================= */
+    /* ================= LEFT CLICK: RISING STRUCTURE & THRONE ================= */
     @Override
     public void leftClick(Player p) {
         if (activeDomain.contains(p.getUniqueId()) || !isCool(p, "blood_domain", 60)) return;
 
         // FIXED AIM: Exactly where the player is looking
         RayTraceResult ray = p.getWorld().rayTraceBlocks(p.getEyeLocation(), p.getEyeLocation().getDirection(), 15);
-        Location baseLoc;
-        if (ray != null && ray.getHitBlock() != null) {
-            baseLoc = ray.getHitBlock().getLocation().add(0.5, 0, 0.5);
-        } else {
-            // Default position if looking at sky
-            baseLoc = p.getLocation().add(p.getLocation().getDirection().multiply(5));
-            baseLoc.setY(p.getWorld().getHighestBlockYAt(baseLoc));
-        }
+        Location baseLoc = (ray != null && ray.getHitBlock() != null) ? ray.getHitBlock().getLocation().add(0.5, 0, 0.5) : p.getLocation();
         
         activeDomain.add(p.getUniqueId());
-        List<ArmorStand> parts = new ArrayList<>();
+        List<ArmorStand> structureParts = new ArrayList<>();
         
         p.getWorld().strikeLightningEffect(baseLoc);
         p.getWorld().playSound(baseLoc, Sound.ENTITY_WITHER_SPAWN, 1f, 0.5f);
 
-        // Spawn deeply underground
-        parts.add(createThronePart(baseLoc.clone().add(0, -4, 0), Material.CRYING_OBSIDIAN));
-        parts.add(createThronePart(baseLoc.clone().add(0, -3.2, 0.4), Material.RED_NETHER_BRICK_STAIRS));
-        parts.add(createThronePart(baseLoc.clone().add(-0.6, -3.6, 0), Material.COMMAND_BLOCK));
-        parts.add(createThronePart(baseLoc.clone().add(0.6, -3.6, 0), Material.COMMAND_BLOCK));
-        parts.add(createThronePart(baseLoc.clone().add(0, -2.5, 0.5), Material.GOLD_BLOCK));
+        // --- STRUCTURE BUILDING (Spawns underground) ---
+        // Netherite Pillars (As per PNG 1)
+        structureParts.add(createThronePart(baseLoc.clone().add(2, -5, 2), Material.NETHERITE_BLOCK));
+        structureParts.add(createThronePart(baseLoc.clone().add(-2, -5, 2), Material.NETHERITE_BLOCK));
+        structureParts.add(createThronePart(baseLoc.clone().add(2, -5, -2), Material.NETHERITE_BLOCK));
+        structureParts.add(createThronePart(baseLoc.clone().add(-2, -5, -2), Material.NETHERITE_BLOCK));
+        
+        // Crystal/Ice Top (As per PNG 1)
+        structureParts.add(createThronePart(baseLoc.clone().add(0, -3, 0), Material.BLUE_ICE));
+        
+        // THE SWORD THRONE (As per PNG 2) - Hidden in center
+        ArmorStand throneSeat = createThronePart(baseLoc.clone().add(0, -5, 0), Material.NETHERITE_SWORD);
+        structureParts.add(throneSeat);
 
         new BukkitRunnable() {
             int step = 0;
             @Override
             public void run() {
-                if (step < 140) { 
-                    for (ArmorStand as : parts) {
-                        as.teleport(as.getLocation().add(0, 0.045, 0));
+                // RISING PHASE: Coming up to Ground Level (No Hover)
+                if (step < 100) { 
+                    for (ArmorStand as : structureParts) {
+                        as.teleport(as.getLocation().add(0, 0.05, 0));
                     }
-                    // RED SMOKE EFFECTS
-                    Location thronePos = parts.get(0).getLocation();
-                    thronePos.getWorld().spawnParticle(Particle.DUST, thronePos.clone().add(0, 1, 0), 10, 0.8, 0.5, 0.8, new Particle.DustOptions(Color.RED, 1.5f));
+                    // Visual Effects: Red Smoke + Ground Dirt
+                    Location currentPos = throneSeat.getLocation();
+                    currentPos.getWorld().spawnParticle(Particle.DUST, currentPos.clone().add(0, 1, 0), 10, 1.5, 0.5, 1.5, new Particle.DustOptions(Color.RED, 1.8f));
                     
-                    if (step % 5 == 0 && Math.abs(thronePos.getY() - baseLoc.getY()) < 2) {
-                        baseLoc.getWorld().spawnParticle(Particle.BLOCK, baseLoc.clone().add(0, 0.1, 0), 20, 0.5, 0.2, 0.5, Material.DIRT.createBlockData());
-                        baseLoc.getWorld().playSound(baseLoc, Sound.BLOCK_GRASS_BREAK, 1f, 0.8f);
+                    if (step % 5 == 0 && Math.abs(currentPos.getY() - baseLoc.getY()) < 1.5) {
+                        baseLoc.getWorld().spawnParticle(Particle.BLOCK, baseLoc.clone().add(0, 0.1, 0), 30, 1.5, 0.2, 1.5, Material.NETHERRACK.createBlockData());
+                        baseLoc.getWorld().playSound(baseLoc, Sound.BLOCK_STONE_BREAK, 1f, 0.5f);
                     }
                 } 
-                else if (step == 140) {
-                    baseLoc.getWorld().strikeLightningEffect(parts.get(0).getLocation());
-                    parts.get(0).addPassenger(p);
-                    throneSeats.put(parts.get(0).getUniqueId(), p.getUniqueId());
+                // MOUNT PHASE: Step 100 is Ground Level
+                else if (step == 100) {
+                    baseLoc.getWorld().strikeLightningEffect(throneSeat.getLocation());
+                    throneSeat.addPassenger(p);
+                    throneSeats.put(throneSeat.getUniqueId(), p.getUniqueId());
                 } 
+                // TERMINATION: Disappear after 30 seconds
                 else if (step > 600 || !p.isOnline()) {
-                    parts.forEach(Entity::remove);
+                    structureParts.forEach(Entity::remove);
                     activeDomain.remove(p.getUniqueId());
                     this.cancel();
                     return;
@@ -92,24 +95,7 @@ public class UltimateCard extends BaseCard implements Listener {
                 step++;
             }
         }.runTaskTimer(SpcialSmp.get(), 0L, 1L);
-    }
-
-    private ArmorStand createThronePart(Location l, Material m) {
-        ArmorStand as = l.getWorld().spawn(l, ArmorStand.class);
-        as.setInvisible(true); as.setGravity(false); as.setMarker(true);
-        as.getEquipment().setHelmet(new ItemStack(m));
-        return as;
-    }
-
-    @EventHandler
-    public void onThroneSit(EntityMountEvent e) {
-        if (throneSeats.containsKey(e.getMount().getUniqueId())) {
-            if (!e.getEntity().getUniqueId().equals(throneSeats.get(e.getMount().getUniqueId()))) {
-                e.setCancelled(true);
-            }
-        }
-    }
-
+                                            }
     /* ================= RIGHT CLICK: STABLE ORBIT ================= */
     @Override public void rightClick(Player p) { startOrbit(p); }
 
