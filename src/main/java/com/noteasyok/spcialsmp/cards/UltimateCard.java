@@ -20,8 +20,7 @@ import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.util.Vector;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.player.PlayerInteractEvent;
-import org.spigotmc.event.entity.EntityMountEvent;
-
+import org.bukkit.event.entity.EntityMountEvent;
 import java.util.*;
 
 public class UltimateCard extends BaseCard implements Listener {
