@@ -46,39 +46,26 @@ public class UltimateCard extends BaseCard implements Listener {
         p.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 40, 1));
         p.getWorld().playSound(loc, Sound.BLOCK_GRASS_BREAK, 2f, 0.5f);
 
-        // Constructing the Demon Throne using Armor Stands
         ArmorStand seat = createThronePart(loc.clone().add(0, -2, 0), Material.CRYING_OBSIDIAN);
         parts.add(seat);
-        parts.add(createThronePart(loc.clone().add(0, -1.2, 0.4), Material.RED_NETHER_BRICK_STAIRS)); // Backrest
-        parts.add(createThronePart(loc.clone().add(-0.6, -1.6, 0), Material.COMMAND_BLOCK)); // Power Core L
-        parts.add(createThronePart(loc.clone().add(0.6, -1.6, 0), Material.COMMAND_BLOCK)); // Power Core R
-        parts.add(createThronePart(loc.clone().add(0, -0.5, 0.5), Material.GOLD_BLOCK)); // Top Ornament
+        parts.add(createThronePart(loc.clone().add(0, -1.2, 0.4), Material.RED_NETHER_BRICK_STAIRS));
+        parts.add(createThronePart(loc.clone().add(-0.6, -1.6, 0), Material.COMMAND_BLOCK));
+        parts.add(createThronePart(loc.clone().add(0.6, -1.6, 0), Material.COMMAND_BLOCK));
+        parts.add(createThronePart(loc.clone().add(0, -0.5, 0.5), Material.GOLD_BLOCK));
 
         new BukkitRunnable() {
             int step = 0;
             @Override
             public void run() {
-                if (step < 20) { // Rise up 2 blocks
+                if (step < 20) {
                     for (ArmorStand as : parts) as.teleport(as.getLocation().add(0, 0.1, 0));
-                    // Ground burst effect
                     loc.getWorld().spawnParticle(Particle.BLOCK_CRACK, loc, 10, 0.5, 0.1, 0.5, Material.DIRT.createBlockData());
-                    loc.getWorld().spawnParticle(Particle.CAMPFIRE_COSY_SMOKE, loc, 2, 0.3, 0, 0.3, 0.05);
                 } else if (step == 20) {
                     loc.getWorld().strikeLightningEffect(loc);
                     seat.addPassenger(p);
                     throneSeats.put(seat.getUniqueId(), p.getUniqueId());
-                    p.sendTitle("§4§lDEMON KING", "§fThe Throne has Ascended", 10, 40, 10);
-                } else if (step > 400 || !p.isOnline()) { // 20 Seconds
-                    parts.forEach(as -> {
-                        new BukkitRunnable() { // Sink back effect
-                            int sink = 0;
-                            @Override public void run() {
-                                if (sink > 20) { as.remove(); this.cancel(); }
-                                as.teleport(as.getLocation().subtract(0, 0.1, 0));
-                                sink++;
-                            }
-                        }.runTaskTimer(SpcialSmp.get(), 0L, 1L);
-                    });
+                } else if (step > 400 || !p.isOnline()) {
+                    parts.forEach(as -> as.remove());
                     activeDomain.remove(p.getUniqueId());
                     this.cancel();
                     return;
@@ -100,45 +87,21 @@ public class UltimateCard extends BaseCard implements Listener {
         if (throneSeats.containsKey(e.getMount().getUniqueId())) {
             if (!e.getEntity().getUniqueId().equals(throneSeats.get(e.getMount().getUniqueId()))) {
                 e.setCancelled(true);
-                if (e.getEntity() instanceof Player intruder) intruder.damage(10);
             }
         }
     }
 
-    /* ================= SHIFT + RIGHT: GIANT SWORD (FIXED) ================= */
-    @Override
-    public void shiftRightClick(Player p) {
-        if (!isCool(p, "ultimate_sword", 30)) return;
-
-        RayTraceResult ray = p.getWorld().rayTraceBlocks(p.getEyeLocation(), p.getEyeLocation().getDirection(), 50);
-        Location target = (ray != null) ? ray.getHitPosition().toLocation(p.getWorld()) : p.getLocation().add(p.getLocation().getDirection().multiply(15));
-        Location spawn = target.clone().add(0, 30, 0);
-
-        ArmorStand sword = p.getWorld().spawn(spawn, ArmorStand.class);
-        sword.setInvisible(true); sword.setGravity(false); sword.setMarker(true);
-        sword.getEquipment().setItemInMainHand(new ItemStack(Material.NETHERITE_SWORD));
-        // Vertical Position: Tip pointing down
-        sword.setRightArmPose(new EulerAngle(Math.toRadians(180), 0, 0));
-
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                sword.teleport(sword.getLocation().subtract(0, 1.5, 0));
-                sword.getWorld().spawnParticle(Particle.FLAME, sword.getLocation(), 5, 0.1, 0.5, 0.1, 0.05);
-                if (sword.getLocation().getY() <= target.getY() || sword.getLocation().getBlock().getType().isSolid()) {
-                    sword.getWorld().createExplosion(sword.getLocation(), 8f, false, false);
-                    sword.remove();
-                    this.cancel();
-                }
-            }
-        }.runTaskTimer(SpcialSmp.get(), 0L, 1L);
-    }
-
-    /* ================= RIGHT CLICK: STABLE ORBIT ================= */
+    /* ================= RIGHT CLICK: STABLE ORBIT (9 CARDS SMOOTH SPEED) ================= */
     @Override
     public void rightClick(Player p) {
         if (orbiting.containsKey(p.getUniqueId())) return;
-        List<Material> mats = Arrays.asList(Material.DISC_FRAGMENT_5, Material.CHORUS_FRUIT, Material.PURPLE_DYE, Material.BLACK_DYE, Material.WHITE_DYE, Material.YELLOW_DYE, Material.GRAY_DYE);
+        
+        List<Material> mats = Arrays.asList(
+            Material.DISC_FRAGMENT_5, Material.CHORUS_FRUIT, Material.PURPLE_DYE, 
+            Material.BLACK_DYE, Material.WHITE_DYE, Material.YELLOW_DYE, 
+            Material.GRAY_DYE, Material.MUSIC_DISC_5, Material.PINK_DYE
+        );
+
         List<ArmorStand> cards = new ArrayList<>();
         for (Material m : mats) {
             ArmorStand as = p.getWorld().spawn(p.getLocation(), ArmorStand.class);
@@ -148,18 +111,49 @@ public class UltimateCard extends BaseCard implements Listener {
             cards.add(as);
         }
         orbiting.put(p.getUniqueId(), cards);
+
         new BukkitRunnable() {
             double angle = 0;
             @Override
             public void run() {
                 if (!p.isOnline() || !isHoldingCard(p)) {
-                    cards.forEach(Entity::remove); orbiting.remove(p.getUniqueId()); this.cancel(); return;
+                    cards.forEach(Entity::remove); 
+                    orbiting.remove(p.getUniqueId()); 
+                    this.cancel(); 
+                    return;
                 }
-                angle += 0.1;
+                // Speed Adjusted for 9 cards (0.06 is very smooth)
+                angle += 0.06; 
                 for (int i = 0; i < cards.size(); i++) {
                     double offset = (2 * Math.PI / cards.size()) * i;
-                    Location loc = p.getLocation().clone().add(2.2 * Math.cos(angle + offset), 1.2, 2.2 * Math.sin(angle + offset));
+                    Location loc = p.getLocation().clone().add(2.3 * Math.cos(angle + offset), 1.2, 2.3 * Math.sin(angle + offset));
                     cards.get(i).teleport(loc);
+                }
+            }
+        }.runTaskTimer(SpcialSmp.get(), 0L, 1L);
+    }
+
+    /* ================= SHIFT + RIGHT: GIANT SWORD ================= */
+    @Override
+    public void shiftRightClick(Player p) {
+        if (!isCool(p, "ultimate_sword", 30)) return;
+        RayTraceResult ray = p.getWorld().rayTraceBlocks(p.getEyeLocation(), p.getEyeLocation().getDirection(), 50);
+        Location target = (ray != null) ? ray.getHitPosition().toLocation(p.getWorld()) : p.getLocation().add(p.getLocation().getDirection().multiply(15));
+        Location spawn = target.clone().add(0, 30, 0);
+
+        ArmorStand sword = p.getWorld().spawn(spawn, ArmorStand.class);
+        sword.setInvisible(true); sword.setGravity(false); sword.setMarker(true);
+        sword.getEquipment().setItemInMainHand(new ItemStack(Material.NETHERITE_SWORD));
+        sword.setRightArmPose(new EulerAngle(Math.toRadians(180), 0, 0));
+
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                sword.teleport(sword.getLocation().subtract(0, 1.5, 0));
+                if (sword.getLocation().getY() <= target.getY() || sword.getLocation().getBlock().getType().isSolid()) {
+                    sword.getWorld().createExplosion(sword.getLocation(), 8f, false, false);
+                    sword.remove();
+                    this.cancel();
                 }
             }
         }.runTaskTimer(SpcialSmp.get(), 0L, 1L);
@@ -189,4 +183,4 @@ public class UltimateCard extends BaseCard implements Listener {
         item.setItemMeta(meta);
         return item;
     }
-    }
+            }
