@@ -31,23 +31,17 @@ public class RuinCard extends BaseCard implements Listener {
 
     public RuinCard() {
         Bukkit.getPluginManager().registerEvents(this, SpcialSmp.get());
-        // Server start hote hi dimension ready karne ka logic
         preLoadDimension();
     }
 
-    // Is method ko humne static banaya hai taaki ye bina card use kiye world create kar sake
     public static void preLoadDimension() {
         if (Bukkit.getWorld(DIM_NAME) == null) {
-            Bukkit.getConsoleSender().sendMessage("§8[§2RuinCard§8] §aPre-loading Ruin Dimension...");
             WorldCreator wc = new WorldCreator(DIM_NAME);
             wc.environment(World.Environment.NORMAL);
-            // Agar aapka koi custom generator hai to yahan uncomment karein
-            // wc.generator(new RuinWorldGenerator()); 
             World world = wc.createWorld();
             if (world != null) {
-                world.setKeepSpawnInMemory(true); // Isse dimension hamesha load rahega
-                world.getChunkAt(0, 0).load();   // Spawn area ko pehle hi load kar lo
-                Bukkit.getConsoleSender().sendMessage("§8[§2RuinCard§8] §eDimension is READY and INSTANT!");
+                world.setKeepSpawnInMemory(true);
+                world.getChunkAt(0, 0).load();
             }
         }
     }
@@ -70,18 +64,15 @@ public class RuinCard extends BaseCard implements Listener {
         Location loc = target.getLocation().add(0.5, 1.1, 0.5);
         p.sendMessage("§2§l[!] §aRift Opened! Teleporting...");
         
-        // Portal Animation (Ab ye sirf 1 second ki hogi kyunki world pehle se ready hai)
         new BukkitRunnable() {
             int t = 0;
             @Override
             public void run() {
-                if (t >= 20) { // 1 Second animation
+                if (t >= 20) {
                     teleportToRuin(p, loc);
                     this.cancel();
                     return;
                 }
-                
-                // Player ko Rift par lock karna
                 p.teleport(loc);
                 loc.getWorld().spawnParticle(Particle.SQUID_INK, loc, 15, 0.2, 0.2, 0.2, 0.05);
                 if (t % 5 == 0) p.playSound(p.getLocation(), Sound.BLOCK_PORTAL_AMBIENT, 0.5f, 1.5f);
@@ -94,13 +85,11 @@ public class RuinCard extends BaseCard implements Listener {
 
     private void teleportToRuin(Player p, Location oldLoc) {
         World ruinWorld = Bukkit.getWorld(DIM_NAME);
-        
         if (ruinWorld == null) {
-            p.sendMessage("§c§l[!] §7Error: Dimension not loaded. Please contact Admin.");
+            p.sendMessage("§c§l[!] §7Error: Dimension not loaded.");
             return;
         }
 
-        // Instant Teleport
         Location target = ruinWorld.getHighestBlockAt(0, 0).getLocation().add(0.5, 2, 0.5);
         if (target.getY() < 5) target.setY(70); 
 
@@ -108,7 +97,6 @@ public class RuinCard extends BaseCard implements Listener {
         p.playSound(p.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1f, 0.5f);
         p.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 40, 1));
 
-        // BossBar aur Baaki logic (Same as before)
         BossBar bar = Bukkit.createBossBar("§2§lTOXIC ATMOSPHERE", BarColor.GREEN, BarStyle.SEGMENTED_10);
         bar.addPlayer(p);
         activeBars.put(p, bar);
@@ -134,11 +122,19 @@ public class RuinCard extends BaseCard implements Listener {
         }.runTaskTimer(SpcialSmp.get(), 0L, 20L);
     }
 
+    /* ================= FIXED SPAWN LOGIC ================= */
     private void spawnToxicMob(Location center) {
         Location spawnLoc = center.clone().add(random.nextInt(8) - 4, 0, random.nextInt(8) - 4);
         spawnLoc.setY(spawnLoc.getWorld().getHighestBlockYAt(spawnLoc) + 1);
-        Entity mob = center.getWorld().spawn(spawnLoc, random.nextBoolean() ? Zombie.class : Skeleton.class);
-        mob.setCustomName("§2Corrupted Entity");
+        
+        // Java confusion door karne ke liye explicit spawn
+        if (random.nextBoolean()) {
+            Zombie m = center.getWorld().spawn(spawnLoc, Zombie.class);
+            m.setCustomName("§2Corrupted Entity");
+        } else {
+            Skeleton m = center.getWorld().spawn(spawnLoc, Skeleton.class);
+            m.setCustomName("§2Corrupted Entity");
+        }
     }
 
     @Override public void rightClick(Player p) {
@@ -170,4 +166,4 @@ public class RuinCard extends BaseCard implements Listener {
         }
         return item;
     }
-    }
+                       }
