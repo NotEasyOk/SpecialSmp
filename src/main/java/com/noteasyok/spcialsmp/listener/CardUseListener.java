@@ -94,23 +94,28 @@ public class CardUseListener implements Listener {
                 actionBarTasks.remove(tk);
                 return;
             }
+            
             long left = cd.getRemainingSeconds(p, cardID, actionKey);
             
             if (left <= 0) {
+                // Jab cooldown khatam ho, green message dikhao (Iske baad FuelManager automatically bar wapas le aayega)
                 p.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent("§a§l✔ §f" + cardID + " §a§lREADY!"));
-                Bukkit.getScheduler().cancelTask(actionBarTasks.remove(tk));
+                
+                // Task ko cancel karna taaki Soul Fuel display wapas chalu ho sake
+                int tid = actionBarTasks.remove(tk);
+                Bukkit.getScheduler().cancelTask(tid);
                 return;
             }
 
-            // --- CUSTOM DESIGN: CARD NAME [||||||] TIME ---
-            // Yahan humne design ko simple rakha hai taaki Soul Fuel ke paas sahi dikhe
+            // --- DESIGN FIX: CARD NAME [||||||] TIME ---
+            // Jab tak yeh message send hoga, FuelManager ka task overwrite hota rahega (Hide Fuel)
             String bar = "§8[§f||||||§8]"; 
-            String message = "§e" + cardID + " " + bar + " §c" + left + "s";
+            String message = "§6§l" + cardID + " §e" + bar + " §c" + left + "s";
             
             p.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(message));
 
         }, 0L, 20L).getTaskId();
 
         actionBarTasks.put(tk, taskId);
-    }
-            }
+                                          }
+   }
