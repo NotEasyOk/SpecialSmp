@@ -30,6 +30,8 @@ public class SpcialSmp extends JavaPlugin {
         // 1. Sabse pehle Cards register karo
         CardRegistry.registerAll();
 
+        com.noteasyok.spcialsmp.cards.RuinCard.preLoadDimension();
+
         // 2. Ab saari Recipes ek saath register karo
         RecipeManager.registerAllRecipes(this);
 
