@@ -3,7 +3,6 @@ package com.noteasyok.spcialsmp.cards;
 import org.bukkit.event.Listener;
 import com.noteasyok.spcialsmp.SpcialSmp;
 import org.bukkit.*;
-import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.*;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
@@ -12,9 +11,8 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.EulerAngle;
 import org.bukkit.util.RayTraceResult;
 import org.bukkit.persistence.PersistentDataType;
-import org.bukkit.util.Vector;
 import org.bukkit.event.EventHandler;
-import org.bukkit.event.entity.EntityMountEvent; // FIXED: Added correct import
+import org.bukkit.event.entity.EntityMountEvent;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.*;
@@ -34,39 +32,59 @@ public class UltimateCard extends BaseCard implements Listener {
     @Override public int getModelData() { return 0; }
     @Override public Material getMaterial() { return Material.GREEN_DYE; }
 
-    /* ================= LEFT CLICK: DEMON KING ASCENSION ================= */
+    /* ================= LEFT CLICK: RISING & HOVERING THRONE ================= */
     @Override
     public void leftClick(Player p) {
         if (activeDomain.contains(p.getUniqueId()) || !isCool(p, "blood_domain", 60)) return;
 
+        // FIXED AIM: Exactly where the player is looking
+        RayTraceResult ray = p.getWorld().rayTraceBlocks(p.getEyeLocation(), p.getEyeLocation().getDirection(), 15);
+        Location baseLoc;
+        if (ray != null && ray.getHitBlock() != null) {
+            baseLoc = ray.getHitBlock().getLocation().add(0.5, 0, 0.5);
+        } else {
+            // Default position if looking at sky
+            baseLoc = p.getLocation().add(p.getLocation().getDirection().multiply(5));
+            baseLoc.setY(p.getWorld().getHighestBlockYAt(baseLoc));
+        }
+        
         activeDomain.add(p.getUniqueId());
-        Location loc = p.getLocation().clone();
         List<ArmorStand> parts = new ArrayList<>();
         
-        p.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 40, 1));
-        p.getWorld().playSound(loc, Sound.BLOCK_GRASS_BREAK, 2f, 0.5f);
+        p.getWorld().strikeLightningEffect(baseLoc);
+        p.getWorld().playSound(baseLoc, Sound.ENTITY_WITHER_SPAWN, 1f, 0.5f);
 
-        ArmorStand seat = createThronePart(loc.clone().add(0, -2, 0), Material.CRYING_OBSIDIAN);
-        parts.add(seat);
-        parts.add(createThronePart(loc.clone().add(0, -1.2, 0.4), Material.RED_NETHER_BRICK_STAIRS));
-        parts.add(createThronePart(loc.clone().add(-0.6, -1.6, 0), Material.COMMAND_BLOCK));
-        parts.add(createThronePart(loc.clone().add(0.6, -1.6, 0), Material.COMMAND_BLOCK));
-        parts.add(createThronePart(loc.clone().add(0, -0.5, 0.5), Material.GOLD_BLOCK));
+        // Spawn deeply underground
+        parts.add(createThronePart(baseLoc.clone().add(0, -4, 0), Material.CRYING_OBSIDIAN));
+        parts.add(createThronePart(baseLoc.clone().add(0, -3.2, 0.4), Material.RED_NETHER_BRICK_STAIRS));
+        parts.add(createThronePart(baseLoc.clone().add(-0.6, -3.6, 0), Material.COMMAND_BLOCK));
+        parts.add(createThronePart(baseLoc.clone().add(0.6, -3.6, 0), Material.COMMAND_BLOCK));
+        parts.add(createThronePart(baseLoc.clone().add(0, -2.5, 0.5), Material.GOLD_BLOCK));
 
         new BukkitRunnable() {
             int step = 0;
             @Override
             public void run() {
-                if (step < 20) {
-                    for (ArmorStand as : parts) as.teleport(as.getLocation().add(0, 0.1, 0));
-                    // FIXED: BLOCK_CRACK renamed to BLOCK in newer versions
-                    loc.getWorld().spawnParticle(Particle.BLOCK, loc, 10, 0.5, 0.1, 0.5, Material.DIRT.createBlockData());
-                } else if (step == 20) {
-                    loc.getWorld().strikeLightningEffect(loc);
-                    seat.addPassenger(p);
-                    throneSeats.put(seat.getUniqueId(), p.getUniqueId());
-                } else if (step > 400 || !p.isOnline()) {
-                    parts.forEach(as -> as.remove());
+                if (step < 140) { 
+                    for (ArmorStand as : parts) {
+                        as.teleport(as.getLocation().add(0, 0.045, 0));
+                    }
+                    // RED SMOKE EFFECTS
+                    Location thronePos = parts.get(0).getLocation();
+                    thronePos.getWorld().spawnParticle(Particle.REDSTONE, thronePos.clone().add(0, 1, 0), 10, 0.8, 0.5, 0.8, new Particle.DustOptions(Color.RED, 1.5f));
+                    
+                    if (step % 5 == 0 && Math.abs(thronePos.getY() - baseLoc.getY()) < 2) {
+                        baseLoc.getWorld().spawnParticle(Particle.BLOCK, baseLoc.clone().add(0, 0.1, 0), 20, 0.5, 0.2, 0.5, Material.DIRT.createBlockData());
+                        baseLoc.getWorld().playSound(baseLoc, Sound.BLOCK_GRASS_BREAK, 1f, 0.8f);
+                    }
+                } 
+                else if (step == 140) {
+                    baseLoc.getWorld().strikeLightningEffect(parts.get(0).getLocation());
+                    parts.get(0).addPassenger(p);
+                    throneSeats.put(parts.get(0).getUniqueId(), p.getUniqueId());
+                } 
+                else if (step > 600 || !p.isOnline()) {
+                    parts.forEach(Entity::remove);
                     activeDomain.remove(p.getUniqueId());
                     this.cancel();
                     return;
@@ -93,20 +111,11 @@ public class UltimateCard extends BaseCard implements Listener {
     }
 
     /* ================= RIGHT CLICK: STABLE ORBIT ================= */
-    @Override
-    public void rightClick(Player p) {
-        startOrbit(p);
-    }
+    @Override public void rightClick(Player p) { startOrbit(p); }
 
-    public void startOrbit(Player p) { // FIXED: Public method for Listener to find
+    public void startOrbit(Player p) {
         if (orbiting.containsKey(p.getUniqueId())) return;
-        
-        List<Material> mats = Arrays.asList(
-            Material.DISC_FRAGMENT_5, Material.CHORUS_FRUIT, Material.PURPLE_DYE, 
-            Material.BLACK_DYE, Material.WHITE_DYE, Material.YELLOW_DYE, 
-            Material.GRAY_DYE, Material.MUSIC_DISC_5, Material.PINK_DYE
-        );
-
+        List<Material> mats = Arrays.asList(Material.DISC_FRAGMENT_5, Material.CHORUS_FRUIT, Material.PURPLE_DYE, Material.BLACK_DYE, Material.WHITE_DYE, Material.YELLOW_DYE, Material.GRAY_DYE, Material.MUSIC_DISC_5, Material.PINK_DYE);
         List<ArmorStand> cards = new ArrayList<>();
         for (Material m : mats) {
             ArmorStand as = p.getWorld().spawn(p.getLocation(), ArmorStand.class);
@@ -116,17 +125,14 @@ public class UltimateCard extends BaseCard implements Listener {
             cards.add(as);
         }
         orbiting.put(p.getUniqueId(), cards);
-
         new BukkitRunnable() {
             double angle = 0;
             @Override
             public void run() {
                 if (!p.isOnline() || !isHoldingCard(p)) {
-                    stopOrbit(p);
-                    this.cancel(); 
-                    return;
+                    stopOrbit(p); this.cancel(); return;
                 }
-                angle += 0.06; 
+                angle += 0.06;
                 for (int i = 0; i < cards.size(); i++) {
                     double offset = (2 * Math.PI / cards.size()) * i;
                     Location loc = p.getLocation().clone().add(2.3 * Math.cos(angle + offset), 1.2, 2.3 * Math.sin(angle + offset));
@@ -136,22 +142,22 @@ public class UltimateCard extends BaseCard implements Listener {
         }.runTaskTimer(SpcialSmp.get(), 0L, 1L);
     }
 
-    public void stopOrbit(Player p) { // FIXED: Added public stop method
+    public void stopOrbit(Player p) {
         if (orbiting.containsKey(p.getUniqueId())) {
             orbiting.get(p.getUniqueId()).forEach(Entity::remove);
             orbiting.remove(p.getUniqueId());
         }
     }
 
-    /* ================= SHIFT + RIGHT: GIANT SWORD ================= */
+    /* ================= SHIFT + RIGHT: GIANT SWORD (10 TNT POWER) ================= */
     @Override
     public void shiftRightClick(Player p) {
         if (!isCool(p, "ultimate_sword", 30)) return;
+        
         RayTraceResult ray = p.getWorld().rayTraceBlocks(p.getEyeLocation(), p.getEyeLocation().getDirection(), 50);
-        Location target = (ray != null) ? ray.getHitPosition().toLocation(p.getWorld()) : p.getLocation().add(p.getLocation().getDirection().multiply(15));
-        Location spawn = target.clone().add(0, 30, 0);
-
-        ArmorStand sword = p.getWorld().spawn(spawn, ArmorStand.class);
+        Location target = (ray != null && ray.getHitBlock() != null) ? ray.getHitBlock().getLocation() : p.getLocation().add(p.getLocation().getDirection().multiply(15));
+        
+        ArmorStand sword = p.getWorld().spawn(target.clone().add(0, 35, 0), ArmorStand.class);
         sword.setInvisible(true); sword.setGravity(false); sword.setMarker(true);
         sword.getEquipment().setItemInMainHand(new ItemStack(Material.NETHERITE_SWORD));
         sword.setRightArmPose(new EulerAngle(Math.toRadians(180), 0, 0));
@@ -159,9 +165,13 @@ public class UltimateCard extends BaseCard implements Listener {
         new BukkitRunnable() {
             @Override
             public void run() {
-                sword.teleport(sword.getLocation().subtract(0, 1.5, 0));
+                sword.teleport(sword.getLocation().subtract(0, 1.8, 0));
+                // Red Dust + Flame on Sword
+                sword.getWorld().spawnParticle(Particle.REDSTONE, sword.getLocation(), 5, 0.2, 0.2, 0.2, new Particle.DustOptions(Color.RED, 1.2f));
+                sword.getWorld().spawnParticle(Particle.FLAME, sword.getLocation(), 3, 0.1, 0.1, 0.1, 0.02);
+                
                 if (sword.getLocation().getY() <= target.getY() || sword.getLocation().getBlock().getType().isSolid()) {
-                    sword.getWorld().createExplosion(sword.getLocation(), 8f, false, false);
+                    sword.getWorld().createExplosion(sword.getLocation(), 10f, true, true);
                     sword.remove();
                     this.cancel();
                 }
@@ -173,8 +183,7 @@ public class UltimateCard extends BaseCard implements Listener {
         ItemStack item = p.getInventory().getItemInMainHand();
         if (item == null || !item.hasItemMeta()) return false;
         NamespacedKey key = new NamespacedKey(SpcialSmp.get(), "card_id");
-        String id = item.getItemMeta().getPersistentDataContainer().get(key, PersistentDataType.STRING);
-        return id != null && id.equals(getName());
+        return item.getItemMeta().getPersistentDataContainer().has(key, PersistentDataType.STRING);
     }
 
     private boolean isCool(Player p, String key, int sec) {
@@ -189,8 +198,11 @@ public class UltimateCard extends BaseCard implements Listener {
     public ItemStack getItemStackWithLore(String name) {
         ItemStack item = new ItemStack(getMaterial());
         ItemMeta meta = item.getItemMeta();
-        meta.setDisplayName("§6§l" + name);
-        item.setItemMeta(meta);
+        if (meta != null) {
+            meta.setDisplayName("§6§l" + name);
+            meta.getPersistentDataContainer().set(new NamespacedKey(SpcialSmp.get(), "card_id"), PersistentDataType.STRING, getName());
+            item.setItemMeta(meta);
+        }
         return item;
     }
-} // FIXED: Missing closing bracket added
+            }
