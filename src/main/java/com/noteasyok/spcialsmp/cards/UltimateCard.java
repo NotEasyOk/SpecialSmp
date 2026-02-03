@@ -4,13 +4,8 @@ import org.bukkit.event.Listener;
 import com.noteasyok.spcialsmp.SpcialSmp;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
-import org.bukkit.block.Block;
-import org.bukkit.block.data.BlockData;
-import org.bukkit.block.data.type.Stairs;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.entity.*;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.Material;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -19,17 +14,17 @@ import org.bukkit.util.RayTraceResult;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.util.Vector;
 import org.bukkit.event.EventHandler;
-import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.entity.EntityMountEvent;
+import org.bukkit.inventory.meta.ItemMeta;
+
 import java.util.*;
 
 public class UltimateCard extends BaseCard implements Listener {
 
     private final Map<UUID, List<ArmorStand>> orbiting = new HashMap<>();
     private final Map<String, Long> cooldowns = new HashMap<>();
-    private final Map<UUID, Map<Location, BlockData>> restoredBlocks = new HashMap<>();
     private final Set<UUID> activeDomain = new HashSet<>();
-    private final Map<UUID, UUID> throneSeats = new HashMap<>(); // Seat Entity UUID -> Owner UUID
+    private final Map<UUID, UUID> throneSeats = new HashMap<>();
 
     public UltimateCard() {
         Bukkit.getPluginManager().registerEvents(this, SpcialSmp.get());
@@ -39,148 +34,99 @@ public class UltimateCard extends BaseCard implements Listener {
     @Override public int getModelData() { return 0; }
     @Override public Material getMaterial() { return Material.GREEN_DYE; }
 
-    @Override
-    public ItemStack getItemStackWithLore(String name) {
-        ItemStack item = new ItemStack(getMaterial()); 
-        ItemMeta meta = item.getItemMeta();
-        if (meta != null) {
-            meta.setDisplayName("§6§l" + name);
-            List<String> lore = new ArrayList<>();
-            lore.add("§7The most powerful card in existence.");
-            lore.add("");
-            lore.add("§4§lLeft-Click: §fKing's Blood Domain");
-            lore.add("§eRight-Click: §fOrbit Shields");
-            lore.add("§eShift + Right: §fGiant Sword Drop");
-            meta.setLore(lore);
-            meta.setCustomModelData(getModelData());
-            NamespacedKey key = new NamespacedKey(SpcialSmp.get(), "card_id");
-            meta.getPersistentDataContainer().set(key, PersistentDataType.STRING, getName());
-            item.setItemMeta(meta);
-        }
-        return item;
-    }
-
-    /* ================= LEFT CLICK: BLOOD KING DOMAIN (REPLACED) ================= */
+    /* ================= LEFT CLICK: DEMON KING ASCENSION ================= */
     @Override
     public void leftClick(Player p) {
         if (activeDomain.contains(p.getUniqueId()) || !isCool(p, "blood_domain", 60)) return;
 
         activeDomain.add(p.getUniqueId());
-        Location center = p.getLocation().getBlock().getLocation().add(0.5, 0, 0.5);
+        Location loc = p.getLocation().clone();
+        List<ArmorStand> parts = new ArrayList<>();
         
-        // Spawn Throne
-        spawnThrone(p, center);
-        
-        p.getWorld().playSound(center, Sound.ENTITY_WITHER_SPAWN, 1f, 0.5f);
-        p.sendMessage("§4§l☠ THE BLOOD KING HAS ASCENDED ☠");
+        p.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 40, 1));
+        p.getWorld().playSound(loc, Sound.BLOCK_GRASS_BREAK, 2f, 0.5f);
+
+        // Constructing the Demon Throne using Armor Stands
+        ArmorStand seat = createThronePart(loc.clone().add(0, -2, 0), Material.CRYING_OBSIDIAN);
+        parts.add(seat);
+        parts.add(createThronePart(loc.clone().add(0, -1.2, 0.4), Material.RED_NETHER_BRICK_STAIRS)); // Backrest
+        parts.add(createThronePart(loc.clone().add(-0.6, -1.6, 0), Material.COMMAND_BLOCK)); // Power Core L
+        parts.add(createThronePart(loc.clone().add(0.6, -1.6, 0), Material.COMMAND_BLOCK)); // Power Core R
+        parts.add(createThronePart(loc.clone().add(0, -0.5, 0.5), Material.GOLD_BLOCK)); // Top Ornament
 
         new BukkitRunnable() {
-            int timer = 300; // 15 seconds
+            int step = 0;
             @Override
             public void run() {
-                if (!p.isOnline() || timer <= 0) {
-                    cleanupThrone(p);
+                if (step < 20) { // Rise up 2 blocks
+                    for (ArmorStand as : parts) as.teleport(as.getLocation().add(0, 0.1, 0));
+                    // Ground burst effect
+                    loc.getWorld().spawnParticle(Particle.BLOCK_CRACK, loc, 10, 0.5, 0.1, 0.5, Material.DIRT.createBlockData());
+                    loc.getWorld().spawnParticle(Particle.CAMPFIRE_COSY_SMOKE, loc, 2, 0.3, 0, 0.3, 0.05);
+                } else if (step == 20) {
+                    loc.getWorld().strikeLightningEffect(loc);
+                    seat.addPassenger(p);
+                    throneSeats.put(seat.getUniqueId(), p.getUniqueId());
+                    p.sendTitle("§4§lDEMON KING", "§fThe Throne has Ascended", 10, 40, 10);
+                } else if (step > 400 || !p.isOnline()) { // 20 Seconds
+                    parts.forEach(as -> {
+                        new BukkitRunnable() { // Sink back effect
+                            int sink = 0;
+                            @Override public void run() {
+                                if (sink > 20) { as.remove(); this.cancel(); }
+                                as.teleport(as.getLocation().subtract(0, 0.1, 0));
+                                sink++;
+                            }
+                        }.runTaskTimer(SpcialSmp.get(), 0L, 1L);
+                    });
                     activeDomain.remove(p.getUniqueId());
                     this.cancel();
                     return;
                 }
-
-                // Blood Rain & Domain Effects
-                if (timer % 5 == 0) {
-                    for (int i = 0; i < 20; i++) {
-                        Location rainLoc = center.clone().add((Math.random()-0.5)*40, 15, (Math.random()-0.5)*40);
-                        p.getWorld().spawnParticle(Particle.BLOCK, rainLoc, 1, Material.REDSTONE_BLOCK.createBlockData());
-                    }
-                }
-
-                // Domain Defense
-                center.getWorld().getNearbyEntities(center, 15, 15, 15).forEach(entity -> {
-                    if (entity instanceof LivingEntity target && !entity.equals(p)) {
-                        Vector dir = target.getLocation().toVector().subtract(center.toVector()).normalize();
-                        target.setVelocity(dir.multiply(2.0).setY(0.5));
-                        double maxH = target.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue();
-                        target.setHealth(Math.min(target.getHealth(), maxH / 2));
-                    }
-                });
-
-                timer--;
+                step++;
             }
         }.runTaskTimer(SpcialSmp.get(), 0L, 1L);
     }
 
-    private void spawnThrone(Player p, Location loc) {
-        Map<Location, BlockData> backup = new HashMap<>();
-        Block seat = loc.getBlock();
-        backup.put(seat.getLocation(), seat.getBlockData());
-        
-        seat.setType(Material.NETHER_BRICK_STAIRS);
-        Stairs data = (Stairs) seat.getBlockData();
-        data.setFacing(p.getFacing().getOppositeFace());
-        seat.setBlockData(data);
-
-        restoredBlocks.put(p.getUniqueId(), backup);
-
-        // Create Seat Entity
-        ArmorStand seatEntity = p.getWorld().spawn(loc.clone().add(0.5, -0.5, 0.5), ArmorStand.class);
-        seatEntity.setInvisible(true);
-        seatEntity.setMarker(true);
-        seatEntity.setGravity(false);
-        seatEntity.addPassenger(p);
-        throneSeats.put(seatEntity.getUniqueId(), p.getUniqueId());
+    private ArmorStand createThronePart(Location l, Material m) {
+        ArmorStand as = l.getWorld().spawn(l, ArmorStand.class);
+        as.setInvisible(true); as.setGravity(false); as.setMarker(true);
+        as.getEquipment().setHelmet(new ItemStack(m));
+        return as;
     }
 
     @EventHandler
     public void onThroneSit(EntityMountEvent e) {
         if (throneSeats.containsKey(e.getMount().getUniqueId())) {
-            UUID ownerUUID = throneSeats.get(e.getMount().getUniqueId());
-            if (!e.getEntity().getUniqueId().equals(ownerUUID)) {
+            if (!e.getEntity().getUniqueId().equals(throneSeats.get(e.getMount().getUniqueId()))) {
                 e.setCancelled(true);
-                if (e.getEntity() instanceof Player intruder) {
-                    intruder.setHealth(0); // Instant Kill
-                    intruder.sendTitle("§4§lUNWORTHY", "§cYou are not worthy of this throne!", 10, 40, 10);
-                }
+                if (e.getEntity() instanceof Player intruder) intruder.damage(10);
             }
         }
     }
 
-    private void cleanupThrone(Player p) {
-        if (restoredBlocks.containsKey(p.getUniqueId())) {
-            restoredBlocks.get(p.getUniqueId()).forEach((loc, data) -> loc.getBlock().setBlockData(data));
-            restoredBlocks.remove(p.getUniqueId());
-            throneSeats.entrySet().removeIf(entry -> entry.getValue().equals(p.getUniqueId()));
-        }
-    }
-
-    /* ================= RIGHT CLICK: ORBIT ================= */
-    @Override
-    public void rightClick(Player p) {
-        startOrbit(p);
-    }
-
-    /* ================= SHIFT + RIGHT: GIANT SWORD ================= */
+    /* ================= SHIFT + RIGHT: GIANT SWORD (FIXED) ================= */
     @Override
     public void shiftRightClick(Player p) {
-        int cd = SpcialSmp.get().getConfig().getInt("cards.ultimate.sword_cooldown", 30);
-        if (!isCool(p, "ultimate_sword", cd)) return;
+        if (!isCool(p, "ultimate_sword", 30)) return;
 
-        RayTraceResult ray = p.getWorld().rayTraceBlocks(p.getEyeLocation(), p.getEyeLocation().getDirection(), 100);
-        Location targetLoc = (ray != null) ? ray.getHitPosition().toLocation(p.getWorld()) : p.getLocation().add(p.getLocation().getDirection().multiply(25));
-        Location spawnLoc = targetLoc.clone().add(0, 35, 0);
-        
-        ArmorStand sword = p.getWorld().spawn(spawnLoc, ArmorStand.class);
+        RayTraceResult ray = p.getWorld().rayTraceBlocks(p.getEyeLocation(), p.getEyeLocation().getDirection(), 50);
+        Location target = (ray != null) ? ray.getHitPosition().toLocation(p.getWorld()) : p.getLocation().add(p.getLocation().getDirection().multiply(15));
+        Location spawn = target.clone().add(0, 30, 0);
+
+        ArmorStand sword = p.getWorld().spawn(spawn, ArmorStand.class);
         sword.setInvisible(true); sword.setGravity(false); sword.setMarker(true);
-        sword.getEquipment().setItemInMainHand(new ItemStack(Material.DIAMOND_SWORD));
-        if (sword.getAttribute(Attribute.GENERIC_SCALE) != null) sword.getAttribute(Attribute.GENERIC_SCALE).setBaseValue(8.0);
+        sword.getEquipment().setItemInMainHand(new ItemStack(Material.NETHERITE_SWORD));
+        // Vertical Position: Tip pointing down
+        sword.setRightArmPose(new EulerAngle(Math.toRadians(180), 0, 0));
 
         new BukkitRunnable() {
-            int life = 0;
             @Override
             public void run() {
-                life++;
-                Location cur = sword.getLocation().subtract(0, 1.2, 0);
-                sword.teleport(cur);
-                if (cur.getBlock().getType().isSolid() || cur.getY() <= targetLoc.getY() || life > 150) {
-                    p.getWorld().createExplosion(cur, 15F, true, true, p);
+                sword.teleport(sword.getLocation().subtract(0, 1.5, 0));
+                sword.getWorld().spawnParticle(Particle.FLAME, sword.getLocation(), 5, 0.1, 0.5, 0.1, 0.05);
+                if (sword.getLocation().getY() <= target.getY() || sword.getLocation().getBlock().getType().isSolid()) {
+                    sword.getWorld().createExplosion(sword.getLocation(), 8f, false, false);
                     sword.remove();
                     this.cancel();
                 }
@@ -188,14 +134,16 @@ public class UltimateCard extends BaseCard implements Listener {
         }.runTaskTimer(SpcialSmp.get(), 0L, 1L);
     }
 
-    /* ================= ORBIT LOGIC ================= */
-    public void startOrbit(Player p) {
+    /* ================= RIGHT CLICK: STABLE ORBIT ================= */
+    @Override
+    public void rightClick(Player p) {
         if (orbiting.containsKey(p.getUniqueId())) return;
-        List<Material> cardMaterials = Arrays.asList(Material.DISC_FRAGMENT_5, Material.CHORUS_FRUIT, Material.PURPLE_DYE, Material.BLACK_DYE, Material.WHITE_DYE, Material.YELLOW_DYE, Material.GRAY_DYE, Material.MUSIC_DISC_5, Material.PINK_DYE);
+        List<Material> mats = Arrays.asList(Material.DISC_FRAGMENT_5, Material.CHORUS_FRUIT, Material.PURPLE_DYE, Material.BLACK_DYE, Material.WHITE_DYE, Material.YELLOW_DYE, Material.GRAY_DYE);
         List<ArmorStand> cards = new ArrayList<>();
-        for (Material mat : cardMaterials) {
+        for (Material m : mats) {
             ArmorStand as = p.getWorld().spawn(p.getLocation(), ArmorStand.class);
-            as.setInvisible(true); as.setMarker(true); as.setGravity(false); as.getEquipment().setItemInMainHand(new ItemStack(mat));
+            as.setSmall(true); as.setInvisible(true); as.setMarker(true); as.setGravity(false);
+            as.getEquipment().setItemInMainHand(new ItemStack(m));
             as.setRightArmPose(new EulerAngle(Math.toRadians(-90), 0, 0));
             cards.add(as);
         }
@@ -207,10 +155,10 @@ public class UltimateCard extends BaseCard implements Listener {
                 if (!p.isOnline() || !isHoldingCard(p)) {
                     cards.forEach(Entity::remove); orbiting.remove(p.getUniqueId()); this.cancel(); return;
                 }
-                angle += 0.12;
+                angle += 0.1;
                 for (int i = 0; i < cards.size(); i++) {
                     double offset = (2 * Math.PI / cards.size()) * i;
-                    Location loc = p.getLocation().clone().add(2.8 * Math.cos(angle + offset), 1.2, 2.8 * Math.sin(angle + offset));
+                    Location loc = p.getLocation().clone().add(2.2 * Math.cos(angle + offset), 1.2, 2.2 * Math.sin(angle + offset));
                     cards.get(i).teleport(loc);
                 }
             }
@@ -220,27 +168,25 @@ public class UltimateCard extends BaseCard implements Listener {
     private boolean isHoldingCard(Player p) {
         ItemStack item = p.getInventory().getItemInMainHand();
         if (item == null || !item.hasItemMeta()) return false;
-        String nbtId = item.getItemMeta().getPersistentDataContainer().get(new NamespacedKey(SpcialSmp.get(), "card_id"), PersistentDataType.STRING);
-        return nbtId != null && nbtId.equals(getName());
+        NamespacedKey key = new NamespacedKey(SpcialSmp.get(), "card_id");
+        String id = item.getItemMeta().getPersistentDataContainer().get(key, PersistentDataType.STRING);
+        return id != null && id.equals(getName());
     }
 
-    private boolean isCool(Player p, String key, int seconds) {
+    private boolean isCool(Player p, String key, int sec) {
         long now = System.currentTimeMillis();
         String k = p.getUniqueId() + "_" + key;
-        if (cooldowns.containsKey(k) && cooldowns.get(k) > now) {
-            p.sendMessage("§cWait " + (cooldowns.get(k) - now)/1000 + "s");
-            return false;
-        }
-        cooldowns.put(k, now + (seconds * 1000L));
+        if (cooldowns.containsKey(k) && cooldowns.get(k) > now) return false;
+        cooldowns.put(k, now + (sec * 1000L));
         return true;
     }
-    public void stopOrbit(Player p) {
-        if (orbiting.containsKey(p.getUniqueId())) {
-            List<ArmorStand> stands = orbiting.get(p.getUniqueId());
-            for (ArmorStand as : stands) {
-                if (as != null) as.remove();
-            }
-            orbiting.remove(p.getUniqueId());
-        }
+
+    @Override
+    public ItemStack getItemStackWithLore(String name) {
+        ItemStack item = new ItemStack(getMaterial());
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName("§6§l" + name);
+        item.setItemMeta(meta);
+        return item;
     }
-                }
+    }
