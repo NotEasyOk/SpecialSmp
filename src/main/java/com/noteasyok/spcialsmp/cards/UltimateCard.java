@@ -234,4 +234,12 @@ public class UltimateCard extends BaseCard implements Listener {
         cooldowns.put(k, now + (seconds * 1000L));
         return true;
     }
+    public void stopOrbit(Player p) {
+        if (orbiting.containsKey(p.getUniqueId())) {
+            List<ArmorStand> stands = orbiting.get(p.getUniqueId());
+            for (ArmorStand as : stands) {
+                if (as != null) as.remove();
+            }
+            orbiting.remove(p.getUniqueId());
+        }
     }
