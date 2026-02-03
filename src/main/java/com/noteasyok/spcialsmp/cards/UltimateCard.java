@@ -71,7 +71,7 @@ public class UltimateCard extends BaseCard implements Listener {
                     }
                     // RED SMOKE EFFECTS
                     Location thronePos = parts.get(0).getLocation();
-                    thronePos.getWorld().spawnParticle(Particle.REDSTONE, thronePos.clone().add(0, 1, 0), 10, 0.8, 0.5, 0.8, new Particle.DustOptions(Color.RED, 1.5f));
+                    thronePos.getWorld().spawnParticle(Particle.DUST, thronePos.clone().add(0, 1, 0), 10, 0.8, 0.5, 0.8, new Particle.DustOptions(Color.RED, 1.5f));
                     
                     if (step % 5 == 0 && Math.abs(thronePos.getY() - baseLoc.getY()) < 2) {
                         baseLoc.getWorld().spawnParticle(Particle.BLOCK, baseLoc.clone().add(0, 0.1, 0), 20, 0.5, 0.2, 0.5, Material.DIRT.createBlockData());
@@ -167,7 +167,7 @@ public class UltimateCard extends BaseCard implements Listener {
             public void run() {
                 sword.teleport(sword.getLocation().subtract(0, 1.8, 0));
                 // Red Dust + Flame on Sword
-                sword.getWorld().spawnParticle(Particle.REDSTONE, sword.getLocation(), 5, 0.2, 0.2, 0.2, new Particle.DustOptions(Color.RED, 1.2f));
+                sword.getWorld().spawnParticle(Particle.DUST, sword.getLocation(), 5, 0.2, 0.2, 0.2, new Particle.DustOptions(Color.RED, 1.2f));
                 sword.getWorld().spawnParticle(Particle.FLAME, sword.getLocation(), 3, 0.1, 0.1, 0.1, 0.02);
                 
                 if (sword.getLocation().getY() <= target.getY() || sword.getLocation().getBlock().getType().isSolid()) {
