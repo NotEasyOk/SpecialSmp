@@ -14,7 +14,7 @@ import org.bukkit.util.RayTraceResult;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.util.Vector;
 import org.bukkit.event.EventHandler;
-import org.bukkit.event.entity.EntityMountEvent;
+import org.spigotmc.event.entity.EntityMountEvent; // FIXED: Added correct import
 import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.*;
@@ -59,7 +59,8 @@ public class UltimateCard extends BaseCard implements Listener {
             public void run() {
                 if (step < 20) {
                     for (ArmorStand as : parts) as.teleport(as.getLocation().add(0, 0.1, 0));
-                    loc.getWorld().spawnParticle(Particle.BLOCK_CRACK, loc, 10, 0.5, 0.1, 0.5, Material.DIRT.createBlockData());
+                    // FIXED: BLOCK_CRACK renamed to BLOCK in newer versions
+                    loc.getWorld().spawnParticle(Particle.BLOCK, loc, 10, 0.5, 0.1, 0.5, Material.DIRT.createBlockData());
                 } else if (step == 20) {
                     loc.getWorld().strikeLightningEffect(loc);
                     seat.addPassenger(p);
@@ -91,9 +92,13 @@ public class UltimateCard extends BaseCard implements Listener {
         }
     }
 
-    /* ================= RIGHT CLICK: STABLE ORBIT (9 CARDS SMOOTH SPEED) ================= */
+    /* ================= RIGHT CLICK: STABLE ORBIT ================= */
     @Override
     public void rightClick(Player p) {
+        startOrbit(p);
+    }
+
+    public void startOrbit(Player p) { // FIXED: Public method for Listener to find
         if (orbiting.containsKey(p.getUniqueId())) return;
         
         List<Material> mats = Arrays.asList(
@@ -117,12 +122,10 @@ public class UltimateCard extends BaseCard implements Listener {
             @Override
             public void run() {
                 if (!p.isOnline() || !isHoldingCard(p)) {
-                    cards.forEach(Entity::remove); 
-                    orbiting.remove(p.getUniqueId()); 
+                    stopOrbit(p);
                     this.cancel(); 
                     return;
                 }
-                // Speed Adjusted for 9 cards (0.06 is very smooth)
                 angle += 0.06; 
                 for (int i = 0; i < cards.size(); i++) {
                     double offset = (2 * Math.PI / cards.size()) * i;
@@ -131,6 +134,13 @@ public class UltimateCard extends BaseCard implements Listener {
                 }
             }
         }.runTaskTimer(SpcialSmp.get(), 0L, 1L);
+    }
+
+    public void stopOrbit(Player p) { // FIXED: Added public stop method
+        if (orbiting.containsKey(p.getUniqueId())) {
+            orbiting.get(p.getUniqueId()).forEach(Entity::remove);
+            orbiting.remove(p.getUniqueId());
+        }
     }
 
     /* ================= SHIFT + RIGHT: GIANT SWORD ================= */
@@ -183,4 +193,4 @@ public class UltimateCard extends BaseCard implements Listener {
         item.setItemMeta(meta);
         return item;
     }
-            }
+} // FIXED: Missing closing bracket added
