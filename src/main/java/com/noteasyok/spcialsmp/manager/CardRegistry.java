@@ -60,10 +60,12 @@ public class CardRegistry {
     }
 
     public static ItemStack getCardItem(BaseCard card) {
+        // Step 1: Pehle card ka base item lo (Isme PDC 'card_id' already hai)
         ItemStack item = card.getItemStackWithLore(card.getName()); 
         ItemMeta meta = item.getItemMeta();
         
         if (meta != null) {
+            // Step 2: Lore ko update karo bina PDC ko touch kiye
             List<String> lore = new ArrayList<>();
             lore.add("§8------------------");
             List<String> descLines = DESC.get(card.getName());
@@ -72,8 +74,9 @@ public class CardRegistry {
             lore.add("§e§lSPECIAL CARD");
             
             meta.setLore(lore);
+            
+            // Step 3: Meta wapas set karo (Isse lore aur PDC dono save rahenge)
             item.setItemMeta(meta);
         }
         return item;
-    }
-    }
+            }
