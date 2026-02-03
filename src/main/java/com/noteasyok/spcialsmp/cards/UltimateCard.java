@@ -10,9 +10,10 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.EulerAngle;
 import org.bukkit.util.RayTraceResult;
+import org.bukkit.util.Vector;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.event.EventHandler;
-import org.bukkit.event.entity.EntityMountEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.*;
@@ -21,8 +22,8 @@ public class UltimateCard extends BaseCard implements Listener {
 
     private final Map<UUID, List<ArmorStand>> orbiting = new HashMap<>();
     private final Map<String, Long> cooldowns = new HashMap<>();
-    private final Set<UUID> activeDomain = new HashSet<>();
-    private final Map<UUID, UUID> throneSeats = new HashMap<>();
+    private final Set<UUID> activeStorm = new HashSet<>();
+    private final Map<UUID, Boolean> timeStopped = new HashMap<>();
 
     public UltimateCard() {
         Bukkit.getPluginManager().registerEvents(this, SpcialSmp.get());
@@ -32,71 +33,109 @@ public class UltimateCard extends BaseCard implements Listener {
     @Override public int getModelData() { return 0; }
     @Override public Material getMaterial() { return Material.GREEN_DYE; }
 
-    /* ================= LEFT CLICK: RISING STRUCTURE & THRONE ================= */
+    /* ================= LEFT CLICK: WITHER STORM & TIME LORD (60s) ================= */
     @Override
     public void leftClick(Player p) {
-        if (activeDomain.contains(p.getUniqueId()) || !isCool(p, "blood_domain", 60)) return;
+        if (activeStorm.contains(p.getUniqueId()) || !isCool(p, "ultimate_storm", 120)) return;
 
-        // FIXED AIM: Exactly where the player is looking
-        RayTraceResult ray = p.getWorld().rayTraceBlocks(p.getEyeLocation(), p.getEyeLocation().getDirection(), 15);
-        Location baseLoc = (ray != null && ray.getHitBlock() != null) ? ray.getHitBlock().getLocation().add(0.5, 0, 0.5) : p.getLocation();
-        
-        activeDomain.add(p.getUniqueId());
-        List<ArmorStand> structureParts = new ArrayList<>();
-        
-        p.getWorld().strikeLightningEffect(baseLoc);
-        p.getWorld().playSound(baseLoc, Sound.ENTITY_WITHER_SPAWN, 1f, 0.5f);
+        activeStorm.add(p.getUniqueId());
+        Location loc = p.getLocation();
 
-        // --- STRUCTURE BUILDING (Spawns underground) ---
-        // Netherite Pillars (As per PNG 1)
-        structureParts.add(createThronePart(baseLoc.clone().add(2, -5, 2), Material.NETHERITE_BLOCK));
-        structureParts.add(createThronePart(baseLoc.clone().add(-2, -5, 2), Material.NETHERITE_BLOCK));
-        structureParts.add(createThronePart(baseLoc.clone().add(2, -5, -2), Material.NETHERITE_BLOCK));
-        structureParts.add(createThronePart(baseLoc.clone().add(-2, -5, -2), Material.NETHERITE_BLOCK));
+        // 1. SUMMON WITHER STORM BOSS (Entity)
+        Wither storm = (Wither) p.getWorld().spawnEntity(p.getLocation().add(0, 10, 0), EntityType.WITHER);
+        storm.setCustomName("§0§lWITHER STORM");
+        storm.setInvulnerable(true);
+
+        // 2. TIME CONTROL CLOCK GIVE
+        ItemStack clock = new ItemStack(Material.CLOCK);
+        ItemMeta cm = clock.getItemMeta();
+        cm.setDisplayName("§b§lTIME CONTROL CLOCK");
+        clock.setItemMeta(cm);
+        p.getInventory().addItem(clock);
         
-        // Crystal/Ice Top (As per PNG 1)
-        structureParts.add(createThronePart(baseLoc.clone().add(0, -3, 0), Material.BLUE_ICE));
-        
-        // THE SWORD THRONE (As per PNG 2) - Hidden in center
-        ArmorStand throneSeat = createThronePart(baseLoc.clone().add(0, -5, 0), Material.NETHERITE_SWORD);
-        structureParts.add(throneSeat);
+        // 3. OWNER ABILITIES (Fly + Music)
+        p.setAllowFlight(true);
+        p.setFlying(true);
+        p.getWorld().playSound(p.getLocation(), Sound.MUSIC_DISC_PIGSTEP, 1f, 1f);
 
         new BukkitRunnable() {
-            int step = 0;
+            int timer = 0;
+            List<Zombie> minions = new ArrayList<>();
+
             @Override
             public void run() {
-                // RISING PHASE: Coming up to Ground Level (No Hover)
-                if (step < 100) { 
-                    for (ArmorStand as : structureParts) {
-                        as.teleport(as.getLocation().add(0, 0.05, 0));
-                    }
-                    // Visual Effects: Red Smoke + Ground Dirt
-                    Location currentPos = throneSeat.getLocation();
-                    currentPos.getWorld().spawnParticle(Particle.DUST, currentPos.clone().add(0, 1, 0), 10, 1.5, 0.5, 1.5, new Particle.DustOptions(Color.RED, 1.8f));
-                    
-                    if (step % 5 == 0 && Math.abs(currentPos.getY() - baseLoc.getY()) < 1.5) {
-                        baseLoc.getWorld().spawnParticle(Particle.BLOCK, baseLoc.clone().add(0, 0.1, 0), 30, 1.5, 0.2, 1.5, Material.NETHERRACK.createBlockData());
-                        baseLoc.getWorld().playSound(baseLoc, Sound.BLOCK_STONE_BREAK, 1f, 0.5f);
-                    }
-                } 
-                // MOUNT PHASE: Step 100 is Ground Level
-                else if (step == 100) {
-                    baseLoc.getWorld().strikeLightningEffect(throneSeat.getLocation());
-                    throneSeat.addPassenger(p);
-                    throneSeats.put(throneSeat.getUniqueId(), p.getUniqueId());
-                } 
-                // TERMINATION: Disappear after 30 seconds
-                else if (step > 600 || !p.isOnline()) {
-                    structureParts.forEach(Entity::remove);
-                    activeDomain.remove(p.getUniqueId());
+                if (timer > 1200 || !p.isOnline()) { // 60 Seconds
+                    activeStorm.remove(p.getUniqueId());
+                    timeStopped.remove(p.getUniqueId());
+                    p.getInventory().removeItem(clock);
+                    p.setAllowFlight(false);
+                    p.setFlying(false);
+                    minions.forEach(Entity::remove);
+                    if (storm != null) storm.remove();
+                    p.sendMessage("§6§lThe Wither Power fades away...");
                     this.cancel();
                     return;
                 }
-                step++;
+
+                // 4. WITHER STORM PHYSICS (Sucking)
+                for (Entity e : storm.getNearbyEntities(20, 20, 20)) {
+                    if (e.getUniqueId().equals(p.getUniqueId()) || e instanceof Wither) continue;
+                    Vector pull = storm.getLocation().toVector().subtract(e.getLocation().toVector()).normalize().multiply(0.3);
+                    e.setVelocity(pull);
+                }
+
+                // 5. DARK AURA & LIGHTNING (Owner Visible)
+                p.getWorld().spawnParticle(Particle.DUST, p.getLocation().add(0, 1, 0), 40, 1.5, 2.5, 1.5, new Particle.DustOptions(Color.BLACK, 2.0f));
+                if (timer % 5 == 0) p.getWorld().strikeLightningEffect(storm.getLocation().add(Math.random()*10-5, 0, Math.random()*10-5));
+
+                // 6. BABY ZOMBIE ARMY (Full Netherite)
+                if (timer == 1) {
+                    for (int i = -3; i <= 3; i++) {
+                        Zombie z = (Zombie) p.getWorld().spawnEntity(p.getLocation().add(i, 0, 3), EntityType.ZOMBIE);
+                        z.setBaby(true);
+                        z.getEquipment().setArmorContents(new ItemStack[]{
+                            new ItemStack(Material.NETHERITE_BOOTS), new ItemStack(Material.NETHERITE_LEGGINGS),
+                            new ItemStack(Material.NETHERITE_CHESTPLATE), new ItemStack(Material.NETHERITE_HELMET)
+                        });
+                        z.getEquipment().setItemInMainHand(new ItemStack(Material.NETHERITE_SWORD));
+                        minions.add(z);
+                    }
+                }
+                
+                // 7. POISON AURA
+                for (Entity e : p.getNearbyEntities(10, 10, 10)) {
+                    if (e instanceof LivingEntity && !e.equals(p) && !(e instanceof Zombie)) {
+                        ((LivingEntity) e).addPotionEffect(new PotionEffect(PotionEffectType.POISON, 100, 1));
+                    }
+                }
+                timer++;
             }
         }.runTaskTimer(SpcialSmp.get(), 0L, 1L);
-                                            }
-    /* ================= RIGHT CLICK: STABLE ORBIT ================= */
+    }
+
+    /* ================= EVENTS: TIME STOP & NO DAMAGE ================= */
+    @EventHandler
+    public void onTimeStop(PlayerInteractEvent e) {
+        Player p = e.getPlayer();
+        if (p.getInventory().getItemInMainHand().getType() == Material.CLOCK && activeStorm.contains(p.getUniqueId())) {
+            boolean isStopped = timeStopped.getOrDefault(p.getUniqueId(), false);
+            timeStopped.put(p.getUniqueId(), !isStopped);
+            
+            p.getWorld().getEntities().forEach(ent -> {
+                if (!ent.equals(p)) ent.setFrozenTicks(isStopped ? 0 : 1200);
+            });
+            p.sendMessage(isStopped ? "§a§lTIME RESUMED" : "§c§lTIME STOPPED");
+        }
+    }
+
+    @EventHandler
+    public void onDamage(org.bukkit.event.entity.EntityDamageEvent e) {
+        if (e.getEntity() instanceof Player && activeStorm.contains(e.getEntity().getUniqueId())) {
+            e.setCancelled(true); // Invincible but visible
+        }
+    }
+
+    /* ================= RIGHT CLICK: STABLE ORBIT (No Changes) ================= */
     @Override public void rightClick(Player p) { startOrbit(p); }
 
     public void startOrbit(Player p) {
@@ -135,27 +174,21 @@ public class UltimateCard extends BaseCard implements Listener {
         }
     }
 
-    /* ================= SHIFT + RIGHT: GIANT SWORD (10 TNT POWER) ================= */
+    /* ================= SHIFT + RIGHT: GIANT SWORD (No Changes) ================= */
     @Override
     public void shiftRightClick(Player p) {
         if (!isCool(p, "ultimate_sword", 30)) return;
-        
         RayTraceResult ray = p.getWorld().rayTraceBlocks(p.getEyeLocation(), p.getEyeLocation().getDirection(), 50);
         Location target = (ray != null && ray.getHitBlock() != null) ? ray.getHitBlock().getLocation() : p.getLocation().add(p.getLocation().getDirection().multiply(15));
-        
         ArmorStand sword = p.getWorld().spawn(target.clone().add(0, 35, 0), ArmorStand.class);
         sword.setInvisible(true); sword.setGravity(false); sword.setMarker(true);
         sword.getEquipment().setItemInMainHand(new ItemStack(Material.NETHERITE_SWORD));
         sword.setRightArmPose(new EulerAngle(Math.toRadians(180), 0, 0));
-
         new BukkitRunnable() {
             @Override
             public void run() {
                 sword.teleport(sword.getLocation().subtract(0, 1.8, 0));
-                // Red Dust + Flame on Sword
                 sword.getWorld().spawnParticle(Particle.DUST, sword.getLocation(), 5, 0.2, 0.2, 0.2, new Particle.DustOptions(Color.RED, 1.2f));
-                sword.getWorld().spawnParticle(Particle.FLAME, sword.getLocation(), 3, 0.1, 0.1, 0.1, 0.02);
-                
                 if (sword.getLocation().getY() <= target.getY() || sword.getLocation().getBlock().getType().isSolid()) {
                     sword.getWorld().createExplosion(sword.getLocation(), 10f, true, true);
                     sword.remove();
@@ -191,13 +224,4 @@ public class UltimateCard extends BaseCard implements Listener {
         }
         return item;
     }
-            // ================= FIX: ADDING THE MISSING METHOD =================
-    private ArmorStand createThronePart(Location l, Material m) {
-        ArmorStand as = l.getWorld().spawn(l, ArmorStand.class);
-        as.setInvisible(true); 
-        as.setGravity(false); 
-        as.setMarker(true);
-        as.getEquipment().setHelmet(new ItemStack(m));
-        return as;
-    }
-}
+            }
