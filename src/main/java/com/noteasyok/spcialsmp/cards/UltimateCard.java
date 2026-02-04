@@ -43,7 +43,7 @@ public void leftClick(Player p) {
         if (activeStorm.contains(p.getUniqueId()) || !isCool(p, "ultimate_storm", 120)) return;
 
         activeStorm.add(p.getUniqueId());
-        Location center = p.getLocation().add(0, 30, 0); 
+        Location center = p.getLocation().add(0, 12, 0); 
         List<ArmorStand> bodyParts = new ArrayList<>();
         List<ArmorStand> tentacles = new ArrayList<>();
 
@@ -89,7 +89,7 @@ public void leftClick(Player p) {
         Vector dir = p.getLocation().getDirection().setY(0).normalize();
         Vector side = new Vector(-dir.getZ(), 0, dir.getX());
         for (int i = -4; i <= 4; i++) {
-            Location zLoc = p.getLocation().add(dir.multiply(7)).add(side.multiply(i));
+            Location zLoc = p.getLocation().add(dir.multiply(7)).add(side.multiply(i)).add(0, 1.5, 0);
             Zombie z = (Zombie) p.getWorld().spawnEntity(zLoc, EntityType.ZOMBIE);
             z.setBaby(true);
             z.getEquipment().setArmorContents(new ItemStack[]{new ItemStack(Material.NETHERITE_BOOTS), new ItemStack(Material.NETHERITE_LEGGINGS), new ItemStack(Material.NETHERITE_CHESTPLATE), new ItemStack(Material.NETHERITE_HELMET)});
@@ -114,6 +114,18 @@ public void leftClick(Player p) {
 
                 bossBar.setProgress(1.0 - (double) timer / 1200.0);
                 wave += 0.2;
+
+                if (timer % 20 == 0) { // Har 1 second mein attack
+    for (Wither h : heads) {
+        for (Entity target : h.getNearbyEntities(25, 25, 25)) {
+            if (target instanceof LivingEntity && !target.equals(p)) {
+                // 10 TNT Power Explosion
+                target.getWorld().createExplosion(target.getLocation(), 10F, false, false);
+                h.setTarget((LivingEntity) target);
+            }
+        }
+    }
+                }
 
                 // TENTACLE PHYSICS (Sinuous Movement)
                 for (int t = 0; t < 8; t++) {
@@ -146,8 +158,8 @@ public void leftClick(Player p) {
                 }
                 
                 // Massive Core Particles
-                center.getWorld().spawnParticle(Particle.LARGE_SMOKE, center, 600, 15, 12, 15, 0.1);
-                center.getWorld().spawnParticle(Particle.REVERSE_PORTAL, center, 200, 10, 10, 10, 0.2);
+                center.getWorld().spawnParticle(Particle.LARGE_SMOKE, center, 800, 20, 15, 20, 0.1);
+                center.getWorld().spawnParticle(Particle.REVERSE_PORTAL, center, 400, 15, 15, 15, 0.2);
                 timer++;
             }
         }.runTaskTimer(SpcialSmp.get(), 0L, 1L);
