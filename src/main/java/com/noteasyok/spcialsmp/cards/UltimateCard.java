@@ -38,7 +38,7 @@ public class UltimateCard extends BaseCard implements Listener {
 
     /* ================= LEFT CLICK: WITHER STORM
  @Override
-    public void leftClick(Player p) {
+public void leftClick(org.bukkit.entity.Player p) {
         if (activeStorm.contains(p.getUniqueId()) || !isCool(p, "ultimate_storm", 120)) return;
 
         activeStorm.add(p.getUniqueId());
