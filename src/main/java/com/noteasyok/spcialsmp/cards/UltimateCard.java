@@ -275,6 +275,16 @@ public void leftClick(Player p) {
     }
 
     @Override
+    public void rightClick(Player p) {
+        // Filhaal khali rakhein
+    }
+
+    @Override
+    public void shiftRightClick(Player p) {
+        // Filhaal khali rakhein
+    }
+    
+    @Override
     public ItemStack getItemStackWithLore(String name) {
         ItemStack item = new ItemStack(getMaterial());
         ItemMeta meta = item.getItemMeta();
