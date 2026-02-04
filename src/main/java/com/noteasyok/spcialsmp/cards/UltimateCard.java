@@ -34,15 +34,14 @@ public class UltimateCard extends BaseCard implements Listener {
     @Override public Material getMaterial() { return Material.GREEN_DYE; }
 
     /* ================= LEFT CLICK: WITHER STORM & TIME LORD (60s) ================= */
-    @Override
+@Override
     public void leftClick(Player p) {
         if (activeStorm.contains(p.getUniqueId()) || !isCool(p, "ultimate_storm", 120)) return;
 
         activeStorm.add(p.getUniqueId());
-        Location loc = p.getLocation();
-
-        // 1. SUMMON WITHER STORM BOSS (Entity)
-        Wither storm = (Wither) p.getWorld().spawnEntity(p.getLocation().add(0, 10, 0), EntityType.WITHER);
+        
+        // 1. SUMMON WITHER STORM BOSS
+        Wither storm = (Wither) p.getWorld().spawnEntity(p.getLocation().add(0, 15, 0), EntityType.WITHER);
         storm.setCustomName("§0§lWITHER STORM");
         storm.setInvulnerable(true);
 
@@ -53,10 +52,9 @@ public class UltimateCard extends BaseCard implements Listener {
         clock.setItemMeta(cm);
         p.getInventory().addItem(clock);
         
-        // 3. OWNER ABILITIES (Fly + Music)
         p.setAllowFlight(true);
         p.setFlying(true);
-        p.getWorld().playSound(p.getLocation(), Sound.MUSIC_DISC_PIGSTEP, 1f, 1f);
+        p.getWorld().playSound(p.getLocation(), Sound.ENTITY_WITHER_SPAWN, 2f, 0.5f);
 
         new BukkitRunnable() {
             int timer = 0;
@@ -64,54 +62,70 @@ public class UltimateCard extends BaseCard implements Listener {
 
             @Override
             public void run() {
-                if (timer > 1200 || !p.isOnline()) { // 60 Seconds
+                if (timer > 1200 || !p.isOnline()) {
                     activeStorm.remove(p.getUniqueId());
                     timeStopped.remove(p.getUniqueId());
                     p.getInventory().removeItem(clock);
                     p.setAllowFlight(false);
-                    p.setFlying(false);
                     minions.forEach(Entity::remove);
                     if (storm != null) storm.remove();
-                    p.sendMessage("§6§lThe Wither Power fades away...");
                     this.cancel();
                     return;
                 }
 
-                // 4. WITHER STORM PHYSICS (Sucking)
-                for (Entity e : storm.getNearbyEntities(20, 20, 20)) {
-                    if (e.getUniqueId().equals(p.getUniqueId()) || e instanceof Wither) continue;
-                    Vector pull = storm.getLocation().toVector().subtract(e.getLocation().toVector()).normalize().multiply(0.3);
-                    e.setVelocity(pull);
-                }
-
-                // 5. DARK AURA & LIGHTNING (Owner Visible)
-                p.getWorld().spawnParticle(Particle.DUST, p.getLocation().add(0, 1, 0), 40, 1.5, 2.5, 1.5, new Particle.DustOptions(Color.BLACK, 2.0f));
-                if (timer % 5 == 0) p.getWorld().strikeLightningEffect(storm.getLocation().add(Math.random()*10-5, 0, Math.random()*10-5));
-
-                // 6. BABY ZOMBIE ARMY (Full Netherite)
+                // 3. ZOMBIE ARMY IN A LINE (Max Netherite + Anti-Owner Logic)
                 if (timer == 1) {
+                    Location center = p.getLocation().add(p.getLocation().getDirection().multiply(3));
+                    Vector side = new Vector(-p.getLocation().getDirection().getZ(), 0, p.getLocation().getDirection().getX()).normalize();
+                    
                     for (int i = -3; i <= 3; i++) {
-                        Zombie z = (Zombie) p.getWorld().spawnEntity(p.getLocation().add(i, 0, 3), EntityType.ZOMBIE);
+                        Location spawnLoc = center.clone().add(side.clone().multiply(i));
+                        Zombie z = (Zombie) p.getWorld().spawnEntity(spawnLoc, EntityType.ZOMBIE);
                         z.setBaby(true);
-                        z.getEquipment().setArmorContents(new ItemStack[]{
-                            new ItemStack(Material.NETHERITE_BOOTS), new ItemStack(Material.NETHERITE_LEGGINGS),
-                            new ItemStack(Material.NETHERITE_CHESTPLATE), new ItemStack(Material.NETHERITE_HELMET)
-                        });
+                        z.setCustomName("§6" + p.getName() + "'s Guard");
+                        
+                        // Full Max Netherite Armor
+                        z.getEquipment().setHelmet(new ItemStack(Material.NETHERITE_HELMET));
+                        z.getEquipment().setChestplate(new ItemStack(Material.NETHERITE_CHESTPLATE));
+                        z.getEquipment().setLeggings(new ItemStack(Material.NETHERITE_LEGGINGS));
+                        z.getEquipment().setBoots(new ItemStack(Material.NETHERITE_BOOTS));
                         z.getEquipment().setItemInMainHand(new ItemStack(Material.NETHERITE_SWORD));
+                        
+                        // Anti-Owner Target Logic: Owner ko target nahi karenge
+                        z.setTarget(null);
                         minions.add(z);
                     }
                 }
-                
-                // 7. POISON AURA
-                for (Entity e : p.getNearbyEntities(10, 10, 10)) {
-                    if (e instanceof LivingEntity && !e.equals(p) && !(e instanceof Zombie)) {
-                        ((LivingEntity) e).addPotionEffect(new PotionEffect(PotionEffectType.POISON, 100, 1));
+
+                // Owner Protection: Agar koi minion owner ko galti se target kare toh hata do
+                minions.forEach(z -> {
+                    if (z.getTarget() != null && z.getTarget().equals(p)) {
+                        z.setTarget(null);
+                    }
+                });
+
+                // 4. TRACTOR BEAM & SUCK PHYSICS (Image 4 Style)
+                for (Entity e : storm.getNearbyEntities(25, 25, 25)) {
+                    if (e.equals(p) || e.equals(storm) || minions.contains(e)) continue;
+                    
+                    Vector dir = storm.getLocation().toVector().subtract(e.getLocation().toVector()).normalize();
+                    
+                    // Purple Beam Visual (Image 1 reference)
+                    Location beamPoint = e.getLocation();
+                    for(double d = 0; d < beamPoint.distance(storm.getLocation()); d += 1.5) {
+                        beamPoint.getWorld().spawnParticle(Particle.WITCH, beamPoint.clone().add(dir.clone().multiply(d)), 1, 0, 0, 0, 0);
+                    }
+                    
+                    if (!timeStopped.getOrDefault(p.getUniqueId(), false)) {
+                        e.setVelocity(dir.multiply(0.45));
                     }
                 }
+
+                storm.getWorld().spawnParticle(Particle.LARGE_SMOKE, storm.getLocation(), 80, 4, 4, 4, 0.05);
                 timer++;
             }
         }.runTaskTimer(SpcialSmp.get(), 0L, 1L);
-    }
+                }
 
     /* ================= TIME STOP & PROTECTION (FIXED) ================= */
     @EventHandler
