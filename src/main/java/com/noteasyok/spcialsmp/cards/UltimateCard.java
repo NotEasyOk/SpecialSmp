@@ -8,6 +8,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.boss.BossBar;
 import org.bukkit.boss.BarColor;
 import org.bukkit.boss.BarStyle;
+import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -36,9 +37,9 @@ public class UltimateCard extends BaseCard implements Listener {
     @Override public int getModelData() { return 0; }
     @Override public Material getMaterial() { return Material.GREEN_DYE; }
 
-    /* ================= LEFT CLICK: WITHER STORM
- @Override
-public void leftClick(org.bukkit.entity.Player p) {
+    /* ================= LEFT CLICK: WITHER STORM ================*/
+@Override
+public void leftClick(Player p) {
         if (activeStorm.contains(p.getUniqueId()) || !isCool(p, "ultimate_storm", 120)) return;
 
         activeStorm.add(p.getUniqueId());
