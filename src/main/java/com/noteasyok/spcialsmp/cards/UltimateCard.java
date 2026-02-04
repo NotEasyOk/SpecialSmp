@@ -273,16 +273,6 @@ public void leftClick(Player p) {
         cooldowns.put(k, now + (sec * 1000L));
         return true;
     }
-
-    @Override
-    public void rightClick(Player p) {
-        // Filhaal khali rakhein
-    }
-
-    @Override
-    public void shiftRightClick(Player p) {
-        // Filhaal khali rakhein
-    }
     
     @Override
     public ItemStack getItemStackWithLore(String name) {
