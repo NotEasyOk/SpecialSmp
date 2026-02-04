@@ -276,3 +276,4 @@ public class UltimateCard extends BaseCard implements Listener {
         }
         return item;
     }
+}
