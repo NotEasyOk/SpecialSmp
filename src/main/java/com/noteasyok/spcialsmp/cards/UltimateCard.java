@@ -254,9 +254,25 @@ public class UltimateCard extends BaseCard implements Listener {
         ItemMeta meta = item.getItemMeta();
         if (meta != null) {
             meta.setDisplayName("§6§l" + name);
+            
+            // --- Naya Lore Section ---
+            List<String> lore = new ArrayList<>();
+            lore.add("§8§m-----------------------");
+            lore.add("§e§lSPECIAL ABILITIES:");
+            lore.add("§7▶ §bLeft Click: §fSummon Wither Storm & Guards");
+            lore.add("§7▶ §bClock Item: §fControl/Stop Time");
+            lore.add("§7▶ §bRight Click: §fOrbiting Card Shield");
+            lore.add("§7▶ §bShift + Right: §fGiant Sword Nuke");
+            lore.add("");
+            lore.add("§e§lPASSIVE PERKS:");
+            lore.add("§7▶ §6Invincible while Storm is active!");
+            lore.add("§7▶ §6Zombies protect the owner!");
+            lore.add("§8§m-----------------------");
+            meta.setLore(lore);
+            // -------------------------
+
             meta.getPersistentDataContainer().set(new NamespacedKey(SpcialSmp.get(), "card_id"), PersistentDataType.STRING, getName());
             item.setItemMeta(meta);
         }
         return item;
     }
-            }
