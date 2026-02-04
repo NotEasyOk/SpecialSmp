@@ -113,25 +113,46 @@ public class UltimateCard extends BaseCard implements Listener {
         }.runTaskTimer(SpcialSmp.get(), 0L, 1L);
     }
 
-    /* ================= EVENTS: TIME STOP & NO DAMAGE ================= */
+    /* ================= TIME STOP & PROTECTION (FIXED) ================= */
     @EventHandler
     public void onTimeStop(PlayerInteractEvent e) {
         Player p = e.getPlayer();
+        // Clock check aur active storm check
         if (p.getInventory().getItemInMainHand().getType() == Material.CLOCK && activeStorm.contains(p.getUniqueId())) {
-            boolean isStopped = timeStopped.getOrDefault(p.getUniqueId(), false);
-            timeStopped.put(p.getUniqueId(), !isStopped);
             
-            p.getWorld().getEntities().forEach(ent -> {
-                if (!ent.equals(p)) ent.setFrozenTicks(isStopped ? 0 : 1200);
-            });
-            p.sendMessage(isStopped ? "§a§lTIME RESUMED" : "§c§lTIME STOPPED");
+            // Toggle logic
+            boolean isStopped = !timeStopped.getOrDefault(p.getUniqueId(), false);
+            timeStopped.put(p.getUniqueId(), isStopped);
+            
+            if (isStopped) {
+                p.sendMessage("§c§lTIME STOPPED");
+                // Sabhi paas waale mobs ko jamado (Slowness 255 se wo hil nahi payenge)
+                for (Entity ent : p.getNearbyEntities(30, 30, 30)) {
+                    if (ent instanceof LivingEntity && !ent.equals(p)) {
+                        LivingEntity le = (LivingEntity) ent;
+                        le.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 600, 255, false, false));
+                        le.addPotionEffect(new PotionEffect(PotionEffectType.JUMP_BOOST, 600, 250, false, false));
+                    }
+                }
+            } else {
+                p.sendMessage("§a§lTIME RESUMED");
+                // Effects hata do
+                for (Entity ent : p.getNearbyEntities(30, 30, 30)) {
+                    if (ent instanceof LivingEntity) {
+                        LivingEntity le = (LivingEntity) ent;
+                        le.removePotionEffect(PotionEffectType.SLOWNESS);
+                        le.removePotionEffect(PotionEffectType.JUMP_BOOST);
+                    }
+                }
+            }
         }
     }
 
     @EventHandler
     public void onDamage(org.bukkit.event.entity.EntityDamageEvent e) {
+        // Owner ko damage nahi hoga jab tak storm active hai
         if (e.getEntity() instanceof Player && activeStorm.contains(e.getEntity().getUniqueId())) {
-            e.setCancelled(true); // Invincible but visible
+            e.setCancelled(true);
         }
     }
 
