@@ -5,6 +5,9 @@ import com.noteasyok.spcialsmp.SpcialSmp;
 import org.bukkit.*;
 import org.bukkit.entity.*;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.boss.BossBar;
+import org.bukkit.boss.BarColor;
+import org.bukkit.boss.BarStyle;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -33,99 +36,121 @@ public class UltimateCard extends BaseCard implements Listener {
     @Override public int getModelData() { return 0; }
     @Override public Material getMaterial() { return Material.GREEN_DYE; }
 
-    /* ================= LEFT CLICK: WITHER STORM & TIME LORD (60s) ================= */
-@Override
+    /* ================= LEFT CLICK: WITHER STORM
+ @Override
     public void leftClick(Player p) {
         if (activeStorm.contains(p.getUniqueId()) || !isCool(p, "ultimate_storm", 120)) return;
 
         activeStorm.add(p.getUniqueId());
-        
-        // 1. SUMMON WITHER STORM BOSS
-        Wither storm = (Wither) p.getWorld().spawnEntity(p.getLocation().add(0, 15, 0), EntityType.WITHER);
-        storm.setCustomName("§0§lWITHER STORM");
-        storm.setInvulnerable(true);
+        Location center = p.getLocation().add(0, 30, 0); 
+        List<ArmorStand> bodyParts = new ArrayList<>();
+        List<ArmorStand> tentacles = new ArrayList<>();
 
-        // 2. TIME CONTROL CLOCK GIVE
-        ItemStack clock = new ItemStack(Material.CLOCK);
-        ItemMeta cm = clock.getItemMeta();
-        cm.setDisplayName("§b§lTIME CONTROL CLOCK");
-        clock.setItemMeta(cm);
-        p.getInventory().addItem(clock);
-        
-        p.setAllowFlight(true);
-        p.setFlying(true);
-        p.getWorld().playSound(p.getLocation(), Sound.ENTITY_WITHER_SPAWN, 2f, 0.5f);
+        // 1. BOSS BAR & WORLD APOCALYPSE
+        BossBar bossBar = Bukkit.createBossBar("§0§lWITHER STORM", BarColor.PURPLE, BarStyle.SEGMENTED_20);
+        bossBar.setProgress(1.0);
+        Bukkit.getOnlinePlayers().forEach(bossBar::addPlayer);
+        p.getWorld().setStorm(true);
+        p.getWorld().setThundering(true);
+        p.getWorld().setFullTime(18000);
+
+        // 2. SUMMON GIANT CORE (150+ Blocks for massive volume)
+        for (int i = 0; i < 150; i++) {
+            ArmorStand part = (ArmorStand) center.getWorld().spawnEntity(
+                center.clone().add(Math.random()*20-10, Math.random()*15-7.5, Math.random()*20-10), 
+                EntityType.ARMOR_STAND
+            );
+            part.setInvisible(true);
+            part.setGravity(false);
+            part.setMarker(true);
+            part.getEquipment().setHelmet(new ItemStack(i % 5 == 0 ? Material.CRYING_OBSIDIAN : Material.BLACK_CONCRETE));
+            bodyParts.add(part);
+        }
+
+        // 3. SUMMON 8 GIANT TENTACLES (Each 10-15 blocks long)
+        for (int t = 0; t < 8; t++) {
+            for (int segment = 0; segment < 12; segment++) {
+                ArmorStand s = (ArmorStand) center.getWorld().spawnEntity(center, EntityType.ARMOR_STAND);
+                s.setInvisible(true); s.setGravity(false); s.setMarker(true);
+                s.getEquipment().setHelmet(new ItemStack(Material.BLACK_CONCRETE));
+                tentacles.add(s);
+            }
+        }
+
+        // 4. THE 3 ELDER HEADS
+        Wither[] heads = new Wither[3];
+        heads[0] = (Wither) center.getWorld().spawnEntity(center.clone().add(6, 0, 0), EntityType.WITHER);
+        heads[1] = (Wither) center.getWorld().spawnEntity(center.clone().add(-6, 0, 0), EntityType.WITHER);
+        heads[2] = (Wither) center.getWorld().spawnEntity(center.clone().add(0, 5, 6), EntityType.WITHER);
+        for(Wither h : heads) { h.setInvulnerable(true); h.setCustomName("§5§lSTORM HEAD"); }
+
+        // 5. BABY ZOMBIE ELITE GUARDS
+        Vector dir = p.getLocation().getDirection().setY(0).normalize();
+        Vector side = new Vector(-dir.getZ(), 0, dir.getX());
+        for (int i = -4; i <= 4; i++) {
+            Location zLoc = p.getLocation().add(dir.multiply(7)).add(side.multiply(i));
+            Zombie z = (Zombie) p.getWorld().spawnEntity(zLoc, EntityType.ZOMBIE);
+            z.setBaby(true);
+            z.getEquipment().setArmorContents(new ItemStack[]{new ItemStack(Material.NETHERITE_BOOTS), new ItemStack(Material.NETHERITE_LEGGINGS), new ItemStack(Material.NETHERITE_CHESTPLATE), new ItemStack(Material.NETHERITE_HELMET)});
+            z.getEquipment().setItemInMainHand(new ItemStack(Material.NETHERITE_SWORD));
+        }
 
         new BukkitRunnable() {
             int timer = 0;
-            List<Zombie> minions = new ArrayList<>();
+            double wave = 0;
 
             @Override
             public void run() {
                 if (timer > 1200 || !p.isOnline()) {
+                    bodyParts.forEach(Entity::remove);
+                    tentacles.forEach(Entity::remove);
+                    for(Wither h : heads) h.remove();
+                    bossBar.removeAll();
                     activeStorm.remove(p.getUniqueId());
-                    timeStopped.remove(p.getUniqueId());
-                    p.getInventory().removeItem(clock);
-                    p.setAllowFlight(false);
-                    minions.forEach(Entity::remove);
-                    if (storm != null) storm.remove();
                     this.cancel();
                     return;
                 }
 
-                // 3. ZOMBIE ARMY IN A LINE (Max Netherite + Anti-Owner Logic)
-                if (timer == 1) {
-                    Location center = p.getLocation().add(p.getLocation().getDirection().multiply(3));
-                    Vector side = new Vector(-p.getLocation().getDirection().getZ(), 0, p.getLocation().getDirection().getX()).normalize();
-                    
-                    for (int i = -3; i <= 3; i++) {
-                        Location spawnLoc = center.clone().add(side.clone().multiply(i));
-                        Zombie z = (Zombie) p.getWorld().spawnEntity(spawnLoc, EntityType.ZOMBIE);
-                        z.setBaby(true);
-                        z.setCustomName("§6" + p.getName() + "'s Guard");
-                        
-                        // Full Max Netherite Armor
-                        z.getEquipment().setHelmet(new ItemStack(Material.NETHERITE_HELMET));
-                        z.getEquipment().setChestplate(new ItemStack(Material.NETHERITE_CHESTPLATE));
-                        z.getEquipment().setLeggings(new ItemStack(Material.NETHERITE_LEGGINGS));
-                        z.getEquipment().setBoots(new ItemStack(Material.NETHERITE_BOOTS));
-                        z.getEquipment().setItemInMainHand(new ItemStack(Material.NETHERITE_SWORD));
-                        
-                        // Anti-Owner Target Logic: Owner ko target nahi karenge
-                        z.setTarget(null);
-                        minions.add(z);
+                bossBar.setProgress(1.0 - (double) timer / 1200.0);
+                wave += 0.2;
+
+                // TENTACLE PHYSICS (Sinuous Movement)
+                for (int t = 0; t < 8; t++) {
+                    double angle = (2 * Math.PI / 8) * t;
+                    for (int s = 0; s < 12; s++) {
+                        double dist = s * 1.8;
+                        double x = Math.cos(angle) * dist + (Math.sin(wave + s) * 2);
+                        double z = Math.sin(angle) * dist + (Math.cos(wave + s) * 2);
+                        double y = Math.sin(wave * 0.5 + s) * 3;
+                        tentacles.get(t * 12 + s).teleport(center.clone().add(x, y, z));
                     }
                 }
 
-                // Owner Protection: Agar koi minion owner ko galti se target kare toh hata do
-                minions.forEach(z -> {
-                    if (z.getTarget() != null && z.getTarget().equals(p)) {
-                        z.setTarget(null);
-                    }
-                });
-
-                // 4. TRACTOR BEAM & SUCK PHYSICS (Image 4 Style)
-                for (Entity e : storm.getNearbyEntities(25, 25, 25)) {
-                    if (e.equals(p) || e.equals(storm) || minions.contains(e)) continue;
+                // WORLD DESTRUCTION & TRACTOR BEAM
+                for (Entity e : center.getWorld().getNearbyEntities(center, 50, 50, 50)) {
+                    if (e.equals(p) || e instanceof Wither || e instanceof ArmorStand || e instanceof Zombie) continue;
                     
-                    Vector dir = storm.getLocation().toVector().subtract(e.getLocation().toVector()).normalize();
+                    Vector pull = center.toVector().subtract(e.getLocation().toVector()).normalize();
                     
-                    // Purple Beam Visual (Image 1 reference)
-                    Location beamPoint = e.getLocation();
-                    for(double d = 0; d < beamPoint.distance(storm.getLocation()); d += 1.5) {
-                        beamPoint.getWorld().spawnParticle(Particle.WITCH, beamPoint.clone().add(dir.clone().multiply(d)), 1, 0, 0, 0, 0);
+                    // Dense Purple Beam
+                    Location bPoint = e.getLocation();
+                    for(double d = 0; d < 35; d += 3) {
+                        center.getWorld().spawnParticle(Particle.WITCH, bPoint.clone().add(pull.clone().multiply(d)), 30, 0.6, 0.6, 0.6, 0);
                     }
                     
                     if (!timeStopped.getOrDefault(p.getUniqueId(), false)) {
-                        e.setVelocity(dir.multiply(0.45));
+                        e.setVelocity(pull.multiply(0.95)); // Super Strong Sucking
+                        if (timer % 10 == 0) p.getWorld().strikeLightning(e.getLocation());
                     }
                 }
-
-                storm.getWorld().spawnParticle(Particle.LARGE_SMOKE, storm.getLocation(), 80, 4, 4, 4, 0.05);
+                
+                // Massive Core Particles
+                center.getWorld().spawnParticle(Particle.LARGE_SMOKE, center, 600, 15, 12, 15, 0.1);
+                center.getWorld().spawnParticle(Particle.REVERSE_PORTAL, center, 200, 10, 10, 10, 0.2);
                 timer++;
             }
         }.runTaskTimer(SpcialSmp.get(), 0L, 1L);
-                }
+    } 
 
     /* ================= TIME STOP & PROTECTION (FIXED) ================= */
     @EventHandler
