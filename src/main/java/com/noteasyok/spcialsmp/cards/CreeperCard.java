@@ -50,7 +50,7 @@ public class CreeperCard extends BaseCard {
         p.getWorld().createExplosion(loc, 5f, true, true, p);
     }
 
-    /* ================= RIGHT CLICK (Orbital Strike with Animation) ================= */
+/* ================= RIGHT CLICK (Orbital Strike with Animation) ================= */
     @Override
     public void rightClick(Player p) {
         int cd = SpcialSmp.get().getConfig().getInt("cards.creeper.right_click_cooldown", 30);
@@ -58,62 +58,57 @@ public class CreeperCard extends BaseCard {
 
         RayTraceResult r = p.getWorld().rayTraceBlocks(p.getEyeLocation(), p.getEyeLocation().getDirection(), 120);
         if (r == null || r.getHitPosition() == null) {
-            // Remove cooldown if target not found
             cooldowns.remove(p.getUniqueId().toString() + "_orbital");
             return;
         }
 
         World w = p.getWorld();
-        Location hit = r.getHitPosition().toLocation(w);
+        // ERROR FIX: 'hit' must be final to use inside Runnable
+        final Location hit = r.getHitPosition().toLocation(w); 
         Location spawn = hit.clone().add(0, 35, 0);
 
         TNTPrimed tnt = w.spawn(spawn, TNTPrimed.class);
 
-         org.bukkit.entity.BlockDisplay display = w.spawn(spawn, org.bukkit.entity.BlockDisplay.class);
-    display.setBlock(org.bukkit.Material.TNT.createBlockData());
-    
-    // Transformation matrix se size bada hoga
-    org.joml.Matrix4f matrix = new org.joml.Matrix4f().scale(5.0f); // 5.0f matlab 5 guna bada
-    display.setTransformation(new org.bukkit.util.Transformation(
-        new org.joml.Vector3f(-2.5f, 0, -2.5f), // Center alignment
-        new org.joml.Quaternionf(), 
-        new org.joml.Vector3f(5.0f, 5.0f, 5.0f), // X, Y, Z Size
-        new org.joml.Quaternionf()
-    ));
+        org.bukkit.entity.BlockDisplay display = w.spawn(spawn, org.bukkit.entity.BlockDisplay.class);
+        display.setBlock(org.bukkit.Material.TNT.createBlockData());
+        
+        display.setTransformation(new org.bukkit.util.Transformation(
+            new org.joml.Vector3f(-2.5f, 0, -2.5f), 
+            new org.joml.Quaternionf(), 
+            new org.joml.Vector3f(5.0f, 5.0f, 5.0f), 
+            new org.joml.Quaternionf()
+        ));
         
         tnt.setVelocity(new Vector(0, -2.5, 0));
         tnt.setFuseTicks(200);
         tnt.setYield(10f);
         tnt.setIsIncendiary(false);
 
-        @Override
-    public void run() {
-        // 1. Agar TNT gayab ho jaye (Cleanup)
-        if (!tnt.isValid() || tnt.isDead()) {
-            display.remove();
-            this.cancel();
-            return;
-        }
-
-        // 2. Zameen touch hone par phatne ka logic
-        if (tnt.isOnGround() || tnt.getLocation().getY() <= hit.getY() + 1.2) {
-            Location loc = tnt.getLocation();
-            display.remove(); // Bada TNT hatao
-            tnt.remove(); // Chota TNT hatao
-            
-            // Blast power 25 taaki bada dhamaka ho
-            loc.getWorld().createExplosion(loc, 25f, true, true, p);
-            this.cancel();
-            return;
-        }
-
-        // 3. Jab tak hawa mein hai, bada block follow karega
-        display.teleport(tnt.getLocation().add(-2.5, 0, -2.5));
-            }
-
-                // Yellow trail effect
-                w.spawnParticle(Particle.FLAME, tnt.getLocation(), 5, 0.1, 0.1, 0.1, 0.05);
+        // ERROR FIX: Added missing 'new BukkitRunnable()' declaration
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                // 1. Agar TNT gayab ho jaye (Cleanup)
+                if (!tnt.isValid() || tnt.isDead()) {
+                    display.remove();
+                    this.cancel();
+                    return;
                 }
+
+                // 2. Zameen touch hone par phatne ka logic
+                if (tnt.isOnGround() || tnt.getLocation().getY() <= hit.getY() + 1.2) {
+                    Location loc = tnt.getLocation();
+                    display.remove(); 
+                    tnt.remove(); 
+                    
+                    loc.getWorld().createExplosion(loc, 25f, true, true, p); //
+                    this.cancel();
+                    return;
+                }
+
+                // 3. Jab tak hawa mein hai, bada block follow karega aur particles niklenge
+                display.teleport(tnt.getLocation().add(-2.5, 0, -2.5));
+                w.spawnParticle(org.bukkit.Particle.FLAME, tnt.getLocation(), 5, 0.1, 0.1, 0.1, 0.05);
             }
         }.runTaskTimer(SpcialSmp.get(), 0L, 1L);
     }
