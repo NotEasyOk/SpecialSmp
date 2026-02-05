@@ -10,7 +10,6 @@ import org.bukkit.boss.BarColor;
 import org.bukkit.boss.BarStyle;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;
-import org.bukkit.WorldBorder;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.EulerAngle;
@@ -38,41 +37,41 @@ public class UltimateCard extends BaseCard implements Listener {
     @Override public int getModelData() { return 0; }
     @Override public Material getMaterial() { return Material.GREEN_DYE; }
 
-    /* ================= LEFT CLICK: WITHER STORM ================*/
-@Override
-public void leftClick(Player p) {
+    /* ================= LEFT CLICK: WITHER STORM (FIXED) ================*/
+    @Override
+    public void leftClick(Player p) {
         if (activeStorm.contains(p.getUniqueId()) || !isCool(p, "ultimate_storm", 120)) return;
 
         activeStorm.add(p.getUniqueId());
-        Location center = p.getLocation().add(0, 10, 0); 
+        
+        // --- ADDED: Fly and Clock ---
+        p.setAllowFlight(true);
+        p.setFlying(true);
+        p.getInventory().addItem(new ItemStack(Material.CLOCK));
+        p.sendMessage("§e§l[!] §6Storm Active! Fly enabled and Time Clock granted.");
+
+        Location center = p.getLocation().add(0, 15, 0); 
         List<ArmorStand> bodyParts = new ArrayList<>();
         List<ArmorStand> tentacles = new ArrayList<>();
 
-        // 1. BOSS BAR & WORLD APOCALYPSE
         BossBar bossBar = Bukkit.createBossBar("§0§lWITHER STORM", BarColor.PURPLE, BarStyle.SEGMENTED_20);
         bossBar.setProgress(1.0);
         Bukkit.getOnlinePlayers().forEach(bossBar::addPlayer);
+        
         p.getWorld().setStorm(true);
         p.getWorld().setThundering(true);
         p.getWorld().setFullTime(18000);
 
-         // 1. Pehle weather aur time set karo
-    p.getWorld().setStorm(true);
-    p.getWorld().setThundering(true);
-    p.getWorld().setFullTime(18000);
+        org.bukkit.WorldBorder border = p.getWorld().getWorldBorder();
+        border.setCenter(p.getLocation());
+        border.setSize(5000000);
+        border.setWarningDistance(Integer.MAX_VALUE);
 
-    // 2. Red Sky logic (Bina player ko maare)
-    org.bukkit.WorldBorder border = p.getWorld().getWorldBorder();
-    border.setCenter(p.getLocation()); // Center player par rakho
-    border.setSize(5000000); // Size 50 lakh blocks (taki koi takraye nahi)
-    border.setWarningDistance(Integer.MAX_VALUE); // Full red sky effect
-
-        // 2. SUMMON GIANT CORE (300+ Blocks for massive volume)
+        // --- FIXED: Dense Core Formation (Stage 4 style) ---
         for (int i = 0; i < 300; i++) {
-            ArmorStand part = (ArmorStand) center.getWorld().spawnEntity(
-                center.clone().add(Math.random()*20-10, Math.random()*15-7.5, Math.random()*20-10), 
-                EntityType.ARMOR_STAND
-            );
+            // Random point inside a 10-block sphere for massive volume
+            Vector v = new Vector(Math.random()-0.5, Math.random()-0.5, Math.random()-0.5).normalize().multiply(Math.random() * 8);
+            ArmorStand part = (ArmorStand) center.getWorld().spawnEntity(center.clone().add(v), EntityType.ARMOR_STAND);
             part.setInvisible(true);
             part.setGravity(false);
             part.setMarker(true);
@@ -80,7 +79,6 @@ public void leftClick(Player p) {
             bodyParts.add(part);
         }
 
-        // 3. SUMMON 8 GIANT TENTACLES (Each 10-15 blocks long)
         for (int t = 0; t < 8; t++) {
             for (int segment = 0; segment < 12; segment++) {
                 ArmorStand s = (ArmorStand) center.getWorld().spawnEntity(center, EntityType.ARMOR_STAND);
@@ -90,18 +88,20 @@ public void leftClick(Player p) {
             }
         }
 
-        // 4. THE 3 ELDER HEADS
         Wither[] heads = new Wither[3];
-        heads[0] = (Wither) center.getWorld().spawnEntity(center.clone().add(6, 0, 0), EntityType.WITHER);
-        heads[1] = (Wither) center.getWorld().spawnEntity(center.clone().add(-6, 0, 0), EntityType.WITHER);
-        heads[2] = (Wither) center.getWorld().spawnEntity(center.clone().add(0, 5, 6), EntityType.WITHER);
-        for(Wither h : heads) { h.setInvulnerable(true); h.setCustomName("§5§lSTORM HEAD"); }
+        heads[0] = (Wither) center.getWorld().spawnEntity(center.clone().add(8, 5, 0), EntityType.WITHER);
+        heads[1] = (Wither) center.getWorld().spawnEntity(center.clone().add(-8, 5, 0), EntityType.WITHER);
+        heads[2] = (Wither) center.getWorld().spawnEntity(center.clone().add(0, 10, 8), EntityType.WITHER);
+        for(Wither h : heads) { 
+            h.setInvulnerable(true); 
+            h.setCustomName("§5§lSTORM HEAD"); 
+        }
 
-        // 5. BABY ZOMBIE ELITE GUARDS
+        // --- FIXED: Baby Zombie Guards Spawn ---
         Vector dir = p.getLocation().getDirection().setY(0).normalize();
         Vector side = new Vector(-dir.getZ(), 0, dir.getX());
-        for (int i = -4; i <= 4; i++) {
-            Location zLoc = p.getLocation().add(dir.multiply(7)).add(side.multiply(i)).add(0, 1.5, 0);
+        for (int i = -2; i <= 2; i++) {
+            Location zLoc = p.getLocation().add(dir.clone().multiply(6)).add(side.clone().multiply(i * 2)).add(0, 1, 0);
             Zombie z = (Zombie) p.getWorld().spawnEntity(zLoc, EntityType.ZOMBIE);
             z.setBaby(true);
             z.getEquipment().setArmorContents(new ItemStack[]{new ItemStack(Material.NETHERITE_BOOTS), new ItemStack(Material.NETHERITE_LEGGINGS), new ItemStack(Material.NETHERITE_CHESTPLATE), new ItemStack(Material.NETHERITE_HELMET)});
@@ -121,6 +121,7 @@ public void leftClick(Player p) {
                     bossBar.removeAll();
                     activeStorm.remove(p.getUniqueId());
                     p.getWorld().getWorldBorder().setWarningDistance(0);
+                    p.setAllowFlight(false);
                     this.cancel();
                     return;
                 }
@@ -128,86 +129,74 @@ public void leftClick(Player p) {
                 bossBar.setProgress(1.0 - (double) timer / 1200.0);
                 wave += 0.2;
 
-                if (timer % 20 == 0) { // Har 1 second mein attack
-    for (Wither h : heads) {
-        for (Entity target : h.getNearbyEntities(25, 25, 25)) {
-            if (target instanceof LivingEntity && !target.equals(p)) {
-                // 10 TNT Power Explosion
-                target.getWorld().createExplosion(target.getLocation(), 10F, false, false);
-                h.setTarget((LivingEntity) target);
-            }
-        }
-    }
+                // --- ADDED: Massive Skull Attacks ---
+                if (timer % 15 == 0) {
+                    for (Wither h : heads) {
+                        for (Entity target : h.getNearbyEntities(30, 30, 30)) {
+                            if (target instanceof LivingEntity && !target.equals(p) && !(target instanceof Zombie)) {
+                                // Launching Large Wither Skull
+                                Vector skullDir = target.getLocation().toVector().subtract(h.getEyeLocation().toVector()).normalize();
+                                WitherSkull skull = h.launchProjectile(WitherSkull.class, skullDir);
+                                skull.setYield(8.0F); // Big Explosion
+                                skull.setIsCharged(true); // Blue Skull
+                                break;
+                            }
+                        }
+                    }
                 }
 
-                // TENTACLE PHYSICS (Sinuous Movement)
+                // TENTACLE PHYSICS
                 for (int t = 0; t < 8; t++) {
                     double angle = (2 * Math.PI / 8) * t;
                     for (int s = 0; s < 12; s++) {
-                        double dist = s * 1.8;
+                        double dist = s * 1.6;
                         double x = Math.cos(angle) * dist + (Math.sin(wave + s) * 2);
                         double z = Math.sin(angle) * dist + (Math.cos(wave + s) * 2);
-                        double y = Math.sin(wave * 0.5 + s) * 3;
+                        double y = Math.sin(wave * 0.5 + s) * 2.5;
                         tentacles.get(t * 12 + s).teleport(center.clone().add(x, y, z));
                     }
                 }
 
-                // WORLD DESTRUCTION & TRACTOR BEAM
+                // TRACTOR BEAM
                 for (Entity e : center.getWorld().getNearbyEntities(center, 50, 50, 50)) {
                     if (e.equals(p) || e instanceof Wither || e instanceof ArmorStand || e instanceof Zombie) continue;
-                    
                     Vector pull = center.toVector().subtract(e.getLocation().toVector()).normalize();
                     
-                    // Dense Purple Beam
                     Location bPoint = e.getLocation();
-                    for(double d = 0; d < 35; d += 3) {
-                        center.getWorld().spawnParticle(Particle.WITCH, bPoint.clone().add(pull.clone().multiply(d)), 30, 0.6, 0.6, 0.6, 0);
+                    for(double d = 0; d < 35; d += 4) {
+                        center.getWorld().spawnParticle(Particle.WITCH, bPoint.clone().add(pull.clone().multiply(d)), 20, 0.5, 0.5, 0.5, 0);
                     }
                     
                     if (!timeStopped.getOrDefault(p.getUniqueId(), false)) {
-                        e.setVelocity(pull.multiply(0.95)); // Super Strong Sucking
+                        e.setVelocity(pull.multiply(0.8));
                         if (timer % 10 == 0) p.getWorld().strikeLightning(e.getLocation());
                     }
                 }
                 
-                // Massive Core Particles
-                center.getWorld().spawnParticle(Particle.LARGE_SMOKE, center, 800, 20, 15, 20, 0.1);
-                center.getWorld().spawnParticle(Particle.REVERSE_PORTAL, center, 400, 15, 15, 15, 0.2);
+                center.getWorld().spawnParticle(Particle.LARGE_SMOKE, center, 400, 10, 8, 10, 0.05);
                 timer++;
             }
         }.runTaskTimer(SpcialSmp.get(), 0L, 1L);
     } 
 
-    /* ================= TIME STOP & PROTECTION (FIXED) ================= */
+    /* Baaki Right Click, Shift Right, aur helper methods same rakhein... */
     @EventHandler
     public void onTimeStop(PlayerInteractEvent e) {
         Player p = e.getPlayer();
-        // Clock check aur active storm check
-        if (p.getInventory().getItemInMainHand().getType() == Material.CLOCK && activeStorm.contains(p.getUniqueId())) {
-            
-            // Toggle logic
+        if (e.getItem() != null && e.getItem().getType() == Material.CLOCK && activeStorm.contains(p.getUniqueId())) {
             boolean isStopped = !timeStopped.getOrDefault(p.getUniqueId(), false);
             timeStopped.put(p.getUniqueId(), isStopped);
-            
             if (isStopped) {
                 p.sendMessage("§c§lTIME STOPPED");
-                // Sabhi paas waale mobs ko jamado (Slowness 255 se wo hil nahi payenge)
                 for (Entity ent : p.getNearbyEntities(30, 30, 30)) {
                     if (ent instanceof LivingEntity && !ent.equals(p)) {
-                        LivingEntity le = (LivingEntity) ent;
-                        le.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 600, 255, false, false));
-                        le.addPotionEffect(new PotionEffect(PotionEffectType.JUMP_BOOST, 600, 250, false, false));
+                        ((LivingEntity) ent).addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 600, 255, false, false));
                     }
                 }
             } else {
                 p.sendMessage("§a§lTIME RESUMED");
-                // Effects hata do
                 for (Entity ent : p.getNearbyEntities(30, 30, 30)) {
-                    if (ent instanceof LivingEntity) {
-                        LivingEntity le = (LivingEntity) ent;
-                        le.removePotionEffect(PotionEffectType.SLOWNESS);
-                        le.removePotionEffect(PotionEffectType.JUMP_BOOST);
-                    }
+                    if (ent instanceof LivingEntity) ((LivingEntity) ent).removePotionEffect(PotionEffectType.SLOWNESS);
                 }
             }
         }
@@ -215,13 +204,11 @@ public void leftClick(Player p) {
 
     @EventHandler
     public void onDamage(org.bukkit.event.entity.EntityDamageEvent e) {
-        // Owner ko damage nahi hoga jab tak storm active hai
         if (e.getEntity() instanceof Player && activeStorm.contains(e.getEntity().getUniqueId())) {
             e.setCancelled(true);
         }
     }
 
-    /* ================= RIGHT CLICK: STABLE ORBIT (No Changes) ================= */
     @Override public void rightClick(Player p) { startOrbit(p); }
 
     public void startOrbit(Player p) {
@@ -260,7 +247,6 @@ public void leftClick(Player p) {
         }
     }
 
-    /* ================= SHIFT + RIGHT: GIANT SWORD (No Changes) ================= */
     @Override
     public void shiftRightClick(Player p) {
         if (!isCool(p, "ultimate_sword", 30)) return;
@@ -305,8 +291,6 @@ public void leftClick(Player p) {
         ItemMeta meta = item.getItemMeta();
         if (meta != null) {
             meta.setDisplayName("§6§l" + name);
-            
-            // --- Naya Lore Section ---
             List<String> lore = new ArrayList<>();
             lore.add("§8§m-----------------------");
             lore.add("§e§lSPECIAL ABILITIES:");
@@ -320,11 +304,9 @@ public void leftClick(Player p) {
             lore.add("§7▶ §6Zombies protect the owner!");
             lore.add("§8§m-----------------------");
             meta.setLore(lore);
-            // -------------------------
-
             meta.getPersistentDataContainer().set(new NamespacedKey(SpcialSmp.get(), "card_id"), PersistentDataType.STRING, getName());
             item.setItemMeta(meta);
         }
         return item;
     }
-}
+                }
