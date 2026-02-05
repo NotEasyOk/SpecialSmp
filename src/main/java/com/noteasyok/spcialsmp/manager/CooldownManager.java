@@ -23,12 +23,11 @@ public class CooldownManager {
 
     private final SpcialSmp plugin;
     private final Map<UUID, Map<String, Long>> cooldowns = new HashMap<>();
-    // Ye set track karega ki kaun abhi cooldown mein hai taaki animation play kar sakein
     private final Set<UUID> coolingDownPlayers = new HashSet<>();
 
     public CooldownManager(SpcialSmp plugin) {
         this.plugin = plugin;
-        startDisplayTask(); // ActionBar task start
+        startDisplayTask();
     }
 
     private String key(String cardName, String action) {
@@ -71,8 +70,6 @@ public class CooldownManager {
                 if (item == null || item.getType() == Material.AIR || !item.hasItemMeta()) continue;
                 
                 NamespacedKey cardKey = new NamespacedKey(plugin, "card_id");
-                if (!item.getItemMeta().getPersistentDataContainer().has(cardKey, PersistentDataType.STRING)) continue;
-                
                 String cardId = item.getItemMeta().getPersistentDataContainer().get(cardKey, PersistentDataType.STRING);
                 if (cardId == null) continue;
 
@@ -81,36 +78,40 @@ public class CooldownManager {
                 long rightCD = getRemainingSeconds(p, cardId, "right");
                 long shiftCD = getRemainingSeconds(p, cardId, "shift_right");
 
-                boolean isOnCooldown = (leftCD > 0 || rightCD > 0 || shiftCD > 0);
+                long maxCD = Math.max(leftCD, Math.max(rightCD, shiftCD));
 
-                if (isOnCooldown) {
-                    // Agar cooldown chal raha hai, player ko tracking list mein dalo
+                if (maxCD > 0) {
+                    // 1. CARD COOLDOWN ACTIVE: Soul Fuel display OFF
                     coolingDownPlayers.add(p.getUniqueId());
 
-                    // Soul Fuel HIDE, Sirf Timer dikhao
-                    StringBuilder sb = new StringBuilder("§c§l" + cardId.toUpperCase() + " §8» ");
-                    if (leftCD > 0) sb.append("§eL: §f").append(leftCD).append("s ");
-                    if (rightCD > 0) sb.append("§eR: §f").append(rightCD).append("s ");
-                    if (shiftCD > 0) sb.append("§6S+R: §f").append(shiftCD).append("s");
-                    
-                    p.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(sb.toString()));
+                    String bar = "§8[§f||||||§8]"; 
+                    String message = "§6§l" + cardId + " " + bar + " §c" + maxCD + "s";
+                    p.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(message));
                 
                 } else {
-                    // Agar cooldown abhi abhi khatam hua hai (Player list mein tha par ab timer 0 hai)
+                    // 2. CARD COOLDOWN OVER: Totem Effect play once
                     if (coolingDownPlayers.contains(p.getUniqueId())) {
                         coolingDownPlayers.remove(p.getUniqueId());
-                        
-                        // === TOTEM POP ANIMATION & SOUND ===
-                        // Ye sirf tab play hoga jab cooldown khatam hoga
                         p.getWorld().spawnParticle(Particle.TOTEM, p.getEyeLocation(), 40, 0.3, 0.3, 0.3, 0.5);
                         p.playSound(p.getLocation(), Sound.ITEM_TOTEM_USE, 1.0f, 1.2f);
-                        p.sendMessage("§a§lABILITIES READY!"); // Optional message
                     }
 
-                    // Soul Fuel WAPIS dikhao
-                    p.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent("§b§lSOUL FUEL: §f100% §8| §a§lREADY"));
+                    // 3. SOUL FUEL DISPLAY ON: 23h 59m Real-Life Time Logic
+                    long now = System.currentTimeMillis();
+                    long dayMillis = 24 * 60 * 60 * 1000L; 
+                    long remainingMillis = dayMillis - (now % dayMillis);
+
+                    long hours = (remainingMillis / 3600000) % 24;
+                    long minutes = (remainingMillis / 60000) % 60;
+                    long seconds = (remainingMillis / 1000) % 60;
+
+                    String timeStr = String.format("%02dh %02dm %02ds", hours, minutes, seconds);
+                    
+                    // Display Soul Fuel Refill Timer
+                    p.spigot().sendMessage(ChatMessageType.ACTION_BAR, 
+                        new TextComponent("§b§lSOUL FUEL REFILL IN: §f" + timeStr + " §8| §a§lREADY"));
                 }
             }
-        }, 0L, 5L); // Thoda fast update (0.25s) taaki animation smooth lage
+        }, 0L, 10L); // Har 0.5 sec mein update taaki clock smooth chale
     }
             }
