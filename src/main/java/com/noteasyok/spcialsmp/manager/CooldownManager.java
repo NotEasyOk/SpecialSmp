@@ -8,7 +8,6 @@ import org.bukkit.ChatColor;
 import org.bukkit.Particle;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
-import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -93,7 +92,7 @@ public class CooldownManager {
                     // 2. CARD COOLDOWN OVER: Totem Effect play once
                     if (coolingDownPlayers.contains(p.getUniqueId())) {
                         coolingDownPlayers.remove(p.getUniqueId());
-                        p.getWorld().spawnParticle(Particle.TOTEM, p.getEyeLocation(), 40, 0.3, 0.3, 0.3, 0.5);
+                        p.getWorld().spawnParticle(Particle.TOTEM_OF_UNDYING, p.getEyeLocation(), 40, 0.3, 0.3, 0.3, 0.5);
                         p.playSound(p.getLocation(), Sound.ITEM_TOTEM_USE, 1.0f, 1.2f);
                     }
 
