@@ -10,6 +10,7 @@ import org.bukkit.boss.BarColor;
 import org.bukkit.boss.BarStyle;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;
+import org.bukkit.WorldBorder;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.EulerAngle;
@@ -43,7 +44,7 @@ public void leftClick(Player p) {
         if (activeStorm.contains(p.getUniqueId()) || !isCool(p, "ultimate_storm", 120)) return;
 
         activeStorm.add(p.getUniqueId());
-        Location center = p.getLocation().add(0, 12, 0); 
+        Location center = p.getLocation().add(0, 10, 0); 
         List<ArmorStand> bodyParts = new ArrayList<>();
         List<ArmorStand> tentacles = new ArrayList<>();
 
@@ -55,8 +56,19 @@ public void leftClick(Player p) {
         p.getWorld().setThundering(true);
         p.getWorld().setFullTime(18000);
 
-        // 2. SUMMON GIANT CORE (150+ Blocks for massive volume)
-        for (int i = 0; i < 150; i++) {
+         // 1. Pehle weather aur time set karo
+    p.getWorld().setStorm(true);
+    p.getWorld().setThundering(true);
+    p.getWorld().setFullTime(18000);
+
+    // 2. Red Sky logic (Bina player ko maare)
+    org.bukkit.WorldBorder border = p.getWorld().getWorldBorder();
+    border.setCenter(p.getLocation()); // Center player par rakho
+    border.setSize(5000000); // Size 50 lakh blocks (taki koi takraye nahi)
+    border.setWarningDistance(Integer.MAX_VALUE); // Full red sky effect
+
+        // 2. SUMMON GIANT CORE (300+ Blocks for massive volume)
+        for (int i = 0; i < 300; i++) {
             ArmorStand part = (ArmorStand) center.getWorld().spawnEntity(
                 center.clone().add(Math.random()*20-10, Math.random()*15-7.5, Math.random()*20-10), 
                 EntityType.ARMOR_STAND
@@ -108,6 +120,7 @@ public void leftClick(Player p) {
                     for(Wither h : heads) h.remove();
                     bossBar.removeAll();
                     activeStorm.remove(p.getUniqueId());
+                    p.getWorld().getWorldBorder().setWarningDistance(0);
                     this.cancel();
                     return;
                 }
