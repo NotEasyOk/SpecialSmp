@@ -138,7 +138,7 @@ public class UltimateCard extends BaseCard implements Listener {
                                 Vector skullDir = target.getLocation().toVector().subtract(h.getEyeLocation().toVector()).normalize();
                                 WitherSkull skull = h.launchProjectile(WitherSkull.class, skullDir);
                                 skull.setYield(8.0F); // Big Explosion
-                                skull.setIsCharged(true); // Blue Skull
+                                skull.setCharged(true); // Blue Skull
                                 break;
                             }
                         }
