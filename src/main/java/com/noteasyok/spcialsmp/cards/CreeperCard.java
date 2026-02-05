@@ -5,6 +5,11 @@ import org.bukkit.*;
 import org.bukkit.entity.Player;
 import org.bukkit.Material;
 import org.bukkit.entity.TNTPrimed;
+import org.bukkit.entity.BlockDisplay;
+import org.bukkit.util.Transformation;
+import org.joml.Matrix4f;
+import org.joml.Vector3f;
+import org.joml.Quaternionf;
 import org.bukkit.util.RayTraceResult;
 import org.bukkit.util.Vector;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -63,27 +68,51 @@ public class CreeperCard extends BaseCard {
         Location spawn = hit.clone().add(0, 35, 0);
 
         TNTPrimed tnt = w.spawn(spawn, TNTPrimed.class);
+
+         org.bukkit.entity.BlockDisplay display = w.spawn(spawn, org.bukkit.entity.BlockDisplay.class);
+    display.setBlock(org.bukkit.Material.TNT.createBlockData());
+    
+    // Transformation matrix se size bada hoga
+    org.joml.Matrix4f matrix = new org.joml.Matrix4f().scale(5.0f); // 5.0f matlab 5 guna bada
+    display.setTransformation(new org.bukkit.util.Transformation(
+        new org.joml.Vector3f(-2.5f, 0, -2.5f), // Center alignment
+        new org.joml.Quaternionf(), 
+        new org.joml.Vector3f(5.0f, 5.0f, 5.0f), // X, Y, Z Size
+        new org.joml.Quaternionf()
+    ));
+        
         tnt.setVelocity(new Vector(0, -2.5, 0));
         tnt.setFuseTicks(200);
         tnt.setYield(10f);
         tnt.setIsIncendiary(false);
 
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                if (!tnt.isValid() || tnt.isDead()) {
-                    this.cancel();
-                    return;
-                }
+        @Override
+    public void run() {
+        // 1. Agar TNT gayab ho jaye (Cleanup)
+        if (!tnt.isValid() || tnt.isDead()) {
+            display.remove();
+            this.cancel();
+            return;
+        }
+
+        // 2. Zameen touch hone par phatne ka logic
+        if (tnt.isOnGround() || tnt.getLocation().getY() <= hit.getY() + 1.2) {
+            Location loc = tnt.getLocation();
+            display.remove(); // Bada TNT hatao
+            tnt.remove(); // Chota TNT hatao
+            
+            // Blast power 25 taaki bada dhamaka ho
+            loc.getWorld().createExplosion(loc, 25f, true, true, p);
+            this.cancel();
+            return;
+        }
+
+        // 3. Jab tak hawa mein hai, bada block follow karega
+        display.teleport(tnt.getLocation().add(-2.5, 0, -2.5));
+            }
 
                 // Yellow trail effect
                 w.spawnParticle(Particle.FLAME, tnt.getLocation(), 5, 0.1, 0.1, 0.1, 0.05);
-                
-                if (tnt.isOnGround() || tnt.getLocation().getY() <= hit.getY() + 0.5) {
-                    Location l = tnt.getLocation();
-                    tnt.remove();
-                    w.createExplosion(l, 10f, true, true, p);
-                    this.cancel();
                 }
             }
         }.runTaskTimer(SpcialSmp.get(), 0L, 1L);
