@@ -13,11 +13,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 public class CooldownManager {
 
@@ -73,7 +69,6 @@ public class CooldownManager {
                 String cardId = item.getItemMeta().getPersistentDataContainer().get(cardKey, PersistentDataType.STRING);
                 if (cardId == null) continue;
 
-                // Cooldowns check
                 long leftCD = getRemainingSeconds(p, cardId, "left");
                 long rightCD = getRemainingSeconds(p, cardId, "right");
                 long shiftCD = getRemainingSeconds(p, cardId, "shift_right");
@@ -81,37 +76,41 @@ public class CooldownManager {
                 long maxCD = Math.max(leftCD, Math.max(rightCD, shiftCD));
 
                 if (maxCD > 0) {
-                    // 1. CARD COOLDOWN ACTIVE: Soul Fuel display OFF
+                    // 1. CARD COOLDOWN: Soul Fuel Hide
                     coolingDownPlayers.add(p.getUniqueId());
-
                     String bar = "§8[§f||||||§8]"; 
                     String message = "§6§l" + cardId + " " + bar + " §c" + maxCD + "s";
                     p.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(message));
                 
                 } else {
-                    // 2. CARD COOLDOWN OVER: Totem Effect play once
+                    // 2. READY: Play Totem Once
                     if (coolingDownPlayers.contains(p.getUniqueId())) {
                         coolingDownPlayers.remove(p.getUniqueId());
                         p.getWorld().spawnParticle(Particle.TOTEM_OF_UNDYING, p.getEyeLocation(), 40, 0.3, 0.3, 0.3, 0.5);
                         p.playSound(p.getLocation(), Sound.ITEM_TOTEM_USE, 1.0f, 1.2f);
                     }
 
-                    // 3. SOUL FUEL DISPLAY ON: 23h 59m Real-Life Time Logic
-                    long now = System.currentTimeMillis();
-                    long dayMillis = 24 * 60 * 60 * 1000L; 
-                    long remainingMillis = dayMillis - (now % dayMillis);
-
-                    long hours = (remainingMillis / 3600000) % 24;
-                    long minutes = (remainingMillis / 60000) % 60;
-                    long seconds = (remainingMillis / 1000) % 60;
-
-                    String timeStr = String.format("%02dh %02dm %02ds", hours, minutes, seconds);
+                    // 3. SOUL FUEL: Real-Life 23h 59m Logic
+                    Calendar c = Calendar.getInstance();
+                    long now = c.getTimeInMillis();
                     
-                    // Display Soul Fuel Refill Timer
+                    c.set(Calendar.HOUR_OF_DAY, 23);
+                    c.set(Calendar.MINUTE, 59);
+                    c.set(Calendar.SECOND, 59);
+                    
+                    long diff = c.getTimeInMillis() - now;
+                    if (diff < 0) diff = 0;
+
+                    long h = (diff / 3600000) % 24;
+                    long m = (diff / 60000) % 60;
+                    long s = (diff / 1000) % 60;
+
+                    String timeStr = String.format("%02dh %02dm %02ds", h, m, s);
+                    
                     p.spigot().sendMessage(ChatMessageType.ACTION_BAR, 
-                        new TextComponent("§b§lSOUL FUEL REFILL IN: §f" + timeStr + " §8| §a§lREADY"));
+                        new TextComponent("§b§lSOUL FUEL: §f" + timeStr + " §8| §a§lREADY"));
                 }
             }
-        }, 0L, 10L); // Har 0.5 sec mein update taaki clock smooth chale
+        }, 0L, 10L); 
     }
-            }
+                         }
