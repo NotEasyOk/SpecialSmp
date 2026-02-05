@@ -2,11 +2,7 @@ package com.noteasyok.spcialsmp.listener;
 
 import com.noteasyok.spcialsmp.SpcialSmp;
 import com.noteasyok.spcialsmp.cards.BaseCard;
-import com.noteasyok.spcialsmp.cards.UltimateCard;
 import com.noteasyok.spcialsmp.manager.CooldownManager;
-import net.md_5.bungee.api.ChatMessageType;
-import net.md_5.bungee.api.chat.TextComponent;
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
@@ -19,20 +15,13 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 
 import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class CardUseListener implements Listener {
 
     private final Map<String, BaseCard> cards;
-    private final Map<String, Integer> actionBarTasks = new ConcurrentHashMap<>();
 
     public CardUseListener(Map<String, BaseCard> cards) {
         this.cards = cards;
-    }
-
-    private String taskKey(UUID uuid, String card, String action) {
-        return uuid.toString() + ":" + card + ":" + action;
     }
 
     @EventHandler(priority = EventPriority.LOW)
@@ -68,8 +57,10 @@ public class CardUseListener implements Listener {
             return;
         }
 
+        // Agar cooldown hai toh yahan se return ho jayega
+        // Display ab CooldownManager ka task handle karega
         if (!cd.canUse(p, cardID, actionKey)) {
-            return; // Action bar niche wale task se handle hogi
+            return; 
         }
 
         switch (actionKey) {
@@ -79,43 +70,6 @@ public class CardUseListener implements Listener {
         }
 
         cd.applyCooldown(p, cardID, actionKey);
-        startActionBarCountdown(p, cardID, actionKey, cd);
+        // startActionBarCountdown yahan se hata diya gaya hai taaki flickering na ho
     }
-
-    private void startActionBarCountdown(Player p, String cardID, String actionKey, CooldownManager cd) {
-        String tk = taskKey(p.getUniqueId(), cardID, actionKey);
-        
-        if (actionBarTasks.containsKey(tk)) {
-            Bukkit.getScheduler().cancelTask(actionBarTasks.remove(tk));
         }
-
-        int taskId = Bukkit.getScheduler().runTaskTimer(SpcialSmp.get(), () -> {
-            if (!p.isOnline()) {
-                actionBarTasks.remove(tk);
-                return;
-            }
-            
-            long left = cd.getRemainingSeconds(p, cardID, actionKey);
-            
-            if (left <= 0) {
-                // Jab cooldown khatam ho, green message dikhao (Iske baad FuelManager automatically bar wapas le aayega)
-                p.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent("§a§l✔ §f" + cardID + " §a§lREADY!"));
-                
-                // Task ko cancel karna taaki Soul Fuel display wapas chalu ho sake
-                int tid = actionBarTasks.remove(tk);
-                Bukkit.getScheduler().cancelTask(tid);
-                return;
-            }
-
-            // --- DESIGN FIX: CARD NAME [||||||] TIME ---
-            // Jab tak yeh message send hoga, FuelManager ka task overwrite hota rahega (Hide Fuel)
-            String bar = "§8[§f||||||§8]"; 
-            String message = "§6§l" + cardID + " §e" + bar + " §c" + left + "s";
-            
-            p.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(message));
-
-        }, 0L, 20L).getTaskId();
-
-        actionBarTasks.put(tk, taskId);
-                                          }
-   }
