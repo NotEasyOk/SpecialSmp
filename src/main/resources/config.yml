@@ -1,9 +1,23 @@
 # ======================================================
 #          SPECIAL SMP - OFFICIAL CONFIGURATION
 # ======================================================
+              Author: NotEasyOk
 settings:
   prefix: "&8[&6&lSpecialSMP&8] &r"
   first-join-give-card: true
+  
+  # --- SOUL FUEL SYSTEM SETTINGS ---
+  # Initial fuel for new players (86399 = 23h 59m 59s)
+  default-soul-fuel: 86399
+  # Ban reason and kick notification
+  soul-fuel-ban-reason: "Terminated: Soul Fuel Exhausted"
+  soul-fuel-kick-message: "&c&lSOUL DEPLETED! \n\n&7Your existence has reached its limit."
+
+  # --- ACTION BAR DISPLAY SETTINGS ---
+  # Display Soul Fuel when no card is equipped
+  show-fuel-by-default: true
+  # Action Bar formatting
+  soul-fuel-display-format: "&b&lSOUL FUEL: &f%time%"
 
 cooldowns:
   "Enderman Card":
@@ -47,16 +61,16 @@ cooldowns:
     right: 120
     shift_right: 300
 
-# Extra settings needed by some cards
+# Advanced configuration for specific cards
 settings-extra:
   zombie:
     max-zombies: 2
     duration: 60
 
 messages:
-  no-permission: "&cYou do not have permission to use this!"
-  cooldown-active: "&cPlease wait &e%time%s &cbefore using this again."
-  card-received: "&aYou received a &6%card%&a!"
+  no-permission: "&cInsufficient permissions to execute this action!"
+  cooldown-active: "&cCooldown active. Please wait &e%time%s&c."
+  card-received: "&aSuccessfully received: &6%card%&a."
 
 allowed-first-join-cards:
   - "Enderman Card"
