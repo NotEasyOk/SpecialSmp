@@ -12,7 +12,8 @@ import java.util.UUID;
 public class FuelManager {
 
     private static final HashMap<UUID, Integer> fuelCache = new HashMap<>();
-    private static final int DEFAULT_FUEL = 86340; 
+    // Default: 23h 59m 59s (Lagbhag 24 ghante)
+    private static final int DEFAULT_FUEL = 86399; 
 
     public static void startFuelTask() {
         new BukkitRunnable() {
@@ -33,9 +34,10 @@ public class FuelManager {
             int savedFuel = SpcialSmp.get().getPlayerDataManager().getFuel(uid);
             long lastLogout = SpcialSmp.get().getPlayerDataManager().getLastLogout(uid);
             
-            if (savedFuel <= 0 && lastLogout == 0) {
+            // FIX: Naya player join kare toh hamesha 23h 59m mile
+            if (lastLogout == 0) {
                 savedFuel = DEFAULT_FUEL;
-            } else if (lastLogout > 0) {
+            } else {
                 long secondsPassed = currentTime - lastLogout;
                 savedFuel = (int) (savedFuel - secondsPassed);
             }
@@ -52,6 +54,7 @@ public class FuelManager {
                 saveToDatabase(uid, currentFuel, currentTime);
             }
         } else {
+            // Fuel khatam logic (Ban)
             Bukkit.getScheduler().runTask(SpcialSmp.get(), () -> {
                 p.kickPlayer("§c§lSOUL DEAD! \n\n§7Aapka waqt khatam ho gaya.");
                 Bukkit.getBanList(org.bukkit.BanList.Type.NAME).addBan(p.getName(), "§cSoul Fuel Empty", null, "Console");
@@ -76,9 +79,7 @@ public class FuelManager {
         return fuelCache.getOrDefault(p.getUniqueId(), 0);
     }
 
-    // --- ERROR FIX: Method Overloading ---
-    
-    // Ye method 'long' handle karega jo CardsCommand bhej raha hai
+    // --- FIX: Ye long handle karega taaki CardsCommand error na de ---
     public static void setFuel(Player p, long totalSeconds) {
         setFuel(p, (int) totalSeconds);
     }
@@ -96,4 +97,4 @@ public class FuelManager {
         fuelCache.put(p.getUniqueId(), newFuel);
         saveToDatabase(p.getUniqueId(), newFuel, System.currentTimeMillis() / 1000);
     }
-    }
+                                                                       }
