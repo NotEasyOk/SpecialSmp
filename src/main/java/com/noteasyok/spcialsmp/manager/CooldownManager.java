@@ -89,6 +89,11 @@ private void startDisplayTask() {
                     p.playSound(p.getLocation(), Sound.ITEM_TOTEM_USE, 1.0f, 1.2f);
                 }
             } else {
+                // ADDED: Check if Soul Fuel System is enabled in config
+                if (!FuelManager.isSystemEnabled()) {
+                    continue; // System OFF hai toh Action Bar par kuch nahi dikhega
+                }
+
                 // CARD HAATH MEIN NAHI HAI: Soul Fuel dikhao (23h 59m Logic)
                 long dayMillis = 24 * 60 * 60 * 1000L; 
                 long remainingMillis = dayMillis - (System.currentTimeMillis() % dayMillis);
@@ -98,9 +103,13 @@ private void startDisplayTask() {
                 long s = (remainingMillis / 1000) % 60;
 
                 String timeStr = String.format("%02dh %02dm %02ds", h, m, s);
-                p.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent("§b§lSOUL FUEL: §f" + timeStr));
+                
+                // ADDED: Use professional format from config
+                String format = plugin.getConfig().getString("settings.display.fuel-format", "&b&lSOUL FUEL: &f%time%");
+                String finalMessage = ChatColor.translateAlternateColorCodes('&', format.replace("%time%", timeStr));
+                
+                p.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(finalMessage));
             }
         }
     }, 0L, 20L); 
- }
-   }
+    }
