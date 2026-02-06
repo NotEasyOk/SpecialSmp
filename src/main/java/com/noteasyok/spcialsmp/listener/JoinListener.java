@@ -23,19 +23,22 @@ public class JoinListener implements Listener {
         Player p = e.getPlayer();
         var dataManager = SpcialSmp.get().getPlayerDataManager();
 
-        // 1. Fuel Logic (Only for new players)
-        if (!p.hasPlayedBefore()) {
+        // 1. Fuel Logic (Only if System is ENABLED)
+        if (!p.hasPlayedBefore() && FuelManager.isSystemEnabled()) {
             FuelManager.setFuel(p, 1440); // 24 Hours initial fuel
         }
 
         // 2. Storm Cleanup (Important!)
-        p.setAllowFlight(false); // Disable fly on join for safety
+        p.setAllowFlight(false); 
         p.setFlying(false);
-        p.getWorld().getWorldBorder().setWarningDistance(0); // Remove Red Sky if stuck
+        p.getWorld().getWorldBorder().setWarningDistance(0); 
 
-        // 3. Task Logic (Fixed duplicate check)
+        // 3. Task Logic (Only if System is ENABLED)
         Bukkit.getScheduler().runTaskLater(SpcialSmp.get(), () -> {
             if (!p.isOnline()) return;
+            
+            // FIX: Check if system is ON before giving Task Book
+            if (!FuelManager.isSystemEnabled()) return;
 
             NamespacedKey key = new NamespacedKey(SpcialSmp.get(), "daily_task_day");
             long currentDay = System.currentTimeMillis() / 86400000L; 
