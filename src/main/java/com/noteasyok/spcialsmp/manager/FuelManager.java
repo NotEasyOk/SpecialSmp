@@ -12,7 +12,6 @@ import java.util.UUID;
 public class FuelManager {
 
     private static final HashMap<UUID, Integer> fuelCache = new HashMap<>();
-    // Default: 23h 59m 59s (Lagbhag 24 ghante)
     private static final int DEFAULT_FUEL = 86399; 
 
     public static void startFuelTask() {
@@ -34,7 +33,6 @@ public class FuelManager {
             int savedFuel = SpcialSmp.get().getPlayerDataManager().getFuel(uid);
             long lastLogout = SpcialSmp.get().getPlayerDataManager().getLastLogout(uid);
             
-            // FIX: Naya player join kare toh hamesha 23h 59m mile
             if (lastLogout == 0) {
                 savedFuel = DEFAULT_FUEL;
             } else {
@@ -54,7 +52,6 @@ public class FuelManager {
                 saveToDatabase(uid, currentFuel, currentTime);
             }
         } else {
-            // Fuel khatam logic (Ban)
             Bukkit.getScheduler().runTask(SpcialSmp.get(), () -> {
                 p.kickPlayer("§c§lSOUL DEAD! \n\n§7Aapka waqt khatam ho gaya.");
                 Bukkit.getBanList(org.bukkit.BanList.Type.NAME).addBan(p.getName(), "§cSoul Fuel Empty", null, "Console");
@@ -79,22 +76,22 @@ public class FuelManager {
         return fuelCache.getOrDefault(p.getUniqueId(), 0);
     }
 
-    // --- FIX: Ye long handle karega taaki CardsCommand error na de ---
     public static void setFuel(Player p, long totalSeconds) {
         setFuel(p, (int) totalSeconds);
     }
 
     public static void setFuel(Player p, int totalSeconds) {
+        // FIX: Turant cache mein update taaki withdraw ke baad time cut dikhe
         fuelCache.put(p.getUniqueId(), totalSeconds);
         saveToDatabase(p.getUniqueId(), totalSeconds, System.currentTimeMillis() / 1000);
     }
 
     public static void addFuel(Player p, int hours) {
         int secondsToAdd = hours * 3600;
-        int current = fuelCache.getOrDefault(p.getUniqueId(), 0);
+        int current = getFuel(p); // Cache se current fuel uthaya
         int newFuel = Math.min(current + secondsToAdd, 86400 * 7); 
         
-        fuelCache.put(p.getUniqueId(), newFuel);
-        saveToDatabase(p.getUniqueId(), newFuel, System.currentTimeMillis() / 1000);
+        // FIX: setFuel use kiya taaki cache aur database dono ek saath update hon
+        setFuel(p, newFuel);
     }
-                                                                       }
+                }
