@@ -12,7 +12,6 @@ import java.util.UUID;
 public class FuelManager {
 
     private static final HashMap<UUID, Integer> fuelCache = new HashMap<>();
-    // Default: 23h 59m (86340 seconds)
     private static final int DEFAULT_FUEL = 86340; 
 
     public static void startFuelTask() {
@@ -23,14 +22,13 @@ public class FuelManager {
                     updateFuel(p);
                 }
             }
-        }.runTaskTimer(SpcialSmp.get(), 0L, 20L); // Har 1 second mein fuel kam hoga
+        }.runTaskTimer(SpcialSmp.get(), 0L, 20L);
     }
 
     private static void updateFuel(Player p) {
         UUID uid = p.getUniqueId();
         long currentTime = System.currentTimeMillis() / 1000;
         
-        // --- OFFLINE DRAIN LOGIC ---
         if (!fuelCache.containsKey(uid)) {
             int savedFuel = SpcialSmp.get().getPlayerDataManager().getFuel(uid);
             long lastLogout = SpcialSmp.get().getPlayerDataManager().getLastLogout(uid);
@@ -50,12 +48,10 @@ public class FuelManager {
             currentFuel--;
             fuelCache.put(uid, currentFuel);
             
-            // Database mein save har 60 seconds mein (Better for Performance)
             if (currentFuel % 60 == 0) {
                 saveToDatabase(uid, currentFuel, currentTime);
             }
         } else {
-            // Fuel khatam logic
             Bukkit.getScheduler().runTask(SpcialSmp.get(), () -> {
                 p.kickPlayer("§c§lSOUL DEAD! \n\n§7Aapka waqt khatam ho gaya.");
                 Bukkit.getBanList(org.bukkit.BanList.Type.NAME).addBan(p.getName(), "§cSoul Fuel Empty", null, "Console");
@@ -63,7 +59,6 @@ public class FuelManager {
             return;
         }
 
-        // WARNING AT 1 HOUR
         if (currentFuel == 3600) { 
             p.playSound(p.getLocation(), Sound.ENTITY_ENDER_DRAGON_GROWL, 1f, 1f);
             p.sendTitle("§c§lWARNING!", "§eOnly 1 Hour Left!", 10, 70, 20);
@@ -81,6 +76,13 @@ public class FuelManager {
         return fuelCache.getOrDefault(p.getUniqueId(), 0);
     }
 
+    // --- ERROR FIX: Method Overloading ---
+    
+    // Ye method 'long' handle karega jo CardsCommand bhej raha hai
+    public static void setFuel(Player p, long totalSeconds) {
+        setFuel(p, (int) totalSeconds);
+    }
+
     public static void setFuel(Player p, int totalSeconds) {
         fuelCache.put(p.getUniqueId(), totalSeconds);
         saveToDatabase(p.getUniqueId(), totalSeconds, System.currentTimeMillis() / 1000);
@@ -94,4 +96,4 @@ public class FuelManager {
         fuelCache.put(p.getUniqueId(), newFuel);
         saveToDatabase(p.getUniqueId(), newFuel, System.currentTimeMillis() / 1000);
     }
-            }
+    }
