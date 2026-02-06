@@ -63,6 +63,7 @@ public class CooldownManager {
             for (Player p : Bukkit.getOnlinePlayers()) {
                 ItemStack item = p.getInventory().getItemInMainHand();
                 
+                // Agar card haath mein nahi hai toh display nahi dikhega
                 if (item == null || item.getType() == Material.AIR || !item.hasItemMeta()) continue;
                 
                 NamespacedKey cardKey = new NamespacedKey(plugin, "card_id");
@@ -83,34 +84,28 @@ public class CooldownManager {
                     p.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(message));
                 
                 } else {
-                    // 2. READY: Play Totem Once
+                    // 2. READY: Totem Effect aur Sound chalega jab cooldown khatam ho
                     if (coolingDownPlayers.contains(p.getUniqueId())) {
                         coolingDownPlayers.remove(p.getUniqueId());
                         p.getWorld().spawnParticle(Particle.TOTEM_OF_UNDYING, p.getEyeLocation(), 40, 0.3, 0.3, 0.3, 0.5);
                         p.playSound(p.getLocation(), Sound.ITEM_TOTEM_USE, 1.0f, 1.2f);
                     }
 
-                    // 3. SOUL FUEL: Real-Life 23h 59m Logic
-                    Calendar c = Calendar.getInstance();
-                    long now = c.getTimeInMillis();
-                    
-                    c.set(Calendar.HOUR_OF_DAY, 23);
-                    c.set(Calendar.MINUTE, 59);
-                    c.set(Calendar.SECOND, 59);
-                    
-                    long diff = c.getTimeInMillis() - now;
-                    if (diff < 0) diff = 0;
+                    // 3. SOUL FUEL: Fixed 23h 59m Logic (Ready text hat gaya)
+                    long dayMillis = 24 * 60 * 60 * 1000L; 
+                    long remainingMillis = dayMillis - (System.currentTimeMillis() % dayMillis);
 
-                    long h = (diff / 3600000) % 24;
-                    long m = (diff / 60000) % 60;
-                    long s = (diff / 1000) % 60;
+                    long hours = (remainingMillis / 3600000) % 24;
+                    long minutes = (remainingMillis / 60000) % 60;
+                    long seconds = (remainingMillis / 1000) % 60;
 
-                    String timeStr = String.format("%02dh %02dm %02ds", h, m, s);
+                    String timeStr = String.format("%02dh %02dm %02ds", hours, minutes, seconds);
                     
+                    // Yahan se READY hat gaya hai
                     p.spigot().sendMessage(ChatMessageType.ACTION_BAR, 
-                        new TextComponent("§b§lSOUL FUEL: §f" + timeStr + " §8| §a§lREADY"));
+                        new TextComponent("§b§lSOUL FUEL: §f" + timeStr));
                 }
             }
         }, 0L, 10L); 
     }
-                         }
+    }
