@@ -56,56 +56,50 @@ public class CooldownManager {
         if (t == null) return 0;
         return Math.max(0, (t - System.currentTimeMillis()) / 1000);
     }
-
-    /* ================= ACTION BAR DISPLAY LOGIC ================= */
-    private void startDisplayTask() {
-        Bukkit.getScheduler().runTaskTimer(plugin, () -> {
-            for (Player p : Bukkit.getOnlinePlayers()) {
-                ItemStack item = p.getInventory().getItemInMainHand();
-                
-                // Agar card haath mein nahi hai toh display nahi dikhega
-                if (item == null || item.getType() == Material.AIR || !item.hasItemMeta()) continue;
-                
+/* ================= ACTION BAR DISPLAY LOGIC ================= */
+private void startDisplayTask() {
+    Bukkit.getScheduler().runTaskTimer(plugin, () -> {
+        for (Player p : Bukkit.getOnlinePlayers()) {
+            ItemStack item = p.getInventory().getItemInMainHand();
+            
+            // CHECK: Kya haath mein card hai?
+            boolean holdingCard = false;
+            String cardId = null;
+            if (item != null && item.getType() != Material.AIR && item.hasItemMeta()) {
                 NamespacedKey cardKey = new NamespacedKey(plugin, "card_id");
-                String cardId = item.getItemMeta().getPersistentDataContainer().get(cardKey, PersistentDataType.STRING);
-                if (cardId == null) continue;
+                cardId = item.getItemMeta().getPersistentDataContainer().get(cardKey, PersistentDataType.STRING);
+                if (cardId != null) holdingCard = true;
+            }
 
+            if (holdingCard) {
+                // CARD HAATH MEIN HAI: Soul Fuel HIDE karo, sirf Cooldown dikhao
                 long leftCD = getRemainingSeconds(p, cardId, "left");
                 long rightCD = getRemainingSeconds(p, cardId, "right");
                 long shiftCD = getRemainingSeconds(p, cardId, "shift_right");
-
                 long maxCD = Math.max(leftCD, Math.max(rightCD, shiftCD));
 
                 if (maxCD > 0) {
-                    // 1. CARD COOLDOWN: Soul Fuel Hide
                     coolingDownPlayers.add(p.getUniqueId());
-                    String bar = "§8[§f||||||§8]"; 
-                    String message = "§6§l" + cardId + " " + bar + " §c" + maxCD + "s";
+                    String message = "§6§l" + cardId + " §8[§f||||||§8] §c" + maxCD + "s";
                     p.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(message));
-                
-                } else {
-                    // 2. READY: Totem Effect aur Sound chalega jab cooldown khatam ho
-                    if (coolingDownPlayers.contains(p.getUniqueId())) {
-                        coolingDownPlayers.remove(p.getUniqueId());
-                        p.getWorld().spawnParticle(Particle.TOTEM_OF_UNDYING, p.getEyeLocation(), 40, 0.3, 0.3, 0.3, 0.5);
-                        p.playSound(p.getLocation(), Sound.ITEM_TOTEM_USE, 1.0f, 1.2f);
-                    }
-
-                    // 3. SOUL FUEL: Fixed 23h 59m Logic (Ready text hat gaya)
-                    long dayMillis = 24 * 60 * 60 * 1000L; 
-                    long remainingMillis = dayMillis - (System.currentTimeMillis() % dayMillis);
-
-                    long hours = (remainingMillis / 3600000) % 24;
-                    long minutes = (remainingMillis / 60000) % 60;
-                    long seconds = (remainingMillis / 1000) % 60;
-
-                    String timeStr = String.format("%02dh %02dm %02ds", hours, minutes, seconds);
-                    
-                    // Yahan se READY hat gaya hai
-                    p.spigot().sendMessage(ChatMessageType.ACTION_BAR, 
-                        new TextComponent("§b§lSOUL FUEL: §f" + timeStr));
+                } else if (coolingDownPlayers.contains(p.getUniqueId())) {
+                    // Just Ready Effect
+                    coolingDownPlayers.remove(p.getUniqueId());
+                    p.getWorld().spawnParticle(Particle.TOTEM_OF_UNDYING, p.getEyeLocation(), 40, 0.3, 0.3, 0.3, 0.5);
+                    p.playSound(p.getLocation(), Sound.ITEM_TOTEM_USE, 1.0f, 1.2f);
                 }
+            } else {
+                // CARD HAATH MEIN NAHI HAI: Soul Fuel dikhao (23h 59m Logic)
+                long dayMillis = 24 * 60 * 60 * 1000L; 
+                long remainingMillis = dayMillis - (System.currentTimeMillis() % dayMillis);
+
+                long h = (remainingMillis / 3600000) % 24;
+                long m = (remainingMillis / 60000) % 60;
+                long s = (remainingMillis / 1000) % 60;
+
+                String timeStr = String.format("%02dh %02dm %02ds", h, m, s);
+                p.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent("§b§lSOUL FUEL: §f" + timeStr));
             }
-        }, 0L, 10L); 
-    }
-    }
+        }
+    }, 0L, 20L); 
+            }
