@@ -33,6 +33,11 @@ public class TaskManager {
     }
 
     public static void giveRandomTask(Player p) {
+
+      if (!FuelManager.isSystemEnabled()) {
+        return; 
+      }
+        
         TaskType[] tasks = TaskType.values();
         TaskType randomTask = tasks[new Random().nextInt(tasks.length)];
 
