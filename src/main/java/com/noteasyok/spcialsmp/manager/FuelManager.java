@@ -14,10 +14,18 @@ public class FuelManager {
     private static final HashMap<UUID, Integer> fuelCache = new HashMap<>();
     private static final int DEFAULT_FUEL = 86399; 
 
+    // Method to check if Life System is enabled in config
+    public static boolean isSystemEnabled() {
+        return SpcialSmp.get().getConfig().getBoolean("settings.soul-fuel.enabled", true);
+    }
+
     public static void startFuelTask() {
         new BukkitRunnable() {
             @Override
             public void run() {
+                // If system is OFF, don't run the fuel countdown
+                if (!isSystemEnabled()) return;
+
                 for (Player p : Bukkit.getOnlinePlayers()) {
                     updateFuel(p);
                 }
@@ -52,10 +60,14 @@ public class FuelManager {
                 saveToDatabase(uid, currentFuel, currentTime);
             }
         } else {
-            Bukkit.getScheduler().runTask(SpcialSmp.get(), () -> {
-                p.kickPlayer("§c§lSOUL DEAD! \n\n§7Aapka waqt khatam ho gaya.");
-                Bukkit.getBanList(org.bukkit.BanList.Type.NAME).addBan(p.getName(), "§cSoul Fuel Empty", null, "Console");
-            });
+            // Check if Ban feature is enabled
+            boolean banEnabled = SpcialSmp.get().getConfig().getBoolean("settings.soul-fuel.enable-ban", true);
+            if (banEnabled) {
+                Bukkit.getScheduler().runTask(SpcialSmp.get(), () -> {
+                    p.kickPlayer("§c§lSOUL DEAD! \n\n§7Your existence has reached its limit.");
+                    Bukkit.getBanList(org.bukkit.BanList.Type.NAME).addBan(p.getName(), "§cSoul Fuel Empty", null, "Console");
+                });
+            }
             return;
         }
 
@@ -81,17 +93,23 @@ public class FuelManager {
     }
 
     public static void setFuel(Player p, int totalSeconds) {
-        // FIX: Turant cache mein update taaki withdraw ke baad time cut dikhe
+        // Block withdrawal if system is OFF
+        if (!isSystemEnabled()) {
+            p.sendMessage("§cLife System is currently disabled!");
+            return;
+        }
         fuelCache.put(p.getUniqueId(), totalSeconds);
         saveToDatabase(p.getUniqueId(), totalSeconds, System.currentTimeMillis() / 1000);
     }
 
     public static void addFuel(Player p, int hours) {
+        // Block adding fuel if system is OFF
+        if (!isSystemEnabled()) return;
+
         int secondsToAdd = hours * 3600;
-        int current = getFuel(p); // Cache se current fuel uthaya
+        int current = getFuel(p); 
         int newFuel = Math.min(current + secondsToAdd, 86400 * 7); 
         
-        // FIX: setFuel use kiya taaki cache aur database dono ek saath update hon
         setFuel(p, newFuel);
     }
-                }
+                                              }
