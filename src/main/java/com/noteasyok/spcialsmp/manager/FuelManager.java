@@ -5,6 +5,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.metadata.FixedMetadataValue;
 
 import java.util.HashMap;
 import java.util.UUID;
@@ -14,7 +15,6 @@ public class FuelManager {
     private static final HashMap<UUID, Integer> fuelCache = new HashMap<>();
     private static final int DEFAULT_FUEL = 86399; 
 
-    // Method to check if Life System is enabled in config
     public static boolean isSystemEnabled() {
         return SpcialSmp.get().getConfig().getBoolean("settings.soul-fuel.enabled", true);
     }
@@ -23,9 +23,7 @@ public class FuelManager {
         new BukkitRunnable() {
             @Override
             public void run() {
-                // If system is OFF, don't run the fuel countdown
                 if (!isSystemEnabled()) return;
-
                 for (Player p : Bukkit.getOnlinePlayers()) {
                     updateFuel(p);
                 }
@@ -34,19 +32,15 @@ public class FuelManager {
     }
 
     private static void updateFuel(Player p) {
+        // FIX: Ultimate Card freeze check
+        if (p.hasMetadata("time_frozen")) return;
+
         UUID uid = p.getUniqueId();
         long currentTime = System.currentTimeMillis() / 1000;
         
         if (!fuelCache.containsKey(uid)) {
             int savedFuel = SpcialSmp.get().getPlayerDataManager().getFuel(uid);
-            long lastLogout = SpcialSmp.get().getPlayerDataManager().getLastLogout(uid);
-            
-            if (lastLogout == 0) {
-                savedFuel = DEFAULT_FUEL;
-            } else {
-                long secondsPassed = currentTime - lastLogout;
-                savedFuel = (int) (savedFuel - secondsPassed);
-            }
+            // FIX: Player join par time resume nahi hoga
             fuelCache.put(uid, Math.max(savedFuel, 0));
         }
 
@@ -60,7 +54,6 @@ public class FuelManager {
                 saveToDatabase(uid, currentFuel, currentTime);
             }
         } else {
-            // Check if Ban feature is enabled
             boolean banEnabled = SpcialSmp.get().getConfig().getBoolean("settings.soul-fuel.enable-ban", true);
             if (banEnabled) {
                 Bukkit.getScheduler().runTask(SpcialSmp.get(), () -> {
@@ -93,23 +86,20 @@ public class FuelManager {
     }
 
     public static void setFuel(Player p, int totalSeconds) {
-        // Block withdrawal if system is OFF
         if (!isSystemEnabled()) {
             p.sendMessage("§cLife System is currently disabled!");
             return;
         }
+        // FIX: Cache and Database both update for withdraw
         fuelCache.put(p.getUniqueId(), totalSeconds);
         saveToDatabase(p.getUniqueId(), totalSeconds, System.currentTimeMillis() / 1000);
     }
 
     public static void addFuel(Player p, int hours) {
-        // Block adding fuel if system is OFF
         if (!isSystemEnabled()) return;
-
         int secondsToAdd = hours * 3600;
         int current = getFuel(p); 
         int newFuel = Math.min(current + secondsToAdd, 86400 * 7); 
-        
         setFuel(p, newFuel);
     }
-                                              }
+    }
