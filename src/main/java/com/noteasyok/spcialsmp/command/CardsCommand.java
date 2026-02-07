@@ -69,11 +69,16 @@ public class CardsCommand implements CommandExecutor, TabCompleter, Listener {
             }
 
             long currentFuelSec = FuelManager.getFuel(p); 
-            if (currentFuelSec < secondsToWithdraw) {
-                p.sendMessage("§c§l[!] §7You don't have enough Soul Fuel!");
-                return true;
-            }
+if (currentFuelSec < secondsToWithdraw) {
+    p.sendMessage("§c§l[!] §7You don't have enough Soul Fuel!");
+    return true;
+}
 
+// FIXED: Is line se cache aur database dono turant update honge
+FuelManager.setFuel(p, (int) (currentFuelSec - secondsToWithdraw));
+
+// Fuel bottle dena
+p.getInventory().addItem(createFuelBottle(secondsToWithdraw, input));
             FuelManager.setFuel(p, currentFuelSec - secondsToWithdraw);
             p.getInventory().addItem(createFuelBottle(secondsToWithdraw, input));
             
