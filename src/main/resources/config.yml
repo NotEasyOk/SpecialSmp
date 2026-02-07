@@ -67,7 +67,7 @@ settings-extra:
     max-zombies: 2
     duration: 60
 
-    settings:
+settings:
   soul-fuel:
     enabled: true
     enable-ban: true
