@@ -7,6 +7,7 @@ import org.bukkit.entity.*;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.boss.BossBar;
 import org.bukkit.boss.BarColor;
+import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.boss.BarStyle;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;
