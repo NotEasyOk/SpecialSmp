@@ -53,6 +53,10 @@ public class CardsCommand implements CommandExecutor, TabCompleter, Listener {
             }
 
             String input = args[2].toLowerCase();
+            if (!FuelManager.isSystemEnabled()) {
+        sender.sendMessage("§c§lERROR §8» §7Life System disabled!");
+        return true;
+            }
             long secondsToWithdraw;
             try {
                 if (input.endsWith("h")) secondsToWithdraw = Long.parseLong(input.replace("h", "")) * 3600;
@@ -136,6 +140,10 @@ public class CardsCommand implements CommandExecutor, TabCompleter, Listener {
                 return true;
             }
             case "getbook" -> {
+                if (!FuelManager.isSystemEnabled()) {
+        sender.sendMessage("§c§lERROR §8» §7Life System disabled!");
+        return true;
+                }
                 if (args.length >= 2 && Bukkit.getPlayer(args[1]) != null) {
                     TaskManager.giveRandomTask(Bukkit.getPlayer(args[1]));
                     sender.sendMessage("§a§l✔ §fTask Book sent to §b" + args[1]);
