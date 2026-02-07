@@ -188,6 +188,7 @@ public class UltimateCard extends BaseCard implements Listener {
             timeStopped.put(p.getUniqueId(), isStopped);
             if (isStopped) {
                 p.sendMessage("§c§lTIME STOPPED");
+                p.setMetadata("time_frozen", new FixedMetadataValue(SpcialSmp.get(), true));
                 for (Entity ent : p.getNearbyEntities(30, 30, 30)) {
                     if (ent instanceof LivingEntity && !ent.equals(p)) {
                         ((LivingEntity) ent).addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 600, 255, false, false));
@@ -195,6 +196,7 @@ public class UltimateCard extends BaseCard implements Listener {
                 }
             } else {
                 p.sendMessage("§a§lTIME RESUMED");
+                p.removeMetadata("time_frozen", SpcialSmp.get());
                 for (Entity ent : p.getNearbyEntities(30, 30, 30)) {
                     if (ent instanceof LivingEntity) ((LivingEntity) ent).removePotionEffect(PotionEffectType.SLOWNESS);
                 }
