@@ -67,6 +67,13 @@ settings-extra:
     max-zombies: 2
     duration: 60
 
+    settings:
+  soul-fuel:
+    enabled: true
+    enable-ban: true
+  display:
+    fuel-format: "&b&lSOUL FUEL: &f%time%"
+
 messages:
   no-permission: "&cInsufficient permissions to execute this action!"
   cooldown-active: "&cCooldown active. Please wait &e%time%s&c."
