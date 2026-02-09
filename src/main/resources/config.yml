@@ -2,7 +2,7 @@
 #          SPECIAL SMP - OFFICIAL CONFIGURATION
 # ======================================================
               Author: NotEasyOk
-settings:
+
   prefix: "&8[&6&lSpecialSMP&8] &r"
   first-join-give-card: true
   
