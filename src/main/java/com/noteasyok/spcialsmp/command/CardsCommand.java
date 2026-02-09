@@ -28,7 +28,6 @@ import org.bukkit.util.StringUtil;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class CardsCommand implements CommandExecutor, TabCompleter, Listener {
 
@@ -52,34 +51,32 @@ public class CardsCommand implements CommandExecutor, TabCompleter, Listener {
                 return true;
             }
 
-            String input = args[2].toLowerCase();
             if (!FuelManager.isSystemEnabled()) {
-        sender.sendMessage("§c§lERROR §8» §7Life System disabled!");
-        return true;
+                p.sendMessage("§c§lERROR §8» §7Life System disabled!");
+                return true;
             }
+
+            String input = args[2].toLowerCase();
             long secondsToWithdraw;
             try {
+                // FIXED: Unit calculation logic
                 if (input.endsWith("h")) secondsToWithdraw = Long.parseLong(input.replace("h", "")) * 3600;
                 else if (input.endsWith("m")) secondsToWithdraw = Long.parseLong(input.replace("m", "")) * 60;
                 else if (input.endsWith("s")) secondsToWithdraw = Long.parseLong(input.replace("s", ""));
-                else secondsToWithdraw = Long.parseLong(input) * 3600; 
+                else secondsToWithdraw = Long.parseLong(input); // Removed automatic hour multiply
             } catch (NumberFormatException e) {
                 p.sendMessage("§c§l[!] §7Invalid format! Use 1h, 10m, or 30s.");
                 return true;
             }
 
-            long currentFuelSec = FuelManager.getFuel(p); 
-if (currentFuelSec < secondsToWithdraw) {
-    p.sendMessage("§c§l[!] §7You don't have enough Soul Fuel!");
-    return true;
-}
+            int currentFuelSec = FuelManager.getFuel(p); 
+            if (currentFuelSec < secondsToWithdraw) {
+                p.sendMessage("§c§l[!] §7You don't have enough Soul Fuel!");
+                return true;
+            }
 
-// FIXED: Is line se cache aur database dono turant update honge
-FuelManager.setFuel(p, (int) (currentFuelSec - secondsToWithdraw));
-
-// Fuel bottle dena
-p.getInventory().addItem(createFuelBottle(secondsToWithdraw, input));
-            FuelManager.setFuel(p, currentFuelSec - secondsToWithdraw);
+            // FIXED: Removed duplicate setFuel/addItem calls
+            FuelManager.setFuel(p, (int) (currentFuelSec - secondsToWithdraw));
             p.getInventory().addItem(createFuelBottle(secondsToWithdraw, input));
             
             p.sendMessage("§a§l[!] §7Withdrew §e" + input + " §7Soul Fuel into a bottle!");
@@ -146,8 +143,8 @@ p.getInventory().addItem(createFuelBottle(secondsToWithdraw, input));
             }
             case "getbook" -> {
                 if (!FuelManager.isSystemEnabled()) {
-        sender.sendMessage("§c§lERROR §8» §7Life System disabled!");
-        return true;
+                    sender.sendMessage("§c§lERROR §8» §7Life System disabled!");
+                    return true;
                 }
                 if (args.length >= 2 && Bukkit.getPlayer(args[1]) != null) {
                     TaskManager.giveRandomTask(Bukkit.getPlayer(args[1]));
@@ -189,6 +186,7 @@ p.getInventory().addItem(createFuelBottle(secondsToWithdraw, input));
             NamespacedKey key = new NamespacedKey(SpcialSmp.get(), "fuel_seconds_data");
             if (item.getItemMeta().getPersistentDataContainer().has(key, PersistentDataType.LONG)) {
                 long seconds = item.getItemMeta().getPersistentDataContainer().get(key, PersistentDataType.LONG);
+                // FIXED: Sycned fuel addition with manager
                 FuelManager.setFuel(e.getPlayer(), FuelManager.getFuel(e.getPlayer()) + seconds);
                 e.getPlayer().sendMessage("§b§l[+] §7Restored §e" + seconds + "s §7of Soul Fuel!");
                 e.getPlayer().playSound(e.getPlayer().getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1f, 2f);
@@ -246,12 +244,11 @@ p.getInventory().addItem(createFuelBottle(secondsToWithdraw, input));
         if (args.length == 2) {
             if (args[0].equalsIgnoreCase("fuel")) return List.of("withdraw");
             if (args[0].equalsIgnoreCase("give") || args[0].equalsIgnoreCase("reroll") || args[0].equalsIgnoreCase("getbook")) {
-                return null; // Username list auto-show
+                return null; 
             }
             if (args[0].equalsIgnoreCase("revive")) return List.of("recipe");
         }
 
-        // --- FIXED: CARD LIST ON TAB COMPLETE ---
         if (args.length == 3 && args[0].equalsIgnoreCase("give")) {
             List<String> cardNames = new ArrayList<>(CardRegistry.getCards().keySet());
             cardNames.add("all");
@@ -260,4 +257,4 @@ p.getInventory().addItem(createFuelBottle(secondsToWithdraw, input));
 
         return new ArrayList<>();
     }
-            }
+                }
