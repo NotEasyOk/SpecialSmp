@@ -1,10 +1,7 @@
 # ======================================================
 #          SPECIAL SMP - OFFICIAL CONFIGURATION
 # ======================================================
-              Author: NotEasyOk
-
-  prefix: "&8[&6&lSpecialSMP&8] &r"
-  first-join-give-card: true
+              # Author: NotEasyOk
   
   # --- SOUL FUEL SYSTEM SETTINGS ---
   # Initial fuel for new players (86399 = 23h 59m 59s)
