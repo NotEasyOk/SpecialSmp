@@ -20,6 +20,9 @@ public class SpcialSmp extends JavaPlugin {
     public void onEnable() {
         instance = this;
 
+        saveResource("config.yml", false); 
+    reloadConfig();
+
         // --- 1. CONFIG INITIALIZATION (Sabse Pehle) ---
         saveDefaultConfig();
         reloadConfig(); // Memory se purana kachra saaf karne ke liye
