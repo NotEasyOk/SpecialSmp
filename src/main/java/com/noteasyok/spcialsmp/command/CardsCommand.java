@@ -76,7 +76,9 @@ public class CardsCommand implements CommandExecutor, TabCompleter, Listener {
             }
 
             // FIXED: Removed duplicate setFuel/addItem calls
-            FuelManager.setFuel(p, (int) (currentFuelSec - secondsToWithdraw));
+            int totalAfterCut = (int) (currentFuelSec - secondsToWithdraw);
+            FuelManager.setFuel(p, totalAfterCut);
+            SpcialSmp.get().getPlayerDataManager().setFuel(p.getUniqueId(), totalAfterCut);
             p.getInventory().addItem(createFuelBottle(secondsToWithdraw, input));
             
             p.sendMessage("§a§l[!] §7Withdrew §e" + input + " §7Soul Fuel into a bottle!");
@@ -186,14 +188,22 @@ public class CardsCommand implements CommandExecutor, TabCompleter, Listener {
             NamespacedKey key = new NamespacedKey(SpcialSmp.get(), "fuel_seconds_data");
             if (item.getItemMeta().getPersistentDataContainer().has(key, PersistentDataType.LONG)) {
                 long seconds = item.getItemMeta().getPersistentDataContainer().get(key, PersistentDataType.LONG);
-                // FIXED: Sycned fuel addition with manager
-                FuelManager.setFuel(e.getPlayer(), FuelManager.getFuel(e.getPlayer()) + seconds);
+                
+                // --- YE RAHI FIX LINE ---
+                long newFuel = FuelManager.getFuel(e.getPlayer()) + seconds;
+                
+                // 1. Manager ko update karo (Action Bar ke liye)
+                FuelManager.setFuel(e.getPlayer(), (int) newFuel);
+                
+                // 2. Direct Data ko save karo (Sync ke liye)
+                SpcialSmp.get().getPlayerDataManager().setFuel(e.getPlayer().getUniqueId(), (int) newFuel);
+                
                 e.getPlayer().sendMessage("§b§l[+] §7Restored §e" + seconds + "s §7of Soul Fuel!");
                 e.getPlayer().playSound(e.getPlayer().getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1f, 2f);
             }
         }
     }
-
+  }
     private void openReviveRecipeGUI(Player p) {
         Inventory inv = Bukkit.createInventory(null, 27, "§0Revival Card Recipe");
         ItemStack glass = new ItemStack(Material.BLACK_STAINED_GLASS_PANE);
