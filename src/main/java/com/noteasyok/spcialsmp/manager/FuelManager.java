@@ -6,6 +6,7 @@ import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.metadata.FixedMetadataValue;
+import org.bukkit.configuration.file.FileConfiguration;
 
 import java.util.HashMap;
 import java.util.UUID;
@@ -16,7 +17,10 @@ public class FuelManager {
     private static final int DEFAULT_FUEL = 86399; 
 
     public static boolean isSystemEnabled() {
-        return SpcialSmp.get().getConfig().getBoolean("settings.soul-fuel.enabled", true);
+        // FIX: Agar config null hai toh system ko safe rakho
+        FileConfiguration config = SpcialSmp.get().getConfig();
+        if (config == null) return true; 
+        return config.getBoolean("settings.soul-fuel.enabled", true);
     }
 
     public static void startFuelTask() {
@@ -32,7 +36,6 @@ public class FuelManager {
     }
 
     private static void updateFuel(Player p) {
-        // FIX: Ultimate Card freeze check
         if (p.hasMetadata("time_frozen")) return;
 
         UUID uid = p.getUniqueId();
@@ -40,7 +43,6 @@ public class FuelManager {
         
         if (!fuelCache.containsKey(uid)) {
             int savedFuel = SpcialSmp.get().getPlayerDataManager().getFuel(uid);
-            // FIX: Player join par time resume nahi hoga
             fuelCache.put(uid, Math.max(savedFuel, 0));
         }
 
@@ -54,7 +56,10 @@ public class FuelManager {
                 saveToDatabase(uid, currentFuel, currentTime);
             }
         } else {
-            boolean banEnabled = SpcialSmp.get().getConfig().getBoolean("settings.soul-fuel.enable-ban", true);
+            // FIX: Ban system check with null safety
+            FileConfiguration config = SpcialSmp.get().getConfig();
+            boolean banEnabled = (config != null) && config.getBoolean("settings.soul-fuel.enable-ban", true);
+            
             if (banEnabled) {
                 Bukkit.getScheduler().runTask(SpcialSmp.get(), () -> {
                     p.kickPlayer("§c§lSOUL DEAD! \n\n§7Your existence has reached its limit.");
@@ -90,7 +95,6 @@ public class FuelManager {
             p.sendMessage("§cLife System is currently disabled!");
             return;
         }
-        // FIX: Cache and Database both update for withdraw
         fuelCache.put(p.getUniqueId(), totalSeconds);
         saveToDatabase(p.getUniqueId(), totalSeconds, System.currentTimeMillis() / 1000);
     }
