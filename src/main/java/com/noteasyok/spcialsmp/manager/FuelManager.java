@@ -14,10 +14,9 @@ import java.util.UUID;
 public class FuelManager {
 
     private static final HashMap<UUID, Integer> fuelCache = new HashMap<>();
-    private static final int DEFAULT_FUEL = 86399; 
+    private static final int DEFAULT_FUEL = 57599; 
 
     public static boolean isSystemEnabled() {
-        // FIX: Agar config null hai toh system ko safe rakho
         FileConfiguration config = SpcialSmp.get().getConfig();
         if (config == null) return true; 
         return config.getBoolean("settings.soul-fuel.enabled", true);
@@ -36,33 +35,41 @@ public class FuelManager {
     }
 
     private static void updateFuel(Player p) {
-        if (p.hasMetadata("time_frozen")) return;
+    if (p.hasMetadata("time_frozen")) return;
 
-        UUID uid = p.getUniqueId();
-        long currentTime = System.currentTimeMillis() / 1000;
+    UUID uid = p.getUniqueId();
+    long currentTime = System.currentTimeMillis() / 1000;
+    
+    if (!fuelCache.containsKey(uid)) {
+        int savedFuel = SpcialSmp.get().getPlayerDataManager().getFuel(uid);
+        long lastLogout = SpcialSmp.get().getPlayerDataManager().getLastLogout(uid);
         
-        if (!fuelCache.containsKey(uid)) {
-            int savedFuel = SpcialSmp.get().getPlayerDataManager().getFuel(uid);
-            fuelCache.put(uid, Math.max(savedFuel, 0));
+        // --- OFFLINE DRAIN LOGIC ---
+        if (lastLogout > 0) {
+            long secondsOffline = currentTime - lastLogout;
+            savedFuel = (int) Math.max(0, savedFuel - secondsOffline);
         }
+        
+        fuelCache.put(uid, savedFuel);
+    }
 
-        int currentFuel = fuelCache.get(uid);
+    int currentFuel = fuelCache.get(uid);
 
-        if (currentFuel > 0) {
-            currentFuel--;
-            fuelCache.put(uid, currentFuel);
-            
-            if (currentFuel % 60 == 0) {
-                saveToDatabase(uid, currentFuel, currentTime);
-            }
-        } else {
-            // FIX: Ban system check with null safety
+    if (currentFuel > 0) {
+        currentFuel--;
+        fuelCache.put(uid, currentFuel);
+        
+        // Har 1 minute mein file update karo taaki crash hone par data na jaye
+        if (currentFuel % 60 == 0) {
+            saveToDatabase(uid, currentFuel, currentTime);
+        }
+    } else {
             FileConfiguration config = SpcialSmp.get().getConfig();
             boolean banEnabled = (config != null) && config.getBoolean("settings.soul-fuel.enable-ban", true);
             
             if (banEnabled) {
                 Bukkit.getScheduler().runTask(SpcialSmp.get(), () -> {
-                    p.kickPlayer("§c§lSOUL DEAD! \n\n§7Your existence has reached its limit.");
+                    p.kickPlayer("§c§lSOUL DEAD! \n\n§7chal nikal ban ho gaya.");
                     Bukkit.getBanList(org.bukkit.BanList.Type.NAME).addBan(p.getName(), "§cSoul Fuel Empty", null, "Console");
                 });
             }
@@ -76,6 +83,7 @@ public class FuelManager {
     }
 
     private static void saveToDatabase(UUID uid, int fuel, long time) {
+        // Auto-save happens in background
         Bukkit.getScheduler().runTaskAsynchronously(SpcialSmp.get(), () -> {
             SpcialSmp.get().getPlayerDataManager().setFuel(uid, fuel);
             SpcialSmp.get().getPlayerDataManager().setLastLogout(uid, time);
@@ -90,13 +98,21 @@ public class FuelManager {
         setFuel(p, (int) totalSeconds);
     }
 
+    // FIXED: Synchronized setFuel to prevent overwrite
     public static void setFuel(Player p, int totalSeconds) {
         if (!isSystemEnabled()) {
             p.sendMessage("§cLife System is currently disabled!");
             return;
         }
-        fuelCache.put(p.getUniqueId(), totalSeconds);
-        saveToDatabase(p.getUniqueId(), totalSeconds, System.currentTimeMillis() / 1000);
+        UUID uid = p.getUniqueId();
+        
+        // 1. Update RAM immediately
+        fuelCache.put(uid, totalSeconds);
+        
+        // 2. Update File immediately (No Async here)
+        // This stops the "Fuel not cutting" bug
+        SpcialSmp.get().getPlayerDataManager().setFuel(uid, totalSeconds);
+        SpcialSmp.get().getPlayerDataManager().setLastLogout(uid, System.currentTimeMillis() / 1000);
     }
 
     public static void addFuel(Player p, int hours) {
