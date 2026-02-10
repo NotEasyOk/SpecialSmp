@@ -26,15 +26,17 @@ public class PlayerDataManager {
         data = YamlConfiguration.loadConfiguration(file);
     }
 
-    /* ================= FUEL SYSTEM (ADDED TO FIX ERRORS) ================= */
+   /* ================= FUEL SYSTEM (FIXED FOR WITHDRAW/ADD) ================= */
 
-    public int getFuel(UUID uuid) {
-        // Default 24 hours (86400 seconds) agar data nahi mila
-        return data.getInt("players." + uuid + ".fuel", 86400);
+    public long getFuel(UUID uuid) {
+        // long use karein taaki bade numbers (86400+) error na dein
+        return data.getLong("players." + uuid + ".fuel", 86400L);
     }
 
-    public void setFuel(UUID uuid, int amount) {
-        data.set("players." + uuid + ".fuel", amount);
+    public void setFuel(UUID uuid, long amount) {
+        // Value ko hamesha zero se upar rakhein
+        long finalAmount = Math.max(0, amount);
+        data.set("players." + uuid + ".fuel", finalAmount);
         save();
     }
 
