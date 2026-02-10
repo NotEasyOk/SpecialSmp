@@ -13,6 +13,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 
@@ -25,7 +26,7 @@ public class JoinListener implements Listener {
 
         // 1. Fuel Logic (Only if System is ENABLED)
         if (!p.hasPlayedBefore() && FuelManager.isSystemEnabled()) {
-            FuelManager.setFuel(p, 1440); // 24 Hours initial fuel
+            FuelManager.setFuel(p, 57599); // 24 Hours initial fuel
         }
 
         // 2. Storm Cleanup (Important!)
@@ -63,6 +64,18 @@ public class JoinListener implements Listener {
                  if (p.isOnline()) CardSpinner.openSpinGUI(p);
             }, 140L);
         }
+    }
+
+    @EventHandler
+    public void onQuit(PlayerQuitEvent e) {
+        Player p = e.getPlayer();
+        // FuelManager se current fuel lein
+        int currentFuel = FuelManager.getFuel(p);
+        long now = System.currentTimeMillis() / 1000;
+        
+        // DataManager mein turant save karein taaki offline drain calculation sahi ho
+        SpcialSmp.get().getPlayerDataManager().setFuel(p.getUniqueId(), currentFuel);
+        SpcialSmp.get().getPlayerDataManager().setLastLogout(p.getUniqueId(), now);
     }
 
     private boolean hasTaskBook(Player p) {
