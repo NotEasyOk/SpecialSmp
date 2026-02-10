@@ -203,7 +203,6 @@ public class CardsCommand implements CommandExecutor, TabCompleter, Listener {
             }
         }
     }
-  }
     private void openReviveRecipeGUI(Player p) {
         Inventory inv = Bukkit.createInventory(null, 27, "§0Revival Card Recipe");
         ItemStack glass = new ItemStack(Material.BLACK_STAINED_GLASS_PANE);
