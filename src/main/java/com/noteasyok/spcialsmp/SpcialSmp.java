@@ -3,7 +3,7 @@ package com.noteasyok.spcialsmp;
 import com.noteasyok.spcialsmp.cards.BaseCard;
 import com.noteasyok.spcialsmp.cards.RuinWorldGenerator;
 import com.noteasyok.spcialsmp.command.CardsCommand;
-import com.noteasyok.spcialsmp.listener.*; // Saare listeners yahan se aayenge
+import com.noteasyok.spcialsmp.listener.*;
 import com.noteasyok.spcialsmp.manager.*;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -13,7 +13,6 @@ import java.util.Map;
 public class SpcialSmp extends JavaPlugin {
 
     private static SpcialSmp instance;
-
     private CooldownManager cooldownManager;
     private PlayerDataManager playerDataManager;
 
@@ -21,35 +20,40 @@ public class SpcialSmp extends JavaPlugin {
     public void onEnable() {
         instance = this;
 
+        // --- 1. CONFIG INITIALIZATION (Sabse Pehle) ---
         saveDefaultConfig();
+        reloadConfig(); // Memory se purana kachra saaf karne ke liye
 
-        // Managers
-        cooldownManager = new CooldownManager(this);
+        // --- 2. MANAGERS INITIALIZATION ---
+        // Pehle managers initialize hone chahiye taaki baki system crash na ho
         playerDataManager = new PlayerDataManager(this);
+        cooldownManager = new CooldownManager(this);
 
-        // 1. Sabse pehle Cards register karo
+        // --- 3. FUEL SYSTEM CHECK ---
+        // Null safety ke saath task start karein
+        try {
+            FuelManager.startFuelTask();
+        } catch (Exception e) {
+            getLogger().severe("Fuel System load nahi ho saka! Config check karein.");
+        }
+
+        // --- 4. CARDS & RECIPES ---
         CardRegistry.registerAll();
-
         com.noteasyok.spcialsmp.cards.RuinCard.preLoadDimension();
-
-        // 2. Ab saari Recipes ek saath register karo
         RecipeManager.registerAllRecipes(this);
-
-        // Fuel System & Task Timer Start
-        FuelManager.startFuelTask();
         TaskManager.startGlobalTaskTimer();
 
-        // Map for listeners
+        // --- 5. LISTENERS REGISTRATION ---
         Map<String, BaseCard> cardsMap = CardRegistry.getCards();
-
-        // Custom Events for Cards (Ultimate, Ruin, etc.)
+        
+        // Registering individual card listeners
         cardsMap.values().forEach(card -> {
             if (card instanceof org.bukkit.event.Listener) {
                 Bukkit.getPluginManager().registerEvents((org.bukkit.event.Listener) card, this);
             }
         });
 
-        // --- Listeners Registration ---
+        // Event Listeners
         Bukkit.getPluginManager().registerEvents(new CardUseListener(cardsMap), this);  
         Bukkit.getPluginManager().registerEvents(new ZombieOwnerListener(), this);    
         Bukkit.getPluginManager().registerEvents(new UltimateHoldListener(), this);    
@@ -59,21 +63,19 @@ public class SpcialSmp extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(new InventoryListener(), this);
         Bukkit.getPluginManager().registerEvents(new TaskCompletionListener(), this);
         Bukkit.getPluginManager().registerEvents(new RevivalListener(), this);
-        
-        // RUIN DIMENSION EFFECTS REGISTER (Naya Add Kiya)
         Bukkit.getPluginManager().registerEvents(new RuinWorldListener(), this);
 
-        // Command
+        // --- 6. COMMANDS ---
         if (getCommand("cards") != null) {
             getCommand("cards").setExecutor(new CardsCommand());
         }
 
-        getLogger().info("SpcialSmp plugin ENABLED successfully with Fuel, Task & Revival System");
+        getLogger().info("§a[SpcialSmp] Plugin loaded successfully!");
     }
 
     @Override
     public ChunkGenerator getDefaultWorldGenerator(String worldName, String id) {
-        if (worldName.equals("world_ruin_dimension")) {
+        if (worldName != null && worldName.equals("world_ruin_dimension")) {
             return new RuinWorldGenerator();
         }
         return null;
@@ -81,7 +83,8 @@ public class SpcialSmp extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        getLogger().info("SpcialSmp plugin DISABLED");
+        instance = null;
+        getLogger().info("§c[SpcialSmp] Plugin disabled.");
     }
 
     public static SpcialSmp get() {
@@ -95,4 +98,4 @@ public class SpcialSmp extends JavaPlugin {
     public PlayerDataManager getPlayerDataManager() {
         return playerDataManager;
     }
-                                                 }
+                                                  }
