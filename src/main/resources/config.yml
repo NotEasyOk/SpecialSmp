@@ -1,20 +1,21 @@
 # ======================================================
 #          SPECIAL SMP - OFFICIAL CONFIGURATION
 # ======================================================
-              # Author: NotEasyOk
-  
-  # --- SOUL FUEL SYSTEM SETTINGS ---
+
+settings:
   # Initial fuel for new players (86399 = 23h 59m 59s)
   default-soul-fuel: 86399
   # Ban reason and kick notification
   soul-fuel-ban-reason: "Terminated: Soul Fuel Exhausted"
   soul-fuel-kick-message: "&c&lSOUL DEPLETED! \n\n&7Your existence has reached its limit."
-
-  # --- ACTION BAR DISPLAY SETTINGS ---
-  # Display Soul Fuel when no card is equipped
+  # Soul Fuel On/Off
+  soul-fuel:
+    enabled: true
+    enable-ban: true
+  # Action Bar display
   show-fuel-by-default: true
-  # Action Bar formatting
-  soul-fuel-display-format: "&b&lSOUL FUEL: &f%time%"
+  display:
+    fuel-format: "&b&lSOUL FUEL: &f%time%"
 
 cooldowns:
   "Enderman Card":
@@ -58,18 +59,10 @@ cooldowns:
     right: 120
     shift_right: 300
 
-# Advanced configuration for specific cards
 settings-extra:
   zombie:
     max-zombies: 2
     duration: 60
-
-settings:
-  soul-fuel:
-    enabled: true
-    enable-ban: true
-  display:
-    fuel-format: "&b&lSOUL FUEL: &f%time%"
 
 messages:
   no-permission: "&cInsufficient permissions to execute this action!"
