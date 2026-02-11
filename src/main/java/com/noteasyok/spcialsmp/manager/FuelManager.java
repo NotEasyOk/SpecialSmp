@@ -51,7 +51,7 @@ public class FuelManager {
             } else {
                 long secondsOffline = currentTime - lastLogout;
                 // Offline time minus karne ke baad fuel 0 se kam nahi hona chahiye
-                finalFuel = (int) Math.max(0, savedFuel - secondsOffline);
+                finalFuel = (int) Math.max(0, (long) savedFuel - secondsOffline);
             }
             
             // Limit Check
