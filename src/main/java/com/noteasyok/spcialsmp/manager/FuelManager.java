@@ -5,7 +5,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.configuration.file.FileConfiguration;
 
 import java.util.HashMap;
@@ -35,35 +34,41 @@ public class FuelManager {
     }
 
     private static void updateFuel(Player p) {
-    if (p.hasMetadata("time_frozen")) return;
+        if (p.hasMetadata("time_frozen")) return;
 
-    UUID uid = p.getUniqueId();
-    long currentTime = System.currentTimeMillis() / 1000;
-    
-    if (!fuelCache.containsKey(uid)) {
-        int savedFuel = SpcialSmp.get().getPlayerDataManager().getFuel(uid);
-        long lastLogout = SpcialSmp.get().getPlayerDataManager().getLastLogout(uid);
+        UUID uid = p.getUniqueId();
+        long currentTime = System.currentTimeMillis() / 1000;
         
-        // --- OFFLINE DRAIN LOGIC ---
-        if (lastLogout > 0) {
-            long secondsOffline = currentTime - lastLogout;
-            savedFuel = (int) Math.max(0, savedFuel - (int) secondsOffline);
+        if (!fuelCache.containsKey(uid)) {
+            int savedFuel = SpcialSmp.get().getPlayerDataManager().getFuel(uid);
+            long lastLogout = SpcialSmp.get().getPlayerDataManager().getLastLogout(uid);
+            
+            // --- OFFLINE DRAIN LOGIC (FIXED LINE 44) ---
+            if (lastLogout > 0) {
+                long secondsOffline = currentTime - lastLogout;
+                long finalAmount = (long) savedFuel - secondsOffline;
+                
+                // If amount is less than 0, set to 0. Otherwise cast to int.
+                if (finalAmount < 0) {
+                    savedFuel = 0;
+                } else {
+                    savedFuel = (int) finalAmount;
+                }
+            }
+            
+            fuelCache.put(uid, savedFuel);
         }
-        
-        fuelCache.put(uid, savedFuel);
-    }
 
-    int currentFuel = fuelCache.get(uid);
+        int currentFuel = fuelCache.get(uid);
 
-    if (currentFuel > 0) {
-        currentFuel--;
-        fuelCache.put(uid, currentFuel);
-        
-        // Har 1 minute mein file update karo taaki crash hone par data na jaye
-        if (currentFuel % 60 == 0) {
-            saveToDatabase(uid, currentFuel, currentTime);
-        }
-    } else {
+        if (currentFuel > 0) {
+            currentFuel--;
+            fuelCache.put(uid, currentFuel);
+            
+            if (currentFuel % 60 == 0) {
+                saveToDatabase(uid, currentFuel, currentTime);
+            }
+        } else {
             FileConfiguration config = SpcialSmp.get().getConfig();
             boolean banEnabled = (config != null) && config.getBoolean("settings.soul-fuel.enable-ban", true);
             
@@ -83,7 +88,6 @@ public class FuelManager {
     }
 
     private static void saveToDatabase(UUID uid, int fuel, long time) {
-        // Auto-save happens in background
         Bukkit.getScheduler().runTaskAsynchronously(SpcialSmp.get(), () -> {
             SpcialSmp.get().getPlayerDataManager().setFuel(uid, fuel);
             SpcialSmp.get().getPlayerDataManager().setLastLogout(uid, time);
@@ -98,19 +102,14 @@ public class FuelManager {
         setFuel(p, (int) totalSeconds);
     }
 
-    // FIXED: Synchronized setFuel to prevent overwrite
     public static void setFuel(Player p, int totalSeconds) {
         if (!isSystemEnabled()) {
             p.sendMessage("§cLife System is currently disabled!");
             return;
         }
         UUID uid = p.getUniqueId();
-        
-        // 1. Update RAM immediately
         fuelCache.put(uid, totalSeconds);
         
-        // 2. Update File immediately (No Async here)
-        // This stops the "Fuel not cutting" bug
         SpcialSmp.get().getPlayerDataManager().setFuel(uid, totalSeconds);
         SpcialSmp.get().getPlayerDataManager().setLastLogout(uid, System.currentTimeMillis() / 1000);
     }
@@ -122,4 +121,4 @@ public class FuelManager {
         int newFuel = Math.min(current + secondsToAdd, 86400 * 7); 
         setFuel(p, newFuel);
     }
-    }
+                                                                           }
