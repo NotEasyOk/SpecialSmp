@@ -108,39 +108,39 @@ public void shiftRightClick(Player p) {
     Location center = r.getHitPosition().toLocation(w);
 
     new BukkitRunnable() {
-        int ticks = 0;
+        int count = 0;
         @Override
         public void run() {
-            // 200 ticks = 10 seconds (Lagatar barish)
-            if (ticks >= 200) { cancel(); return; }
+            // Sirf 5 TNT spawn honge
+            if (count >= 5) { cancel(); return; }
 
-            // Har tick par 2 TNT spawn honge taaki rain dense lage
-            for (int i = 0; i < 2; i++) {
-                Location spawn = center.clone().add((Math.random() * 20) - 10, 30, (Math.random() * 20) - 10);
-                TNTPrimed tnt = w.spawn(spawn, TNTPrimed.class);
-                
-                tnt.setFuseTicks(200); 
-                tnt.setVelocity(new Vector(0, -1.5, 0)); // Velocity 1.5 hi rakhi hai
+            // Random location (10 block radius)
+            Location spawn = center.clone().add((Math.random() * 10) - 5, 25, (Math.random() * 10) - 5);
+            TNTPrimed tnt = w.spawn(spawn, TNTPrimed.class);
+            
+            // TNT Settings
+            tnt.setFuseTicks(100); // 5 seconds fuse
+            tnt.setVelocity(new Vector(0, -1.0, 0)); // Normal falling speed
 
-                // Ground touch detection
-                new BukkitRunnable() {
-                    @Override
-                    public void run() {
-                        if (tnt.isDead() || !tnt.isValid()) { this.cancel(); return; }
+            // Ground check (Optional: TNT ko normal phatne do ya turant phadna hai toh ye rakho)
+            new BukkitRunnable() {
+                @Override
+                public void run() {
+                    if (tnt.isDead() || !tnt.isValid()) { this.cancel(); return; }
 
-                        if (tnt.isOnGround() || tnt.getLocation().getBlock().getType().isSolid()) {
-                            // Power 10.0F (Bada Dhamaka)
-                            w.createExplosion(tnt.getLocation(), 10.0F, true, true); 
-                            tnt.remove();
-                            this.cancel();
-                        }
+                    if (tnt.isOnGround()) {
+                        // 4.0F normal TNT power hoti hai
+                        w.createExplosion(tnt.getLocation(), 4.0F, true, true); 
+                        tnt.remove();
+                        this.cancel();
                     }
-                }.runTaskTimer(SpcialSmp.get(), 0L, 1L);
-            }
-            ticks++;
+                }
+            }.runTaskTimer(SpcialSmp.get(), 0L, 1L);
+
+            count++;
         }
-    }.runTaskTimer(SpcialSmp.get(), 0L, 1L); // Har 1 tick par chalega (Fastest Rain)
-        }
+    }.runTaskTimer(SpcialSmp.get(), 0L, 20L); // 20 ticks = Har 1 second mein ek TNT girega
+}
 
     private boolean isCool(Player p, String key, int seconds) {
         if (seconds <= 0) return true;
