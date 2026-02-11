@@ -50,7 +50,13 @@ public class ZombieCard extends BaseCard implements Listener {
         int cooldownSec = SpcialSmp.get().getConfig().getInt("cards.zombie.summon_cooldown", 60);
         if (!isCool(p, "spawn", cooldownSec)) return;
 
+        for (int i = 0; i < 5; i++) {
+
         // 1. Baby Zombie Summon
+            double offsetX = (Math.random() * 10) - 5; 
+    double offsetZ = (Math.random() * 10) - 5;
+    Location spawnLoc = p.getLocation().add(offsetX, 0, offsetZ);
+            
         Zombie z = p.getWorld().spawn(p.getLocation(), Zombie.class);
         z.setBaby(true);
         z.setMetadata("owner", new FixedMetadataValue(SpcialSmp.get(), p.getUniqueId().toString()));
@@ -71,7 +77,7 @@ public class ZombieCard extends BaseCard implements Listener {
 
         // 4. Aggressive AI Logic: 15 seconds hunt
         new BukkitRunnable() {
-            int timer = 15;
+            int timer = 20;
 
             @Override
             public void run() {
@@ -101,7 +107,7 @@ public class ZombieCard extends BaseCard implements Listener {
             }
         }.runTaskTimer(SpcialSmp.get(), 0L, 20L);
 
-        p.sendMessage("§2§lZOMBIE §8» §fYour glowing minion is summoned for 15s!");
+        p.sendMessage("§2§lZOMBIE §8» §fYour glowing minion is summoned for 20s!");
     }
 
     /* ---------------- RIGHT CLICK (Instant Feed - No Change) ---------------- */
