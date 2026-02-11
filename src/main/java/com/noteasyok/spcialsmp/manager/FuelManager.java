@@ -7,18 +7,19 @@ import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.configuration.file.FileConfiguration;
 
+import java.time.ZonedDateTime;
+import java.time.ZoneId;
 import java.util.HashMap;
 import java.util.UUID;
 
 public class FuelManager {
 
     private static final HashMap<UUID, Integer> fuelCache = new HashMap<>();
-    private static final int DEFAULT_FUEL = 57599; 
+    private static final int DEFAULT_FUEL = 57599; // 15h 59m 59s
 
     public static boolean isSystemEnabled() {
         FileConfiguration config = SpcialSmp.get().getConfig();
-        if (config == null) return true; 
-        return config.getBoolean("settings.soul-fuel.enabled", true);
+        return config == null || config.getBoolean("settings.soul-fuel.enabled", true);
     }
 
     public static void startFuelTask() {
@@ -37,24 +38,25 @@ public class FuelManager {
         if (p.hasMetadata("time_frozen")) return;
 
         UUID uid = p.getUniqueId();
-        long currentTime = System.currentTimeMillis() / 1000;
+        // IST (Asia/Kolkata) Time calculation
+        long currentTime = ZonedDateTime.now(ZoneId.of("Asia/Kolkata")).toEpochSecond();
         
         if (!fuelCache.containsKey(uid)) {
-            // FIX: Saved fuel ko pehle long mein convert kiya taaki calculation sahi ho
             long savedFuelLong = (long) SpcialSmp.get().getPlayerDataManager().getFuel(uid);
             long lastLogout = SpcialSmp.get().getPlayerDataManager().getLastLogout(uid);
             
-            if (lastLogout > 0) {
+            // Naya player check
+            if (savedFuelLong <= 0 && lastLogout == 0) {
+                savedFuelLong = DEFAULT_FUEL;
+            } else if (lastLogout > 0) {
                 long secondsOffline = currentTime - lastLogout;
                 savedFuelLong = savedFuelLong - secondsOffline;
-                
-                // Safety check: Agar offline time zyada hai toh fuel 0 ho jayega
-                if (savedFuelLong < 0) {
-                    savedFuelLong = 0;
-                }
             }
             
-            // Final result ko int mein cast karke cache mein dalo
+            // Limit Check: Join par 15h 59m 59s se zyada nahi milega
+            if (savedFuelLong < 0) savedFuelLong = 0;
+            if (savedFuelLong > DEFAULT_FUEL) savedFuelLong = DEFAULT_FUEL;
+            
             fuelCache.put(uid, (int) savedFuelLong);
         }
 
@@ -64,25 +66,30 @@ public class FuelManager {
             currentFuel--;
             fuelCache.put(uid, currentFuel);
             
+            // Database save every 60 seconds
             if (currentFuel % 60 == 0) {
                 saveToDatabase(uid, currentFuel, currentTime);
             }
         } else {
-            FileConfiguration config = SpcialSmp.get().getConfig();
-            boolean banEnabled = (config != null) && config.getBoolean("settings.soul-fuel.enable-ban", true);
-            
-            if (banEnabled) {
-                Bukkit.getScheduler().runTask(SpcialSmp.get(), () -> {
-                    p.kickPlayer("§c§lSOUL DEAD! \n\n§7chal nikal ban ho gaya.");
-                    Bukkit.getBanList(org.bukkit.BanList.Type.NAME).addBan(p.getName(), "§cSoul Fuel Empty", null, "Console");
-                });
-            }
+            handleBan(p);
             return;
         }
 
         if (currentFuel == 3600) { 
             p.playSound(p.getLocation(), Sound.ENTITY_ENDER_DRAGON_GROWL, 1f, 1f);
             p.sendTitle("§c§lWARNING!", "§eOnly 1 Hour Left!", 10, 70, 20);
+        }
+    }
+
+    private static void handleBan(Player p) {
+        FileConfiguration config = SpcialSmp.get().getConfig();
+        boolean banEnabled = (config != null) && config.getBoolean("settings.soul-fuel.enable-ban", true);
+        
+        if (banEnabled) {
+            Bukkit.getScheduler().runTask(SpcialSmp.get(), () -> {
+                p.kickPlayer("§c§lSOUL DEAD! \n\n§7Your soul fuel has run out.");
+                Bukkit.getBanList(org.bukkit.BanList.Type.NAME).addBan(p.getName(), "§cSoul Fuel Empty", null, "Console");
+            });
         }
     }
 
@@ -97,20 +104,14 @@ public class FuelManager {
         return fuelCache.getOrDefault(p.getUniqueId(), 0);
     }
 
-    public static void setFuel(Player p, long totalSeconds) {
-        setFuel(p, (int) totalSeconds);
-    }
-
     public static void setFuel(Player p, int totalSeconds) {
-        if (!isSystemEnabled()) {
-            p.sendMessage("§cLife System is currently disabled!");
-            return;
-        }
+        if (!isSystemEnabled()) return;
         UUID uid = p.getUniqueId();
         fuelCache.put(uid, totalSeconds);
         
+        long currentTime = ZonedDateTime.now(ZoneId.of("Asia/Kolkata")).toEpochSecond();
         SpcialSmp.get().getPlayerDataManager().setFuel(uid, totalSeconds);
-        SpcialSmp.get().getPlayerDataManager().setLastLogout(uid, System.currentTimeMillis() / 1000);
+        SpcialSmp.get().getPlayerDataManager().setLastLogout(uid, currentTime);
     }
 
     public static void addFuel(Player p, int hours) {
@@ -120,4 +121,4 @@ public class FuelManager {
         int newFuel = Math.min(current + secondsToAdd, 86400 * 7); 
         setFuel(p, newFuel);
     }
-                }
+    }
