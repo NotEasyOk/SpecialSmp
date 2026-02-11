@@ -310,7 +310,7 @@ if (timer % 15 == 0) {
                     // Transformation: 6x Size + Handle UP (Pointing Down)
                     Transformation tr = sword.getTransformation();
                     tr.getScale().set(6.5f, 6.5f, 6.5f);
-                    tr.getLeftRotation().set(new AxisAngle4f((float) Math.toRadians(180), 0, 0, 0, 1));
+                    tr.getLeftRotation().set(new AxisAngle4f(0.0f, 0.0f, 0.0f, 1.0f));
                     sword.setTransformation(tr);
 
                     // Falling & Explosion Logic
