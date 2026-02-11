@@ -106,6 +106,7 @@ public class ZombieCard extends BaseCard implements Listener {
                 timer--;
             }
         }.runTaskTimer(SpcialSmp.get(), 0L, 20L);
+     }
 
         p.sendMessage("§2§lZOMBIE §8» §fYour glowing minion is summoned for 20s!");
     }
