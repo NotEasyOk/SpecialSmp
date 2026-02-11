@@ -40,23 +40,22 @@ public class FuelManager {
         long currentTime = System.currentTimeMillis() / 1000;
         
         if (!fuelCache.containsKey(uid)) {
-            int savedFuel = SpcialSmp.get().getPlayerDataManager().getFuel(uid);
+            // FIX: Saved fuel ko pehle long mein convert kiya taaki calculation sahi ho
+            long savedFuelLong = (long) SpcialSmp.get().getPlayerDataManager().getFuel(uid);
             long lastLogout = SpcialSmp.get().getPlayerDataManager().getLastLogout(uid);
             
-            // --- OFFLINE DRAIN LOGIC (FIXED LINE 44) ---
             if (lastLogout > 0) {
                 long secondsOffline = currentTime - lastLogout;
-                long finalAmount = (long) savedFuel - secondsOffline;
+                savedFuelLong = savedFuelLong - secondsOffline;
                 
-                // If amount is less than 0, set to 0. Otherwise cast to int.
-                if (finalAmount < 0) {
-                    savedFuel = 0;
-                } else {
-                    savedFuel = (int) finalAmount;
+                // Safety check: Agar offline time zyada hai toh fuel 0 ho jayega
+                if (savedFuelLong < 0) {
+                    savedFuelLong = 0;
                 }
             }
             
-            fuelCache.put(uid, savedFuel);
+            // Final result ko int mein cast karke cache mein dalo
+            fuelCache.put(uid, (int) savedFuelLong);
         }
 
         int currentFuel = fuelCache.get(uid);
@@ -121,4 +120,4 @@ public class FuelManager {
         int newFuel = Math.min(current + secondsToAdd, 86400 * 7); 
         setFuel(p, newFuel);
     }
-                                                                           }
+                }
