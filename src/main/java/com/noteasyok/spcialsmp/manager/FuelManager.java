@@ -47,7 +47,7 @@ public class FuelManager {
         // --- OFFLINE DRAIN LOGIC ---
         if (lastLogout > 0) {
             long secondsOffline = currentTime - lastLogout;
-            savedFuel = (int) Math.max(0, savedFuel - secondsOffline);
+            savedFuel = Math.max(0, savedFuel - (int) secondsOffline);
         }
         
         fuelCache.put(uid, savedFuel);
