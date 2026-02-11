@@ -17,20 +17,19 @@ public class SpcialSmp extends JavaPlugin {
     private PlayerDataManager playerDataManager;
 
     @Override
-    public void onEnable() {
-        instance = this;
+public void onEnable() {
+    instance = this;
 
-        saveResource("config.yml", false); 
-    reloadConfig();
+    // --- 1. CONFIG INITIALIZATION (Sahi Tarika) ---
+    // Sirf ye line kafi hai. Ye error nahi degi agar file pehle se hai.
+    saveDefaultConfig();
+    
+    // Agar tune manually config edit ki hai, toh ye usse memory mein refresh kar dega
+    reloadConfig(); 
 
-        // --- 1. CONFIG INITIALIZATION (Sabse Pehle) ---
-        saveDefaultConfig();
-        reloadConfig(); // Memory se purana kachra saaf karne ke liye
-
-        // --- 2. MANAGERS INITIALIZATION ---
-        // Pehle managers initialize hone chahiye taaki baki system crash na ho
-        playerDataManager = new PlayerDataManager(this);
-        cooldownManager = new CooldownManager(this);
+    // --- 2. MANAGERS INITIALIZATION ---
+    playerDataManager = new PlayerDataManager(this);
+    cooldownManager = new CooldownManager(this);
 
         // --- 3. FUEL SYSTEM CHECK ---
         // Null safety ke saath task start karein
