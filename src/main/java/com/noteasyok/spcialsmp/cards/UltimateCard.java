@@ -8,6 +8,8 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.boss.BossBar;
 import org.bukkit.boss.BarColor;
 import java.util.stream.Collectors;
+import org.bukkit.util.Transformation;
+import org.joml.AxisAngle4f;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.boss.BarStyle;
 import org.bukkit.entity.Player;
@@ -327,7 +329,7 @@ if (timer % 15 == 0) {
                             if (sword.getLocation().getBlock().getType().isSolid()) {
                                 // 2 TNT Power = 8.0F (1 TNT is 4.0F)
                                 sword.getWorld().createExplosion(sword.getLocation(), 8.0f, false, false);
-                                sword.getWorld().spawnParticle(Particle.EXPLOSION_HUGE, sword.getLocation(), 1);
+                                sword.getWorld().spawnParticle(Particle.EXPLOSION_EMITTER, sword.getLocation(), 1);
                                 sword.remove();
                                 this.cancel();
                             }
