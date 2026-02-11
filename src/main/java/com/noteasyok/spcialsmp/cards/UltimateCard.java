@@ -7,6 +7,7 @@ import org.bukkit.entity.*;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.boss.BossBar;
 import org.bukkit.boss.BarColor;
+import java.util.stream.Collectors;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.boss.BarStyle;
 import org.bukkit.entity.Player;
@@ -160,7 +161,8 @@ if (timer % 15 == 0) {
         // --- 20 TNT POWER SETTING ---
         // 20.0F = Khatarnak Dhamaka!
         skull.setYield(20.0F); 
-    }
+      }
+   }
 
                 // TENTACLE PHYSICS
                 for (int t = 0; t < 8; t++) {
@@ -335,6 +337,7 @@ if (timer % 15 == 0) {
                 ticks++;
             }
         }.runTaskTimer(SpcialSmp.get(), 0L, 1L);
+    }
 
     private boolean isHoldingCard(Player p) {
         ItemStack item = p.getInventory().getItemInMainHand();
