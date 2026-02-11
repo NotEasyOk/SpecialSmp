@@ -38,14 +38,12 @@ public class FuelManager {
         if (p.hasMetadata("time_frozen")) return;
 
         UUID uid = p.getUniqueId();
-        // IST (Asia/Kolkata) Time calculation
         long currentTime = ZonedDateTime.now(ZoneId.of("Asia/Kolkata")).toEpochSecond();
         
         if (!fuelCache.containsKey(uid)) {
             long savedFuelLong = (long) SpcialSmp.get().getPlayerDataManager().getFuel(uid);
             long lastLogout = SpcialSmp.get().getPlayerDataManager().getLastLogout(uid);
             
-            // Naya player check
             if (savedFuelLong <= 0 && lastLogout == 0) {
                 savedFuelLong = DEFAULT_FUEL;
             } else if (lastLogout > 0) {
@@ -53,7 +51,6 @@ public class FuelManager {
                 savedFuelLong = savedFuelLong - secondsOffline;
             }
             
-            // Limit Check: Join par 15h 59m 59s se zyada nahi milega
             if (savedFuelLong < 0) savedFuelLong = 0;
             if (savedFuelLong > DEFAULT_FUEL) savedFuelLong = DEFAULT_FUEL;
             
@@ -66,7 +63,6 @@ public class FuelManager {
             currentFuel--;
             fuelCache.put(uid, currentFuel);
             
-            // Database save every 60 seconds
             if (currentFuel % 60 == 0) {
                 saveToDatabase(uid, currentFuel, currentTime);
             }
@@ -107,8 +103,11 @@ public class FuelManager {
     public static void setFuel(Player p, int totalSeconds) {
         if (!isSystemEnabled()) return;
         UUID uid = p.getUniqueId();
+        
+        // 1. Pehle CACHE update (Ye timer ko turant badal dega)
         fuelCache.put(uid, totalSeconds);
         
+        // 2. Phir DATABASE update
         long currentTime = ZonedDateTime.now(ZoneId.of("Asia/Kolkata")).toEpochSecond();
         SpcialSmp.get().getPlayerDataManager().setFuel(uid, totalSeconds);
         SpcialSmp.get().getPlayerDataManager().setLastLogout(uid, currentTime);
@@ -118,7 +117,16 @@ public class FuelManager {
         if (!isSystemEnabled()) return;
         int secondsToAdd = hours * 3600;
         int current = getFuel(p); 
-        int newFuel = Math.min(current + secondsToAdd, 86400 * 7); 
+        int newFuel = (int) Math.min((long)current + secondsToAdd, (long)86400 * 7); 
         setFuel(p, newFuel);
     }
-                }
+
+    // --- WITHDRAW KE LIYE YE METHOD ZAROORI HAI ---
+    public static void removeFuel(Player p, int hours) {
+        if (!isSystemEnabled()) return;
+        int secondsToRemove = hours * 3600;
+        int current = getFuel(p);
+        int newFuel = Math.max(0, current - secondsToRemove);
+        setFuel(p, newFuel);
+    }
+            }
