@@ -68,7 +68,7 @@ public Material getMaterial() {
                     p.setAllowFlight(false);
                     p.setFallDistance(0);
                 },
-                20L * 20 // 20 seconds
+                10L * 10 // 10 seconds
         );
     }
 
@@ -84,7 +84,7 @@ public Material getMaterial() {
 
         p.addPotionEffect(new PotionEffect(
                 PotionEffectType.INVISIBILITY,
-                20 * 20,
+                5 * 5,
                 0,
                 false,
                 false
@@ -97,7 +97,7 @@ public Material getMaterial() {
 
                     p.setGameMode(old);
                 },
-                20L * 20 // 20 seconds
+                5L * 5 // 5 seconds
         );
     }
 
