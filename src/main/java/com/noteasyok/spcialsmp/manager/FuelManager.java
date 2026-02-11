@@ -89,7 +89,7 @@ public class FuelManager {
         
         if (banEnabled) {
             Bukkit.getScheduler().runTask(SpcialSmp.get(), () -> {
-                p.kickPlayer("§c§lSOUL DEAD! \n\n§7Your soul fuel has run out.");
+                p.kickPlayer("§c§lSOUL DEAD! \n\n§7chal nikal ban ho gaya.");
                 Bukkit.getBanList(org.bukkit.BanList.Type.NAME).addBan(p.getName(), "§cSoul Fuel Empty", null, "Console");
             });
         }
@@ -109,7 +109,7 @@ public class FuelManager {
     public static void setFuel(Player p, int totalSeconds) {
         UUID uid = p.getUniqueId();
         fuelCache.put(uid, totalSeconds);
-        long currentTime = ZonedDateTime.now(ZoneId.of("Asia/Kolkata")).toEpochSecond();
+        long currentTime = ZonedDateTim.now(ZoneId.of("Asia/Kolkata")).toEpochSecond();
         saveToDatabase(uid, totalSeconds, currentTime);
         Bukkit.getLogger().info("[FuelManager] Fuel manually set for " + p.getName() + " to " + totalSeconds + "s");
     }
