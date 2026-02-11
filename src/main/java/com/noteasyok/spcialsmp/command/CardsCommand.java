@@ -78,7 +78,6 @@ public class CardsCommand implements CommandExecutor, TabCompleter, Listener {
             // FIXED: Removed duplicate setFuel/addItem calls
             int totalAfterCut = (int) (currentFuelSec - secondsToWithdraw);
             FuelManager.setFuel(p, totalAfterCut);
-            SpcialSmp.get().getPlayerDataManager().setFuel(p.getUniqueId(), totalAfterCut);
             p.getInventory().addItem(createFuelBottle(secondsToWithdraw, input));
             
             p.sendMessage("§a§l[!] §7Withdrew §e" + input + " §7Soul Fuel into a bottle!");
