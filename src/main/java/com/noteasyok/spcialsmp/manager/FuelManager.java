@@ -50,11 +50,8 @@ public class FuelManager {
                 finalFuel = DEFAULT_FUEL;
             } else {
                 long secondsOffline = currentTime - lastLogout;
-                // Lossy conversion fix: Explicitly casting the result of calculation
-                long result = (long) savedFuel - secondsOffline;
-                if (result < 0) result = 0;
-                finalFuel = (int) result;
-            }
+                // Offline time minus karne ke baad fuel 0 se kam nahi hona chahiye
+             finalFuel = (int) Math.max(0L, (long)savedFuel - (long)secondsOffline);
             
             // Limit Check
             if (finalFuel > DEFAULT_FUEL) finalFuel = DEFAULT_FUEL;
@@ -67,7 +64,7 @@ public class FuelManager {
             currentFuel--;
             fuelCache.put(uid, currentFuel);
             
-            // Database save every 60 seconds
+            // Database save every 60 seconds (Taaki withdraw ke baad data loss na ho)
             if (currentFuel % 60 == 0) {
                 saveToDatabase(uid, currentFuel, currentTime);
             }
@@ -88,14 +85,16 @@ public class FuelManager {
         boolean banEnabled = (config != null) && config.getBoolean("settings.soul-fuel.enable-ban", true);
         
         if (banEnabled) {
+            // Sync task mein kick/ban karna zaroori hai
             Bukkit.getScheduler().runTask(SpcialSmp.get(), () -> {
-                p.kickPlayer("§c§lSOUL DEAD! \n\n§7chal nikal ban ho gaya.");
+                p.kickPlayer("§c§lSOUL DEAD! \n\n§7Your soul fuel has run out.");
                 Bukkit.getBanList(org.bukkit.BanList.Type.NAME).addBan(p.getName(), "§cSoul Fuel Empty", null, "Console");
             });
         }
     }
 
     private static void saveToDatabase(UUID uid, int fuel, long time) {
+        // Async save taaki server lag na kare
         Bukkit.getScheduler().runTaskAsynchronously(SpcialSmp.get(), () -> {
             SpcialSmp.get().getPlayerDataManager().setFuel(uid, fuel);
             SpcialSmp.get().getPlayerDataManager().setLastLogout(uid, time);
@@ -106,11 +105,17 @@ public class FuelManager {
         return fuelCache.getOrDefault(p.getUniqueId(), 0);
     }
 
+    // --- FIX 2: Withdraw/Add Command Fix ---
     public static void setFuel(Player p, int totalSeconds) {
         UUID uid = p.getUniqueId();
+        
+        // 1. Sabse pehle CACHE update karo (Ye timer ko turant badal dega)
         fuelCache.put(uid, totalSeconds);
-        long currentTime = ZonedDateTim.now(ZoneId.of("Asia/Kolkata")).toEpochSecond();
+        
+        // 2. Turant DATABASE update karo (Taaki crash pe bhi safe rahe)
+        long currentTime = ZonedDateTime.now(ZoneId.of("Asia/Kolkata")).toEpochSecond();
         saveToDatabase(uid, totalSeconds, currentTime);
+        
         Bukkit.getLogger().info("[FuelManager] Fuel manually set for " + p.getName() + " to " + totalSeconds + "s");
     }
 
@@ -118,7 +123,8 @@ public class FuelManager {
         if (!isSystemEnabled()) return;
         int secondsToAdd = hours * 3600;
         int current = getFuel(p); 
+        // Max limit 7 days (Customizable)
         int newFuel = Math.min(current + secondsToAdd, 86400 * 7); 
         setFuel(p, newFuel);
     }
-    }
+                }
