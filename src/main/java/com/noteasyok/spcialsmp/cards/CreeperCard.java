@@ -8,6 +8,7 @@ import org.bukkit.entity.BlockDisplay;
 import org.bukkit.util.RayTraceResult;
 import org.bukkit.util.Vector;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.entity.TNTPrimed;
 import java.util.HashMap;
 import java.util.Map;
 
