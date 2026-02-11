@@ -78,9 +78,7 @@ public class JoinListener implements Listener {
                 if (display.getItemStack() != null && display.getItemStack().getType() == Material.NETHERITE_SWORD) {
                     entity.remove(); 
                 }
-            }
-        }
-
+                
     @EventHandler
     public void onQuit(PlayerQuitEvent e) {
         Player p = e.getPlayer();
