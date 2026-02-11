@@ -9,6 +9,8 @@ import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Sound;
 import org.bukkit.attribute.Attribute;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.ItemDisplay;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -65,6 +67,19 @@ public class JoinListener implements Listener {
             }, 140L);
         }
     }
+
+    @EventHandler
+    public void onPlayerJoin(PlayerJoinEvent event) {
+        // Purani atki hui swords hatane ka logic
+        for (Entity entity : event.getPlayer().getNearbyEntities(100, 100, 100)) {
+            if (entity instanceof ItemDisplay) {
+                ItemDisplay display = (ItemDisplay) entity;
+                // Sirf Netherite Sword (Giant Sword) ko target kar rahe hain
+                if (display.getItemStack() != null && display.getItemStack().getType() == Material.NETHERITE_SWORD) {
+                    entity.remove(); 
+                }
+            }
+        }
 
     @EventHandler
     public void onQuit(PlayerQuitEvent e) {
