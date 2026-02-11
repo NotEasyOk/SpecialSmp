@@ -94,32 +94,52 @@ public class CreeperCard extends BaseCard {
         }.runTaskTimer(SpcialSmp.get(), 0L, 1L);
     }
 
-    /* ================= SHIFT + RIGHT CLICK (TNT Rain) ================= */
-    @Override
-    public void shiftRightClick(Player p) {
-        int cd = SpcialSmp.get().getConfig().getInt("cards.creeper.shift_click_cooldown", 60);
-        if (!isCool(p, "rain", cd)) return;
+    /* ================= SHIFT + RIGHT CLICK (TNT Rain - 10 Sec) ================= */
+@Override
+public void shiftRightClick(Player p) {
+    int cd = SpcialSmp.get().getConfig().getInt("cards.creeper.shift_click_cooldown", 60);
+    if (!isCool(p, "rain", cd)) return;
 
-        RayTraceResult r = p.getWorld().rayTraceBlocks(p.getEyeLocation(), p.getEyeLocation().getDirection(), 120);
-        if (r == null || r.getHitPosition() == null) return;
+    RayTraceResult r = p.getWorld().rayTraceBlocks(p.getEyeLocation(), p.getEyeLocation().getDirection(), 120);
+    if (r == null || r.getHitPosition() == null) return;
 
-        World w = p.getWorld();
-        Location center = r.getHitPosition().toLocation(w);
+    World w = p.getWorld();
+    Location center = r.getHitPosition().toLocation(w);
 
-        new BukkitRunnable() {
-            int ticks = 0;
-            @Override
-            public void run() {
-                if (ticks >= 100) { cancel(); return; }
+    new BukkitRunnable() {
+        int ticks = 0;
+        @Override
+        public void run() {
+            // 200 ticks = 10 seconds (Lagatar barish)
+            if (ticks >= 200) { cancel(); return; }
 
-                Location spawn = center.clone().add((Math.random() * 10) - 5, 30, (Math.random() * 10) - 5);
-                org.bukkit.entity.TNTPrimed tnt = w.spawn(spawn, org.bukkit.entity.TNTPrimed.class);
-                tnt.setFuseTicks(100);
-                tnt.setVelocity(new Vector(0, -1.5, 0));
-                ticks += 10;
+            // Har tick par 2 TNT spawn honge taaki rain dense lage
+            for (int i = 0; i < 2; i++) {
+                Location spawn = center.clone().add((Math.random() * 20) - 10, 30, (Math.random() * 20) - 10);
+                TNTPrimed tnt = w.spawn(spawn, TNTPrimed.class);
+                
+                tnt.setFuseTicks(200); 
+                tnt.setVelocity(new Vector(0, -1.5, 0)); // Velocity 1.5 hi rakhi hai
+
+                // Ground touch detection
+                new BukkitRunnable() {
+                    @Override
+                    public void run() {
+                        if (tnt.isDead() || !tnt.isValid()) { this.cancel(); return; }
+
+                        if (tnt.isOnGround() || tnt.getLocation().getBlock().getType().isSolid()) {
+                            // Power 10.0F (Bada Dhamaka)
+                            w.createExplosion(tnt.getLocation(), 10.0F, true, true); 
+                            tnt.remove();
+                            this.cancel();
+                        }
+                    }
+                }.runTaskTimer(SpcialSmp.get(), 0L, 1L);
             }
-        }.runTaskTimer(SpcialSmp.get(), 0L, 5L);
-    }
+            ticks++;
+        }
+    }.runTaskTimer(SpcialSmp.get(), 0L, 1L); // Har 1 tick par chalega (Fastest Rain)
+        }
 
     private boolean isCool(Player p, String key, int seconds) {
         if (seconds <= 0) return true;
