@@ -84,7 +84,7 @@ public Material getMaterial() {
 
         p.addPotionEffect(new PotionEffect(
                 PotionEffectType.INVISIBILITY,
-                5 * 5,
+                10 * 10,
                 0,
                 false,
                 false
@@ -97,7 +97,7 @@ public Material getMaterial() {
 
                     p.setGameMode(old);
                 },
-                5L * 5 // 5 seconds
+                10L * 10 // 10 seconds
         );
     }
 
