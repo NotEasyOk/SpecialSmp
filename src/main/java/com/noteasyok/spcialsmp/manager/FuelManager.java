@@ -7,29 +7,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.configuration.file.FileConfiguration;
 
-import java.time.ZonedDateTime;
-import java.time.ZoneId;
-import java.util.HashMap;
-import java.util.UUID;
-
-public class FuelManager {
-
-    private static final HashMap<UUID, Integer> fuelCache = new HashMap<>();
-    private static final int DEFAULT_FUEL = (15*3600) + (59*60) + 59; // 15h 59m 59s
-
-    public static boolean isSystemEnabled() {
-        FileConfiguration config = SpcialSmp.get().getConfig();
-        return config == null || config.getBoolean("settings.soul-fuel.enabled", true);
-    }
-package com.noteasyok.spcialsmp.manager;
-
-import com.noteasyok.spcialsmp.SpcialSmp;
-import org.bukkit.Bukkit;
-import org.bukkit.Sound;
-import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.configuration.file.FileConfiguration;
-
 import java.util.HashMap;
 import java.util.UUID;
 
@@ -146,6 +123,4 @@ public class FuelManager {
         int newFuel = Math.max(0, current - secondsToRemove);
         setFuel(p, newFuel);
     }
-}setFuel(p, newFuel);
-    }
-            }
+                    }
