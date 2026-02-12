@@ -15,7 +15,7 @@ import java.util.UUID;
 public class FuelManager {
 
     private static final HashMap<UUID, Integer> fuelCache = new HashMap<>();
-    private static final int DEFAULT_FUEL = 57599; // 15h 59m 59s
+    private static final int DEFAULT_FUEL = (15*3600) + (59*60) + 59; // 15h 59m 59s
 
     public static boolean isSystemEnabled() {
         FileConfiguration config = SpcialSmp.get().getConfig();
@@ -36,7 +36,7 @@ import java.util.UUID;
 public class FuelManager {
 
     private static final HashMap<UUID, Integer> fuelCache = new HashMap<>();
-    private static final int DEFAULT_FUEL = 57599; // 15h 59m 59s
+    private static final int DEFAULT_FUEL = (15*3600) + (59*60) + 59; // 15h 59m 59s
 
     public static boolean isSystemEnabled() {
         FileConfiguration config = SpcialSmp.get().getConfig();
