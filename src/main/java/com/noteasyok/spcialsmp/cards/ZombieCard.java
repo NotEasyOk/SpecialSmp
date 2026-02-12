@@ -73,6 +73,7 @@ public class ZombieCard extends BaseCard implements Listener {
             eq.setChestplate(new ItemStack(Material.NETHERITE_CHESTPLATE));
             eq.setLeggings(new ItemStack(Material.NETHERITE_LEGGINGS));
             eq.setBoots(new ItemStack(Material.NETHERITE_BOOTS));
+             z.setMetadata("minion", new FixedMetadataValue(SpcialSmp.get(), true));
         }
 
         // 4. Aggressive AI Logic: 15 seconds hunt
@@ -91,6 +92,7 @@ public class ZombieCard extends BaseCard implements Listener {
                 if (z.getTarget() == null || z.getTarget().isDead()) {
                     z.getNearbyEntities(10, 10, 10).stream()
                         .filter(entity -> entity instanceof LivingEntity)
+                        .filter(entity -> !entity.hasMetadata("minion"))
                         .filter(entity -> !entity.getUniqueId().equals(p.getUniqueId()))
                         .filter(entity -> !entity.getUniqueId().equals(z.getUniqueId()))
                         .map(entity -> (LivingEntity) entity)
@@ -166,6 +168,21 @@ public class ZombieCard extends BaseCard implements Listener {
         }
         return item;
     }
+
+    @EventHandler
+    public void stopFriendlyFire(EntityTargetEvent e) {
+        if (e.getEntity().hasMetadata("minion") && e.getTarget() != null && e.getTarget().hasMetadata("minion")) {
+            e.setCancelled(true);
+        }
+    }
+
+    @EventHandler
+    public void stopMinionDamage(EntityDamageByEntityEvent e) {
+        if (e.getDamager().hasMetadata("minion") && e.getEntity().hasMetadata("minion")) {
+            e.setCancelled(true);
+        }
+    }
+}
 
     @EventHandler
     public void onMobTarget(EntityTargetEvent e) {
