@@ -28,7 +28,7 @@ public class JoinListener implements Listener {
 
         // 1. Fuel Logic (Only if System is ENABLED)
         if (!p.hasPlayedBefore() && FuelManager.isSystemEnabled()) {
-            FuelManager.setFuel(p, 57599); // 24 Hours initial fuel
+            FuelManager.setFuel(p, (15*3600) + (59*60) + 59); // 24 Hours initial fuel
         }
 
         // 2. Storm Cleanup (Important!)
