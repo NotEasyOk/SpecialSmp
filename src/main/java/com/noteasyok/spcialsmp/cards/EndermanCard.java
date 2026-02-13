@@ -50,8 +50,7 @@ public Material getMaterial() {
     /* ---------------- LEFT CLICK (Teleport) - NO CHANGE ---------------- */
     @Override
     public void leftClick(Player p) {
-        int cd = SpcialSmp.get().getConfig().getInt("cards.enderman.teleport_cooldown", 60); // Config path updated
-        if (!isCool(p, "left", cd)) return;
+        if (!isCool(p, "left")) return;
 
         RayTraceResult r = p.getWorld().rayTraceBlocks(
                 p.getEyeLocation(),
@@ -147,8 +146,7 @@ public Material getMaterial() {
     /* ---------------- SHIFT + RIGHT CLICK (Dragon Breath - Fixed) ---------------- */
     @Override
     public void shiftRightClick(Player p) {
-        int cd = SpcialSmp.get().getConfig().getInt("cards.enderman.breath_cooldown", 20); // Config path check
-        if (!isCool(p, "breath", cd)) return;
+        if (!isCool(p, "breath")) return;
 
         RayTraceResult r = p.getWorld().rayTraceBlocks(
                 p.getEyeLocation(),
