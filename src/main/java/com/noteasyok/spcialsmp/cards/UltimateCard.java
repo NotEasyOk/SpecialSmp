@@ -43,7 +43,7 @@ public class UltimateCard extends BaseCard implements Listener {
     /* ================= LEFT CLICK: WITHER STORM (FIXED) ================*/
     @Override
     public void leftClick(Player p) {
-        if (activeStorm.contains(p.getUniqueId()) || !isCool(p, "ultimate_storm", 120)) return;
+        if (activeStorm.contains(p.getUniqueId()) || !isCool(p, "left", 120)) return;
 
         activeStorm.add(p.getUniqueId());
         
@@ -273,7 +273,7 @@ if (timer % 15 == 0) {
     @Override
     public void shiftRightClick(Player p) {
         // Cooldown check (taaki spam na ho)
-        if (!isCool(p, "giant_sword_rain", 70)) {
+        if (!isCool(p, "shift_right", 70)) {
             p.sendMessage("§cWait for cooldown!");
             return;
         }
