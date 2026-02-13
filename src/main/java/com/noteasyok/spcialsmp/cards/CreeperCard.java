@@ -27,8 +27,7 @@ public class CreeperCard extends BaseCard {
     /* ================= LEFT CLICK (Big Explosion) ================= */
     @Override
     public void leftClick(Player p) {
-        int cd = SpcialSmp.get().getConfig().getInt("cards.creeper.left_click_cooldown", 10);
-        if (!isCool(p, "left", cd)) return;
+        if (!isCool(p, "left",)) return;
 
         Location loc = p.getTargetBlockExact(12) != null
                 ? p.getTargetBlockExact(12).getLocation().add(0, 1, 0)
@@ -40,8 +39,7 @@ public class CreeperCard extends BaseCard {
     /* ================= RIGHT CLICK (Orbital Strike - Sync & Particles Fixed) ================= */
     @Override
     public void rightClick(Player p) {
-        int cd = SpcialSmp.get().getConfig().getInt("cards.creeper.right_click_cooldown", 30);
-        if (!isCool(p, "right", cd)) return;
+        if (!isCool(p, "right")) return;
 
         RayTraceResult r = p.getWorld().rayTraceBlocks(p.getEyeLocation(), p.getEyeLocation().getDirection(), 120);
         if (r == null || r.getHitPosition() == null) {
@@ -97,8 +95,7 @@ public class CreeperCard extends BaseCard {
     /* ================= SHIFT + RIGHT CLICK (TNT Rain - 10 Sec) ================= */
 @Override
 public void shiftRightClick(Player p) {
-    int cd = SpcialSmp.get().getConfig().getInt("cards.creeper.shift_click_cooldown", 60);
-    if (!isCool(p, "shift_right", cd)) return;
+    if (!isCool(p, "shift_right")) return;
 
     RayTraceResult r = p.getWorld().rayTraceBlocks(p.getEyeLocation(), p.getEyeLocation().getDirection(), 120);
     if (r == null || r.getHitPosition() == null) return;
