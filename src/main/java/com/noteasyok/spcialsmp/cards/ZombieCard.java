@@ -47,8 +47,7 @@ public class ZombieCard extends BaseCard implements Listener {
     /* ---------------- LEFT CLICK (Aggressive Baby Zombie Minion) ---------------- */
     @Override
     public void leftClick(Player p) {
-        int cooldownSec = SpcialSmp.get().getConfig().getInt("cards.zombie.summon_cooldown", 60);
-        if (!isCool(p, "left", cooldownSec)) return;
+        if (!isCool(p, "left")) return;
 
         for (int i = 0; i < 5; i++) {
 
@@ -116,8 +115,7 @@ public class ZombieCard extends BaseCard implements Listener {
     /* ---------------- RIGHT CLICK (Instant Feed - No Change) ---------------- */
     @Override
     public void rightClick(Player p) {
-        int cd = SpcialSmp.get().getConfig().getInt("cards.zombie.feed_cooldown", 60);
-        if (!isCool(p, "right", cd)) return;
+        if (!isCool(p, "right")) return;
 
         p.setFoodLevel(20);
         p.setSaturation(20f);
@@ -128,8 +126,7 @@ public class ZombieCard extends BaseCard implements Listener {
     /* ---------------- SHIFT + RIGHT CLICK (Disguise - No Change) ---------------- */
     @Override
     public void shiftRightClick(Player p) {
-        int cd = SpcialSmp.get().getConfig().getInt("cards.zombie.horde_mode_cooldown", 120);
-        if (!isCool(p, "shift_right", cd)) return;
+        if (!isCool(p, "shift_right")) return;
 
         zombieModePlayers.add(p.getUniqueId());
         savedArmor.put(p.getUniqueId(), p.getInventory().getArmorContents());
