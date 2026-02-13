@@ -201,12 +201,15 @@ public class PoseidonCard extends BaseCard implements Listener {
 
     // Cooldown Logic (Manager Connected)
     private boolean isCool(Player p, String action) {
-        if (!SpcialSmp.get().getCooldownManager().canUse(p, getName(), action)) {
-            long rem = SpcialSmp.get().getCooldownManager().getRemainingSeconds(p, getName(), action);
-            p.spigot().sendMessage(net.md_5.bungee.api.ChatMessageType.ACTION_BAR, 
-                new net.md_5.bungee.api.chat.TextComponent("§c§l🌊 COOLDOWN: " + rem + "s"));
-            return false;
-        }
-        return true;
+    // Purana 'seconds' wala logic hata do, manager config se khud seconds uthayega
+    if (!SpcialSmp.get().getCooldownManager().canUse(p, getName(), action)) {
+        long remaining = SpcialSmp.get().getCooldownManager().getRemainingSeconds(p, getName(), action);
+        p.sendMessage("§cWait " + remaining + "s");
+        return false;
     }
+
+    // Cooldown apply manager ke through karo
+    SpcialSmp.get().getCooldownManager().applyCooldown(p, getName(), action);
+    return true;
     }
+}
