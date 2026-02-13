@@ -41,7 +41,7 @@ public Material getMaterial() {
     @Override
     public void leftClick(Player p) {
         int cd = SpcialSmp.get().getConfig().getInt("card-cooldowns.Herobrine Card.left", 10);
-        if (!isCool(p, "lightning", cd)) return;
+        if (!isCool(p, "left", cd)) return;
 
         World w = p.getWorld();
         for (int i = 0; i < 5; i++)
@@ -58,7 +58,7 @@ public Material getMaterial() {
             return;
         }
 
-        if (!isCool(p, "flight", cd)) return;
+        if (!isCool(p, "right", cd)) return;
 
         p.addPotionEffect(new PotionEffect(PotionEffectType.DARKNESS, 200, 1));
         p.setAllowFlight(true);
@@ -94,7 +94,7 @@ public Material getMaterial() {
     @Override
     public void shiftRightClick(Player p) {
         int cd = SpcialSmp.get().getConfig().getInt("card-cooldowns.Herobrine Card.shift_right", 180);
-        if (!isCool(p, "power", cd)) return;
+        if (!isCool(p, "shift_right", cd)) return;
 
         World w = p.getWorld();
         long time = w.getTime();
