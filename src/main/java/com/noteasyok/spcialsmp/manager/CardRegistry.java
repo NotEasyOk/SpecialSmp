@@ -27,7 +27,7 @@ public class CardRegistry {
         register(new LightingCard(), List.of("§7Left: Strike", "§7Right: Storm", "§7Shift+R: Trail"));
         register(new GhostCard(), List.of("§7Left: Wall Clip", "§7Right: Fly", "§7Shift+R: Invisibility"));
         register(new RuinCard(), List.of("§7Left: Ruin Dimension", "§7Right: Dark Shield", "§7Shift+R: Sliverfish Army"));
-        
+        register(new PoseidonCard(), List.of("§7Left: Tidal Beam", "§7Right: Water Prison", "§7Shift: Ocean Wrath"));
         register(new UltimateCard(), List.of("§6§lGOD MODE", "§eOnly available via special craft", "§bUnstoppable Power"));
     }
 
