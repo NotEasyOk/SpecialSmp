@@ -29,7 +29,6 @@ import java.util.*;
 public class UltimateCard extends BaseCard implements Listener {
 
     private final Map<UUID, List<ArmorStand>> orbiting = new HashMap<>();
-    private final Map<String, Long> cooldowns = new HashMap<>();
     private final Set<UUID> activeStorm = new HashSet<>();
     private final Map<UUID, Boolean> timeStopped = new HashMap<>();
 
@@ -348,14 +347,19 @@ if (timer % 15 == 0) {
         return item.getItemMeta().getPersistentDataContainer().has(key, PersistentDataType.STRING);
     }
 
-    private boolean isCool(Player p, String key, int sec) {
-        long now = System.currentTimeMillis();
-        String k = p.getUniqueId() + "_" + key;
-        if (cooldowns.containsKey(k) && cooldowns.get(k) > now) return false;
-        cooldowns.put(k, now + (sec * 1000L));
-        return true;
+    private boolean isCool(Player p, String action) {
+    // Purana 'seconds' wala logic hata do, manager config se khud seconds uthayega
+    if (!SpcialSmp.get().getCooldownManager().canUse(p, getName(), action)) {
+        long remaining = SpcialSmp.get().getCooldownManager().getRemainingSeconds(p, getName(), action);
+        p.sendMessage("§cWait " + remaining + "s");
+        return false;
     }
-    
+
+    // Cooldown apply manager ke through karo
+    SpcialSmp.get().getCooldownManager().applyCooldown(p, getName(), action);
+    return true;
+    }
+
     @Override
     public ItemStack getItemStackWithLore(String name) {
         ItemStack item = new ItemStack(getMaterial());
