@@ -18,9 +18,6 @@ import java.util.UUID;
 
 public class NothingCard extends BaseCard {
 
-    // Cooldown track karne ke liye Map
-    private final Map<String, Long> cooldowns = new HashMap<>();
-
     @Override
     public String getName() {
         return "Nothing Card";
@@ -111,20 +108,16 @@ public Material getMaterial() {
         return ChatColor.stripColor(item.getItemMeta().getDisplayName()).equalsIgnoreCase("Nothing Card");
     }
 
-    private boolean isCool(Player p, String key, int seconds) {
-        if (seconds <= 0) return true;
-        long now = System.currentTimeMillis();
-        String mapKey = p.getUniqueId().toString() + "_" + key;
-        
-        if (cooldowns.containsKey(mapKey)) {
-            long timeLeft = (cooldowns.get(mapKey) - now) / 1000;
-            if (timeLeft > 0) {
-                String rawMsg = SpcialSmp.get().getConfig().getString("messages.cooldown-active", "§cWait %time%s");
-                p.sendMessage(rawMsg.replace("%time%", String.valueOf(timeLeft)));
-                return false;
-            }
-        }
-        cooldowns.put(mapKey, now + (seconds * 1000L));
-        return true;
+    private boolean isCool(Player p, String action) {
+    // Purana 'seconds' wala logic hata do, manager config se khud seconds uthayega
+    if (!SpcialSmp.get().getCooldownManager().canUse(p, getName(), action)) {
+        long remaining = SpcialSmp.get().getCooldownManager().getRemainingSeconds(p, getName(), action);
+        p.sendMessage("§cWait " + remaining + "s");
+        return false;
     }
-                        }
+
+    // Cooldown apply manager ke through karo
+    SpcialSmp.get().getCooldownManager().applyCooldown(p, getName(), action);
+    return true;
+    }
+}
