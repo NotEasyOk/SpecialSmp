@@ -35,7 +35,7 @@ public Material getMaterial() {
     public void leftClick(Player p) {
         // Config path: cards.ghost.left_click_cooldown
         int cd = SpcialSmp.get().getConfig().getInt("cards.ghost.left_click_cooldown", 5);
-        if (!isCool(p, "float", cd)) return;
+        if (!isCool(p, "left", cd)) return;
 
         p.addPotionEffect(new PotionEffect(
                 PotionEffectType.SLOW_FALLING,
@@ -51,7 +51,7 @@ public Material getMaterial() {
     public void rightClick(Player p) {
         // Config path: cards.ghost.right_click_cooldown
         int cd = SpcialSmp.get().getConfig().getInt("cards.ghost.right_click_cooldown", 40);
-        if (!isCool(p, "fly", cd)) return;
+        if (!isCool(p, "right", cd)) return;
 
         p.setAllowFlight(true);
         p.setFlying(true);
@@ -74,7 +74,7 @@ public Material getMaterial() {
     public void shiftRightClick(Player p) {
         // Config path: cards.ghost.shift_click_cooldown
         int cd = SpcialSmp.get().getConfig().getInt("cards.ghost.shift_click_cooldown", 60);
-        if (!isCool(p, "phase", cd)) return;
+        if (!isCool(p, "shift_right", cd)) return;
 
         GameMode old = p.getGameMode();
         p.setGameMode(GameMode.SPECTATOR);
