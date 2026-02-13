@@ -15,7 +15,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-public class LightingCard extends BaseCard implements Listener
+public class LightingCard extends BaseCard implements Listener {
 
     @Override
     public String getName() {
