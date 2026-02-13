@@ -8,6 +8,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.Material;
 import org.bukkit.entity.Zombie;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityTargetEvent;
 import org.bukkit.inventory.EntityEquipment;
@@ -182,7 +183,6 @@ public class ZombieCard extends BaseCard implements Listener {
             e.setCancelled(true);
         }
     }
-}
 
     @EventHandler
     public void onMobTarget(EntityTargetEvent e) {
