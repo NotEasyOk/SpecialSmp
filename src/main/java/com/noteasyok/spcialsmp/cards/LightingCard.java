@@ -37,7 +37,7 @@ public Material getMaterial() {
     public void leftClick(Player p) {
         // Config path: cards.lighting.left_click_cooldown
         int cd = SpcialSmp.get().getConfig().getInt("cards.lighting.left_click_cooldown", 15);
-        if (!isCool(p, "strike", cd)) return;
+        if (!isCool(p, "left", cd)) return;
 
         RayTraceResult r = p.getWorld().rayTraceBlocks(
                 p.getEyeLocation(),
@@ -68,7 +68,7 @@ public Material getMaterial() {
     public void rightClick(Player p) {
         // Config path: cards.lighting.right_click_cooldown
         int cd = SpcialSmp.get().getConfig().getInt("cards.lighting.right_click_cooldown", 30);
-        if (!isCool(p, "storm", cd)) return;
+        if (!isCool(p, "right", cd)) return;
 
         RayTraceResult r = p.getWorld().rayTraceBlocks(
                 p.getEyeLocation(),
