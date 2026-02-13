@@ -40,7 +40,7 @@ public class FuelManager {
         
         // SIMPLE LOADING: Agar cache mein nahi hai toh database se uthao (No offline calculation)
         if (!fuelCache.containsKey(uid)) {
-            int savedFuel = SpcialSmp.get().getPlayerDataManager().getFuel(uid);
+            int savedFuel = (int) SpcialSmp.get().getPlayerDataManager().getFuel(uid);
             
             // Agar naya player hai (0 fuel), toh use default fuel do
             if (savedFuel <= 0) {
