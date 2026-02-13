@@ -132,7 +132,7 @@ public class PoseidonCard extends BaseCard implements Listener {
         if (!isCool(p, "shift_right")) return;
 
         // Buffs
-        p.addPotionEffect(new PotionEffect(PotionEffectType.INCREASE_DAMAGE, 200, 1)); // Strength 2
+        p.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH, 200, 1)); // Strength 2
         p.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 200, 1)); // Speed 2
         p.addPotionEffect(new PotionEffect(PotionEffectType.DOLPHINS_GRACE, 200, 0)); 
         p.addPotionEffect(new PotionEffect(PotionEffectType.CONDUIT_POWER, 200, 0));
@@ -167,8 +167,8 @@ public class PoseidonCard extends BaseCard implements Listener {
     /* ---------------- HELPER: DRAW WATER BOX ---------------- */
     private void trapEntityInWaterBox(LivingEntity target) {
         // Slow them down completely
-        target.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, 60, 10)); // 3s freeze
-        target.addPotionEffect(new PotionEffect(PotionEffectType.JUMP, 60, 250)); // No jump
+        target.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 60, 10)); // 3s freeze
+        target.addPotionEffect(new PotionEffect(PotionEffectType.JUMP_BOOST, 60, 250)); // No jump
 
         new BukkitRunnable() {
             int duration = 60; // 3 seconds (20 ticks * 3)
