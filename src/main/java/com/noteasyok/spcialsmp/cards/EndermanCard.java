@@ -51,7 +51,7 @@ public Material getMaterial() {
     @Override
     public void leftClick(Player p) {
         int cd = SpcialSmp.get().getConfig().getInt("cards.enderman.teleport_cooldown", 60); // Config path updated
-        if (!isCool(p, "tp", cd)) return;
+        if (!isCool(p, "left", cd)) return;
 
         RayTraceResult r = p.getWorld().rayTraceBlocks(
                 p.getEyeLocation(),
