@@ -33,9 +33,8 @@ public Material getMaterial() {
     /* ---------------- LEFT CLICK (Slow Falling) ---------------- */
     @Override
     public void leftClick(Player p) {
-        // Config path: cards.ghost.left_click_cooldown
-        int cd = SpcialSmp.get().getConfig().getInt("cards.ghost.left_click_cooldown", 5);
-        if (!isCool(p, "left", cd)) return;
+        // Config path: cards.ghost.left_click_cooldow
+        if (!isCool(p, "left")) return;
 
         p.addPotionEffect(new PotionEffect(
                 PotionEffectType.SLOW_FALLING,
@@ -50,8 +49,7 @@ public Material getMaterial() {
     @Override
     public void rightClick(Player p) {
         // Config path: cards.ghost.right_click_cooldown
-        int cd = SpcialSmp.get().getConfig().getInt("cards.ghost.right_click_cooldown", 40);
-        if (!isCool(p, "right", cd)) return;
+        if (!isCool(p, "right")) return;
 
         p.setAllowFlight(true);
         p.setFlying(true);
@@ -72,9 +70,8 @@ public Material getMaterial() {
     /* ---------------- SHIFT + RIGHT CLICK (Spectator Phase) ---------------- */
     @Override
     public void shiftRightClick(Player p) {
-        // Config path: cards.ghost.shift_click_cooldown
-        int cd = SpcialSmp.get().getConfig().getInt("cards.ghost.shift_click_cooldown", 60);
-        if (!isCool(p, "shift_right", cd)) return;
+        // Config path: cards.ghost.shift_clic
+        if (!isCool(p, "shift_right")) return;
 
         GameMode old = p.getGameMode();
         p.setGameMode(GameMode.SPECTATOR);
