@@ -27,7 +27,7 @@ public class CreeperCard extends BaseCard {
     /* ================= LEFT CLICK (Big Explosion) ================= */
     @Override
     public void leftClick(Player p) {
-        if (!isCool(p, "left",)) return;
+        if (!isCool(p, "left")) return;
 
         Location loc = p.getTargetBlockExact(12) != null
                 ? p.getTargetBlockExact(12).getLocation().add(0, 1, 0)
