@@ -37,7 +37,7 @@ public Material getMaterial() {
     @Override
     public void leftClick(Player p) {
         int cd = SpcialSmp.get().getConfig().getInt("cards.nothing.left_click_cooldown", 10);
-        if (!isCool(p, "time", cd)) return;
+        if (!isCool(p, "left", cd)) return;
 
         long time = p.getWorld().getTime();
         if (time > 12000) {
@@ -54,7 +54,7 @@ public Material getMaterial() {
     public void rightClick(Player p) {
         int cd = SpcialSmp.get().getConfig().getInt("cards.nothing.right_click_cooldown", 30);
         
-        if (!isCool(p, "control", cd)) return;
+        if (!isCool(p, "right", cd)) return;
 
         RayTraceResult result = p.getWorld().rayTraceEntities(
                 p.getEyeLocation(),
@@ -95,7 +95,7 @@ public Material getMaterial() {
     @Override
     public void shiftRightClick(Player p) {
         int cd = SpcialSmp.get().getConfig().getInt("cards.nothing.shift_click_cooldown", 40);
-        if (!isCool(p, "falling", cd)) return;
+        if (!isCool(p, "shift_right", cd)) return;
 
         p.addPotionEffect(new PotionEffect(PotionEffectType.SLOW_FALLING, 20 * 20, 1, false, false, false));
         p.sendMessage("§fNo fall damage for 20s (Slow Falling)");
