@@ -27,7 +27,7 @@ public class CooldownManager {
     }
 
     private String key(String cardName, String action) {
-        return ChatColor.stripColor(cardName).toLowerCase() + ":" + action.toLowerCase();
+        return ChatColor.stripColor(cardName) + ":" + action.toLowerCase();
     }
 
     public boolean canUse(Player player, String cardName, String action) {
