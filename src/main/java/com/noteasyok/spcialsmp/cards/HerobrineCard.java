@@ -40,8 +40,7 @@ public Material getMaterial() {
     /* ---------------- LEFT CLICK (Lightning) ---------------- */
     @Override
     public void leftClick(Player p) {
-        int cd = SpcialSmp.get().getConfig().getInt("card-cooldowns.Herobrine Card.left", 10);
-        if (!isCool(p, "left", cd)) return;
+        if (!isCool(p, "left")) return;
 
         World w = p.getWorld();
         for (int i = 0; i < 5; i++)
@@ -51,14 +50,13 @@ public Material getMaterial() {
     /* ---------------- RIGHT CLICK (Flight) ---------------- */
     @Override
     public void rightClick(Player p) {
-        int cd = SpcialSmp.get().getConfig().getInt("card-cooldowns.Herobrine Card.right", 60);
         
         if (flyingPlayers.contains(p.getUniqueId())) {
             p.sendMessage(ChatColor.RED + "Flight ability is already active!");
             return;
         }
 
-        if (!isCool(p, "right", cd)) return;
+        if (!isCool(p, "right")) return;
 
         p.addPotionEffect(new PotionEffect(PotionEffectType.DARKNESS, 200, 1));
         p.setAllowFlight(true);
@@ -93,8 +91,7 @@ public Material getMaterial() {
     /* ---------------- SHIFT + RIGHT CLICK (Giant/Tiny) ---------------- */
     @Override
     public void shiftRightClick(Player p) {
-        int cd = SpcialSmp.get().getConfig().getInt("card-cooldowns.Herobrine Card.shift_right", 180);
-        if (!isCool(p, "shift_right", cd)) return;
+        if (!isCool(p, "shift_right")) return;
 
         World w = p.getWorld();
         long time = w.getTime();
