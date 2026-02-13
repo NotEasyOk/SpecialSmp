@@ -39,9 +39,8 @@ public Material getMaterial() {
     /* ---------------- LEFT CLICK (Health Boost) ---------------- */
     @Override
     public void leftClick(Player p) {
-        int cooldownSec = SpcialSmp.get().getConfig().getInt("cards.warden.left_click_cooldown", 30);
         // FIXED: checkCooldown ki jagah isCool use kiya
-        if (!isCool(p, "left", cooldownSec)) return;
+        if (!isCool(p, "left")) return;
 
         double baseMax = p.getAttribute(Attribute.GENERIC_MAX_HEALTH).getBaseValue();
         p.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(100.0);
@@ -63,9 +62,8 @@ public Material getMaterial() {
     /* ---------------- RIGHT CLICK (SONIC BOOM) ---------------- */
     @Override
     public void rightClick(Player p) {
-        int cooldownSec = SpcialSmp.get().getConfig().getInt("cards.warden.right_click_cooldown", 10);
         // FIXED: checkCooldown ki jagah isCool use kiya
-        if (!isCool(p, "right", cooldownSec)) return;
+        if (!isCool(p, "right")) return;
 
         Location start = p.getEyeLocation();
         Vector dir = start.getDirection().normalize();
@@ -87,9 +85,8 @@ public Material getMaterial() {
     /* ---------------- SHIFT + RIGHT (Buffs) ---------------- */
     @Override
     public void shiftRightClick(Player p) {
-        int cooldownSec = SpcialSmp.get().getConfig().getInt("cards.warden.shift_click_cooldown", 45);
         // FIXED: checkCooldown ki jagah isCool use kiya
-        if (!isCool(p, "shift_right", cooldownSec)) return;
+        if (!isCool(p, "shift_right")) return;
 
         p.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH, 20 * 15, 3));
         p.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, 20 * 15, 3));
