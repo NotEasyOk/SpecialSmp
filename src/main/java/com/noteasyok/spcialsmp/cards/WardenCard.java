@@ -89,7 +89,7 @@ public Material getMaterial() {
     public void shiftRightClick(Player p) {
         int cooldownSec = SpcialSmp.get().getConfig().getInt("cards.warden.shift_click_cooldown", 45);
         // FIXED: checkCooldown ki jagah isCool use kiya
-        if (!isCool(p, "shift", cooldownSec)) return;
+        if (!isCool(p, "shift_right", cooldownSec)) return;
 
         p.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH, 20 * 15, 3));
         p.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, 20 * 15, 3));
