@@ -123,4 +123,19 @@ public class FuelManager {
         int newFuel = Math.max(0, current - secondsToRemove);
         setFuel(p, newFuel);
     }
-                    }
+
+    public static void addFuelSeconds(Player p, int seconds) {
+        if (!isSystemEnabled()) return;
+        int current = getFuel(p);
+        int newFuel = Math.min(current + seconds, 86400 * 7); // Max 7 Days
+        setFuel(p, newFuel);
+    }
+
+    // --- FIX: Seconds mein fuel cut karne ke liye ---
+    public static void removeFuelSeconds(Player p, int seconds) {
+        if (!isSystemEnabled()) return;
+        int current = getFuel(p);
+        int newFuel = Math.max(0, current - seconds);
+        setFuel(p, newFuel);
+    }
+}
