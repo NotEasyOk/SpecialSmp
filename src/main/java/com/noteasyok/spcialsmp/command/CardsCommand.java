@@ -188,19 +188,14 @@ public void onDrink(PlayerItemConsumeEvent e) {
     ItemStack item = e.getItem();
     if (item.getType() == Material.POTION && item.hasItemMeta()) {
         NamespacedKey key = new NamespacedKey(SpcialSmp.get(), "fuel_seconds_data");
-        if (item.getItemMeta().getPersistentDataContainer().has(key, PersistentDataType.LONG)) {
-            long seconds = item.getItemMeta().getPersistentDataContainer().get(key, PersistentDataType.LONG);
+        ItemMeta meta = item.getItemMeta();
+
+        if (meta.getPersistentDataContainer().has(key, PersistentDataType.LONG)) {
+            long seconds = meta.getPersistentDataContainer().get(key, PersistentDataType.LONG);
             Player p = e.getPlayer();
 
-            // Naya total calculate karo
-            int currentFuel = FuelManager.getFuel(p);
-            int newFuel = currentFuel + (int) seconds;
-
-            // 1. FuelManager update (Cache)
-            FuelManager.setFuel(p, newFuel);
-            
-            // 2. Database update (Permanent Save)
-            SpcialSmp.get().getPlayerDataManager().setFuel(p.getUniqueId(), newFuel);
+            // Seedha FuelManager use karo, ye cache aur database dono handle kar lega
+            FuelManager.addFuelSeconds(p, (int) seconds);
 
             p.sendMessage("§b§l[+] §7Restored §e" + seconds + "s §7of Soul Fuel!");
             p.playSound(p.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1f, 2f);
