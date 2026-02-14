@@ -6,63 +6,56 @@ import org.bukkit.*;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
-import org.bukkit.event.block.Action;
-import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
-
 import java.util.List;
 
 public class GravityCard extends BaseCard {
 
-    // 1. Fixed: BaseCard ke abstract method ko override kiya
     @Override
     public String getName() {
         return "Gravity Card";
     }
 
-    // 2. Fixed: Material return method add kiya
     @Override
     public Material getMaterial() {
         return Material.ECHO_SHARD;
     }
 
-    // 3. Fixed: BaseCard ki missing getModelData error fix ki
     @Override
     public int getModelData() {
-        return 105; // Aapka texture ID
+        return 105;
     }
 
+    // ABILITY 1: Left Click (Gravity Push)
     @Override
-    public void onInteract(PlayerInteractEvent e) {
-        Player p = e.getPlayer();
-        Action a = e.getAction();
-        String name = getName();
-
-        // Left Click Logic
-        if (a == Action.LEFT_CLICK_AIR || a == Action.LEFT_CLICK_BLOCK) {
-            // Aapke manager mein 'canUse' ya 'checkCooldown' jo bhi ho, use yahan set karein
-            if (CooldownManager.canUse(p, name + "_left", 3)) {
-                performGravityPush(p);
-            }
-        } 
-        // Right Click & Shift Logic
-        else if (a == Action.RIGHT_CLICK_AIR || a == Action.RIGHT_CLICK_BLOCK) {
-            if (p.isSneaking()) {
-                if (CooldownManager.canUse(p, name + "_shift", 20)) {
-                    performZeroGravityZone(p);
-                }
-            } else {
-                if (CooldownManager.canUse(p, name + "_right", 10)) {
-                    performBlackHole(p);
-                }
-            }
+    public void leftClick(Player p) {
+        // Aapke system ke mutabiq String cooldown "3"
+        if (CooldownManager.checkCooldown(p, getName() + " Left", "3")) {
+            performGravityPush(p);
+            CooldownManager.setCooldown(p, getName() + " Left", "3");
         }
     }
 
-    // --- PHYSICS ABILITIES ---
+    // ABILITY 2: Right Click (Black Hole)
+    @Override
+    public void rightClick(Player p) {
+        if (CooldownManager.checkCooldown(p, getName() + " Right", "10")) {
+            performBlackHole(p);
+            CooldownManager.setCooldown(p, getName() + " Right", "10");
+        }
+    }
+
+    // ABILITY 3: Shift + Right Click (Zero-G Zone)
+    @Override
+    public void shiftRightClick(Player p) {
+        if (CooldownManager.checkCooldown(p, getName() + " Shift", "20")) {
+            performZeroGravityZone(p);
+            CooldownManager.setCooldown(p, getName() + " Shift", "20");
+        }
+    }
+
+    // --- PHYSICS LOGIC ---
 
     private void performGravityPush(Player p) {
         Entity target = getTargetEntity(p, 20);
@@ -73,6 +66,8 @@ public class GravityCard extends BaseCard {
             Vector dir = p.getLocation().getDirection().normalize();
             victim.setVelocity(dir.multiply(2.5).setY(1.2));
             p.sendMessage("§5§lGRAVITY » §fYeeted §d" + victim.getName());
+        } else {
+            p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_BASS, 1f, 0.5f);
         }
     }
 
@@ -144,5 +139,4 @@ public class GravityCard extends BaseCard {
         }
         return target;
     }
-    
-}
+            }
