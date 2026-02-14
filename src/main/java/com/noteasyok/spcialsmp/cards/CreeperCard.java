@@ -43,7 +43,6 @@ public class CreeperCard extends BaseCard {
 
         RayTraceResult r = p.getWorld().rayTraceBlocks(p.getEyeLocation(), p.getEyeLocation().getDirection(), 120);
         if (r == null || r.getHitPosition() == null) {
-            cooldowns.remove(p.getUniqueId().toString() + "_orbital");
             return;
         }
 
