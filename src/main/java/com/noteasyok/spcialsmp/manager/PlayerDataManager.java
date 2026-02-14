@@ -1,5 +1,7 @@
 package com.noteasyok.spcialsmp.manager;
 
+import com.noteasyok.spcialsmp.SpcialSmp;
+import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -26,18 +28,17 @@ public class PlayerDataManager {
         data = YamlConfiguration.loadConfiguration(file);
     }
 
-   /* ================= FUEL SYSTEM (FIXED FOR WITHDRAW/ADD) ================= */
+   /* ================= FUEL SYSTEM (FIXED & SYNCED) ================= */
 
-    public long getFuel(UUID uuid) {
-        // long use karein taaki bade numbers (86400+) error na dein
-        return data.getLong("players." + uuid + ".fuel", -1L);
+    // FuelManager int use kar raha hai, isliye yahan bhi int rakha hai
+    public int getFuel(UUID uuid) {
+        return data.getInt("players." + uuid + ".fuel", -1);
     }
 
-    public void setFuel(UUID uuid, long amount) {
-        // Value ko hamesha zero se upar rakhein
-        long finalAmount = Math.max(0, amount);
+    public void setFuel(UUID uuid, int amount) {
+        int finalAmount = Math.max(0, amount);
         data.set("players." + uuid + ".fuel", finalAmount);
-        save();
+        saveAsync(); // Lag-free background saving
     }
 
     /* ================= JOIN TRACKING ================= */
@@ -48,17 +49,17 @@ public class PlayerDataManager {
 
     public void setJoinedBefore(UUID uuid, boolean value) {
         data.set("players." + uuid + ".joined", value);
-        save();
+        saveAsync();
     }
 
     public long getLastBookTime(UUID uuid) {
-    return data.getLong("players." + uuid + ".lastBookTime", 0L);
-}
+        return data.getLong("players." + uuid + ".lastBookTime", 0L);
+    }
 
-public void setLastBookTime(UUID uuid, long time) {
-    data.set("players." + uuid + ".lastBookTime", time);
-    save();
-}
+    public void setLastBookTime(UUID uuid, long time) {
+        data.set("players." + uuid + ".lastBookTime", time);
+        saveAsync();
+    }
 
     /* ================= FIRST JOIN CARD ================= */
 
@@ -69,7 +70,7 @@ public void setLastBookTime(UUID uuid, long time) {
     public void setReceivedFirstCard(UUID uuid, String cardName) {
         data.set("players." + uuid + ".firstCard", true);
         data.set("players." + uuid + ".firstCardName", cardName);
-        save();
+        saveAsync();
     }
 
     /* ================= ULTIMATE CARD ================= */
@@ -80,29 +81,32 @@ public void setLastBookTime(UUID uuid, long time) {
 
     public void setUltimate(UUID uuid) {
         data.set("players." + uuid + ".ultimateCrafted", true);
-        save();
+        saveAsync();
     }
 
-    /* ================= YE WALA CODE PASTE KAREIN (FIXED) ================= */
+    /* ================= LOGOUT & OFFLINE SYSTEM ================= */
 
-    // Last logout time nikalne ke liye (Offline fuel drain fix)
     public long getLastLogout(UUID uuid) {
         return data.getLong("players." + uuid + ".lastLogout", 0L);
     }
 
-    // Last logout time save karne ke liye
     public void setLastLogout(UUID uuid, long timestamp) {
         data.set("players." + uuid + ".lastLogout", timestamp);
-        save();
+        saveAsync();
     }
 
-    /* ================= SAVE ================= */
+    /* ================= SAVE (PERFORMANCE FIX) ================= */
 
-    private void save() {
+    private void saveAsync() {
+        // File saving ko background thread par shift kiya taaki TPS drop na ho
+        Bukkit.getScheduler().runTaskAsynchronously(SpcialSmp.get(), this::save);
+    }
+
+    private synchronized void save() {
         try {
             data.save(file);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
-}
+            }
