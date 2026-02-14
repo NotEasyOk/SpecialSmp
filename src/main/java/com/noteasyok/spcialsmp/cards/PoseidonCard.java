@@ -75,8 +75,8 @@ public class PoseidonCard extends BaseCard implements Listener {
                 distance += 1;
 
                 // Spawn Particles (Water Beam effect)
-                p.getWorld().spawnParticle(Particle.WATER_WAKE, current, 5, 0.1, 0.1, 0.1, 0.05);
-                p.getWorld().spawnParticle(Particle.DRIP_WATER, current, 5, 0.2, 0.2, 0.2, 0.05);
+                p.getWorld().spawnParticle(Particle.SPLASH, current, 5, 0.1, 0.1, 0.1, 0.05);
+                p.getWorld().spawnParticle(Particle.DRIPPING_WATER, current, 5, 0.2, 0.2, 0.2, 0.05);
 
                 // Hit Detection
                 if (!current.getBlock().isPassable()) { // Wall hit
