@@ -152,7 +152,7 @@ public class PoseidonCard extends BaseCard implements Listener {
                 double x = 1.5 * Math.cos(t);
                 double z = 1.5 * Math.sin(t);
                 Location loc = p.getLocation().add(x, 1, z);
-                p.getWorld().spawnParticle(Particle.WATER_SPLASH, loc, 5, 0, 0, 0, 0);
+                p.getWorld().spawnParticle(Particle.SPLASH, loc, 5, 0, 0, 0, 0);
                 p.getWorld().spawnParticle(Particle.SOUL_FIRE_FLAME, loc.add(0, 0.5, 0), 1, 0, 0, 0, 0);
                 ticks++;
             }
@@ -188,7 +188,7 @@ public class PoseidonCard extends BaseCard implements Listener {
                             // Only draw borders (hollow box)
                             boolean isEdge = (Math.abs(x) >= 1 || Math.abs(z) >= 1 || y == 0 || y >= 2.5);
                             if (isEdge) {
-                                target.getWorld().spawnParticle(Particle.DRIP_WATER, loc.clone().add(x, y, z), 1, 0, 0, 0, 0);
+                                target.getWorld().spawnParticle(Particle.DRIPPING_WATER, loc.clone().add(x, y, z), 1, 0, 0, 0, 0);
                                 target.getWorld().spawnParticle(Particle.FALLING_WATER, loc.clone().add(x, y, z), 1, 0, 0, 0, 0);
                             }
                         }
