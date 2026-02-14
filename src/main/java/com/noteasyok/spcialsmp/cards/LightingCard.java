@@ -45,8 +45,7 @@ public Material getMaterial() {
         );
 
         if (r == null || r.getHitPosition() == null) {
-            // Target nahi mila to cooldown reset
-            cooldowns.remove(p.getUniqueId().toString() + "_strike");
+            // Target nahi mila to cooldo
             return;
         }
 
@@ -75,8 +74,7 @@ public Material getMaterial() {
         );
 
         if (r == null || r.getHitPosition() == null) {
-            // Target nahi mila to cooldown reset
-            cooldowns.remove(p.getUniqueId().toString() + "_storm");
+            // Target nahi mila to cooldown rese
             return;
         }
 
