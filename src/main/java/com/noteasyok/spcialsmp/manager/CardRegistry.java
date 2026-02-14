@@ -23,6 +23,7 @@ public class CardRegistry {
         register(new HerobrineCard(), List.of("§7Left: Lightning", "§7Right: Darkness + Fly", "§7Shift+R: Giant/Tiny Mode"));
         register(new NothingCard(), List.of("§7Left: Time Set", "§7Right: Mind Control", "§7Shift+R: No Fall damage"));
         register(new WardenCard(), List.of("§7Left: Darkness", "§7Right: Sonic Boom", "§7Shift+R: Tank Mode"));
+        register(new GravityCard(), List.of("§7Left: Gravity Yeet", "§7Right: Black Hole Vortex", "§7Shift+R: Zero Gravity Zone"));
         register(new CreeperCard(), List.of("§7Left: Explosion", "§7Right: Airstrike", "§7Shift+R: Nuke Rain"));
         register(new LightingCard(), List.of("§7Left: Strike", "§7Right: Storm", "§7Shift+R: Trail"));
         register(new GhostCard(), List.of("§7Left: Wall Clip", "§7Right: Fly", "§7Shift+R: Invisibility"));
