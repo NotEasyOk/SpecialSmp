@@ -63,7 +63,6 @@ public Material getMaterial() {
 
         if (result == null || result.getHitEntity() == null) {
             p.sendMessage("§cNo target found to control!");
-            cooldowns.remove(p.getUniqueId().toString() + "_control");
             return;
         }
 
