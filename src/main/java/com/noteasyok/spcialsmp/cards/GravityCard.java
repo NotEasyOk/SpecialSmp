@@ -13,80 +13,56 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class GravityCard extends BaseCard {
 
-    // 1. Pattern Fix: Constructor following your super class
-    public GravityCard() {
-        super("Gravity Card", Material.ECHO_SHARD, 
-                "§7Control the fundamental forces.",
-                " ",
-                "§6§lABILITY 1: §eGravity Push §7(Left Click)",
-                "§fAim at an enemy to launch them.",
-                " ",
-                "§6§lABILITY 2: §5Black Hole §7(Right Click)",
-                "§fSummon a vortex that pulls enemies.",
-                " ",
-                "§6§lULTIMATE: §dZero-G Zone §7(Shift + Right)",
-                "§fCreate a zone where gravity fails.",
-                " ",
-                "§c§l(!) §7Owner is immune to effects.");
-    }
-
-    // 2. Pattern Fix: Added Missing getName()
+    // 1. Fixed: BaseCard ke abstract method ko override kiya
     @Override
     public String getName() {
         return "Gravity Card";
     }
 
-    // 3. Pattern Fix: Added Missing getMaterial()
+    // 2. Fixed: Material return method add kiya
     @Override
     public Material getMaterial() {
         return Material.ECHO_SHARD;
     }
 
-    // 4. Pattern Fix: Added Custom Model Data support
+    // 3. Fixed: BaseCard ki missing getModelData error fix ki
     @Override
-    public ItemStack getItemStackWithLore(String name) {
-        ItemStack item = super.getItemStackWithLore(name);
-        ItemMeta meta = item.getItemMeta();
-        if (meta != null) {
-            // Yahan 105 ki jagah apna texture ID dalo
-            meta.setCustomModelData(105); 
-            item.setItemMeta(meta);
-        }
-        return item;
+    public int getModelData() {
+        return 105; // Aapka texture ID
     }
 
     @Override
     public void onInteract(PlayerInteractEvent e) {
         Player p = e.getPlayer();
         Action a = e.getAction();
+        String name = getName();
 
+        // Left Click Logic
         if (a == Action.LEFT_CLICK_AIR || a == Action.LEFT_CLICK_BLOCK) {
-            if (CooldownManager.checkCooldown(p, getName() + " Left")) {
+            // Aapke manager mein 'canUse' ya 'checkCooldown' jo bhi ho, use yahan set karein
+            if (CooldownManager.canUse(p, name + "_left", 3)) {
                 performGravityPush(p);
-                CooldownManager.setCooldown(p, getName() + " Left", 3);
             }
         } 
+        // Right Click & Shift Logic
         else if (a == Action.RIGHT_CLICK_AIR || a == Action.RIGHT_CLICK_BLOCK) {
             if (p.isSneaking()) {
-                if (CooldownManager.checkCooldown(p, getName() + " Shift")) {
+                if (CooldownManager.canUse(p, name + "_shift", 20)) {
                     performZeroGravityZone(p);
-                    CooldownManager.setCooldown(p, getName() + " Shift", 20);
                 }
             } else {
-                if (CooldownManager.checkCooldown(p, getName() + " Right")) {
+                if (CooldownManager.canUse(p, name + "_right", 10)) {
                     performBlackHole(p);
-                    CooldownManager.setCooldown(p, getName() + " Right", 10);
                 }
             }
         }
     }
 
-    // --- PHYSICS LOGIC ---
+    // --- PHYSICS ABILITIES ---
 
     private void performGravityPush(Player p) {
         Entity target = getTargetEntity(p, 20);
@@ -96,9 +72,7 @@ public class GravityCard extends BaseCard {
 
             Vector dir = p.getLocation().getDirection().normalize();
             victim.setVelocity(dir.multiply(2.5).setY(1.2));
-            p.sendMessage("§5§lGRAVITY » §fYeeted §d" + victim.getName() + "§f!");
-        } else {
-            p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_BASS, 1f, 0.5f);
+            p.sendMessage("§5§lGRAVITY » §fYeeted §d" + victim.getName());
         }
     }
 
@@ -113,16 +87,14 @@ public class GravityCard extends BaseCard {
             public void run() {
                 if (ticks >= 100) { this.cancel(); return; }
 
-                double radius = 3.5;
-                double x = radius * Math.cos(ticks * 0.2);
-                double z = radius * Math.sin(ticks * 0.2);
+                double x = 3.5 * Math.cos(ticks * 0.2);
+                double z = 3.5 * Math.sin(ticks * 0.2);
                 targetLoc.getWorld().spawnParticle(Particle.WITCH, targetLoc.clone().add(x, 0, z), 1);
                 targetLoc.getWorld().spawnParticle(Particle.REVERSE_PORTAL, targetLoc, 2);
 
                 for (Entity e : targetLoc.getWorld().getNearbyEntities(targetLoc, 6, 6, 6)) {
                     if (e instanceof LivingEntity && !e.equals(p)) {
-                        Vector pull = targetLoc.toVector().subtract(e.getLocation().toVector()).normalize().multiply(0.4);
-                        pull.setY(0.3);
+                        Vector pull = targetLoc.toVector().subtract(e.getLocation().toVector()).normalize().multiply(0.4).setY(0.3);
                         e.setVelocity(pull);
                     }
                 }
@@ -172,4 +144,5 @@ public class GravityCard extends BaseCard {
         }
         return target;
     }
-                    }
+    
+}
