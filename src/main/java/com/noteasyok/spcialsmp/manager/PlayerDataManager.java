@@ -30,7 +30,7 @@ public class PlayerDataManager {
 
     public long getFuel(UUID uuid) {
         // long use karein taaki bade numbers (86400+) error na dein
-        return data.getLong("players." + uuid + ".fuel", 57599L);
+        return data.getLong("players." + uuid + ".fuel", -1L);
     }
 
     public void setFuel(UUID uuid, long amount) {
