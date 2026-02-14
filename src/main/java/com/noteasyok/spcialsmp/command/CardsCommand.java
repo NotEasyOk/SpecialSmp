@@ -75,10 +75,12 @@ public class CardsCommand implements CommandExecutor, TabCompleter, Listener {
                 return true;
             }
 
-            // FIXED: Removed duplicate setFuel/addItem calls
-            int totalAfterCut = (int) (currentFuelSec - secondsToWithdraw);
-            FuelManager.setFuel(p, totalAfterCut);
-            p.getInventory().addItem(createFuelBottle(secondsToWithdraw, input));
+            // Line 84 se replace karein:
+             FuelManager.setFuel(p, totalAfterCut);
+           // DATABASE UPDATE: Ye line missing thi
+           SpcialSmp.get().getPlayerDataManager().setFuel(p.getUniqueId(), totalAfterCut);
+
+           p.getInventory().addItem(createFuelBottle(secondsToWithdraw, input));
             
             p.sendMessage("§a§l[!] §7Withdrew §e" + input + " §7Soul Fuel into a bottle!");
             p.playSound(p.getLocation(), Sound.ENTITY_ITEM_PICKUP, 1f, 1f);
@@ -181,27 +183,29 @@ public class CardsCommand implements CommandExecutor, TabCompleter, Listener {
     }
 
     @EventHandler
-    public void onDrink(PlayerItemConsumeEvent e) {
-        ItemStack item = e.getItem();
-        if (item.getType() == Material.POTION && item.hasItemMeta()) {
-            NamespacedKey key = new NamespacedKey(SpcialSmp.get(), "fuel_seconds_data");
-            if (item.getItemMeta().getPersistentDataContainer().has(key, PersistentDataType.LONG)) {
-                long seconds = item.getItemMeta().getPersistentDataContainer().get(key, PersistentDataType.LONG);
-                
-                // --- YE RAHI FIX LINE ---
-                long newFuel = FuelManager.getFuel(e.getPlayer()) + seconds;
-                
-                // 1. Manager ko update karo (Action Bar ke liye)
-                FuelManager.setFuel(e.getPlayer(), (int) newFuel);
-                
-                // 2. Direct Data ko save karo (Sync ke liye)
-                SpcialSmp.get().getPlayerDataManager().setFuel(e.getPlayer().getUniqueId(), (int) newFuel);
-                
-                e.getPlayer().sendMessage("§b§l[+] §7Restored §e" + seconds + "s §7of Soul Fuel!");
-                e.getPlayer().playSound(e.getPlayer().getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1f, 2f);
-            }
+public void onDrink(PlayerItemConsumeEvent e) {
+    ItemStack item = e.getItem();
+    if (item.getType() == Material.POTION && item.hasItemMeta()) {
+        NamespacedKey key = new NamespacedKey(SpcialSmp.get(), "fuel_seconds_data");
+        if (item.getItemMeta().getPersistentDataContainer().has(key, PersistentDataType.LONG)) {
+            long seconds = item.getItemMeta().getPersistentDataContainer().get(key, PersistentDataType.LONG);
+            Player p = e.getPlayer();
+
+            // Naya total calculate karo
+            int currentFuel = FuelManager.getFuel(p);
+            int newFuel = currentFuel + (int) seconds;
+
+            // 1. FuelManager update (Cache)
+            FuelManager.setFuel(p, newFuel);
+            
+            // 2. Database update (Permanent Save)
+            SpcialSmp.get().getPlayerDataManager().setFuel(p.getUniqueId(), newFuel);
+
+            p.sendMessage("§b§l[+] §7Restored §e" + seconds + "s §7of Soul Fuel!");
+            p.playSound(p.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1f, 2f);
         }
     }
+}
     private void openReviveRecipeGUI(Player p) {
         Inventory inv = Bukkit.createInventory(null, 27, "§0Revival Card Recipe");
         ItemStack glass = new ItemStack(Material.BLACK_STAINED_GLASS_PANE);
