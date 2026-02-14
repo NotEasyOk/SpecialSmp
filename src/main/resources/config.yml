@@ -38,6 +38,10 @@ cooldowns:
     left: 40
     right: 20
     shift_right: 60
+    "Poseidon Card":
+    left: 30
+    right: 60
+    shift_right: 120
   "Warden Card":
     left: 60
     right: 120
