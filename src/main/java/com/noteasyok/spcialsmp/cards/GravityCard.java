@@ -137,9 +137,9 @@ public class GravityCard extends BaseCard implements Listener {
 
                 // Visuals: Cracks, Dust, Smoke
                 if (preTicks % 5 == 0) {
-                    p.getWorld().spawnParticle(Particle.BLOCK_DUST, origin, 80, radius, 0.5, radius, 0.1, Material.STONE.createBlockData());
-                    p.getWorld().spawnParticle(Particle.CRIT_MAGIC, origin, 50, radius, 1, radius, 0.1);
-                    p.getWorld().spawnParticle(Particle.EXPLOSION_LARGE, origin, 1, 0, 0, 0, 0); // Mini-explosions
+                    p.getWorld().spawnParticle(Particle.BLOCK, origin, 80, radius, 0.5, radius, 0.1, Material.STONE.createBlockData());
+                    p.getWorld().spawnParticle(Particle.ENCHATED_HIT, origin, 50, radius, 1, radius, 0.1);
+                    p.getWorld().spawnParticle(Particle.LARGE_EXPLOSION, origin, 1, 0, 0, 0, 0); // Mini-explosions
                     p.getWorld().playSound(origin, Sound.BLOCK_STONE_BREAK, 0.8f, 0.5f);
                 }
                 preTicks++;
@@ -198,7 +198,7 @@ public class GravityCard extends BaseCard implements Listener {
                     }
                     // Particles when blocks fall back
                     for(Location loc : removedBlocks) {
-                         loc.getWorld().spawnParticle(Particle.EXPLOSION_NORMAL, loc, 10, 0.5, 0.5, 0.5, 0.1);
+                         loc.getWorld().spawnParticle(Particle.POOF, loc, 10, 0.5, 0.5, 0.5, 0.1);
                     }
 
                     p.sendMessage("§c§lGRAVITY » §fThe world reclaims its pieces.");
