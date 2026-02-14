@@ -288,8 +288,8 @@ if (timer % 15 == 0) {
 
             @Override
             public void run() {
-                // 1200 ticks = 60 seconds (1 minute)
-                if (ticks > 1200 || !p.isOnline()) {
+                // 200 ticks = 10 seconds (10 seconda)
+                if (ticks > 200 || !p.isOnline()) {
                     p.sendMessage("§e§l[!] §fThe Sword Rain has subsided.");
                     this.cancel();
                     return;
