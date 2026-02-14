@@ -139,7 +139,7 @@ public class GravityCard extends BaseCard implements Listener {
                 if (preTicks % 5 == 0) {
                     p.getWorld().spawnParticle(Particle.BLOCK, origin, 80, radius, 0.5, radius, 0.1, Material.STONE.createBlockData());
                     p.getWorld().spawnParticle(Particle.ENCHANTED_HIT, origin, 50, radius, 1, radius, 0.1);
-                    p.getWorld().spawnParticle(Particle.EXPLOSION_LARGE, origin, 1, 0, 0, 0, 0); // Mini-explosions
+                    p.getWorld().spawnParticle(Particle.EXPLOSION, origin, 1, 0, 0, 0, 0); // Mini-explosions
                     p.getWorld().playSound(origin, Sound.BLOCK_STONE_BREAK, 0.8f, 0.5f);
                 }
                 preTicks++;
