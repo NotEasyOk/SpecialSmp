@@ -20,6 +20,7 @@ import java.util.UUID;
 
 public class HerobrineCard extends BaseCard {
 
+    private final Set<UUID> flyingPlayers = new HashSet<>();
     private final Map<String, Long> cooldowns = new HashMap<>();
 
     @Override
