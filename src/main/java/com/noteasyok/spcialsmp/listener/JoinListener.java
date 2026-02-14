@@ -36,25 +36,24 @@ public class JoinListener implements Listener {
         p.setFlying(false);
         p.getWorld().getWorldBorder().setWarningDistance(0); 
 
-        // 3. Task Logic (Only if System is ENABLED)
+        // 3. Task Logic (Line 35 se replace karein)
         Bukkit.getScheduler().runTaskLater(SpcialSmp.get(), () -> {
-            if (!p.isOnline()) return;
+            if (!p.isOnline() || !FuelManager.isSystemEnabled()) return;
+
+            long currentTime = System.currentTimeMillis();
+            long lastBookTime = dataManager.getLastBookTime(p.getUniqueId());
             
-            // FIX: Check if system is ON before giving Task Book
-            if (!FuelManager.isSystemEnabled()) return;
+            // 24 Ghante ka check (86400000ms = 24h)
+            if (currentTime - lastBookTime >= 86400000L) {
+                if (!hasTaskBook(p)) {
+                    TaskManager.giveRandomTask(p);
+                    dataManager.setLastBookTime(p.getUniqueId(), currentTime); // Database mein save
 
-            NamespacedKey key = new NamespacedKey(SpcialSmp.get(), "daily_task_day");
-            long currentDay = System.currentTimeMillis() / 86400000L; 
-            Long storedDay = p.getPersistentDataContainer().get(key, PersistentDataType.LONG);
-
-            if (!hasTaskBook(p) && (storedDay == null || storedDay != currentDay)) {
-                TaskManager.giveRandomTask(p);
-                p.getPersistentDataContainer().set(key, PersistentDataType.LONG, currentDay);
-
-                p.sendMessage("§6§lSURVIVAL BOT §8» §fA new task has been assigned! Complete it to survive.");
-                p.playSound(p.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1f, 1f);
+                    p.sendMessage("§6§lSURVIVAL BOT §8» §fA new task assigned! Complete it to survive.");
+                    p.playSound(p.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1f, 1f);
+                }
             }
-        }, 100L); 
+        }, 6000L); // 6000L = 5 Minutes delay (Sahi delay jo aapne maanga tha)
 
         // 4. Reset Scale
         if (p.getAttribute(Attribute.GENERIC_SCALE) != null) 
@@ -70,13 +69,20 @@ public class JoinListener implements Listener {
 
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
-        // Purani atki hui swords hatane ka logic
-        for (Entity entity : event.getPlayer().getNearbyEntities(100, 100, 100)) {
-            if (entity instanceof ItemDisplay) {
-                ItemDisplay display = (ItemDisplay) entity;
-                // Sirf Netherite Sword (Giant Sword) ko target kar rahe hain
+        // Wither Storm Cleanup (Ghost entities remove karne ke liye)
+        for (Entity entity : event.getPlayer().getWorld().getEntities()) {
+            // Agar Wither hai ya ItemDisplay/ArmorStand jo Storm ka ho sakta hai
+            if (entity.getType() == org.bukkit.entity.EntityType.WITHER || 
+                entity.getType() == org.bukkit.entity.EntityType.WITHER_SKELETON) {
+                
+                // Check agar wo Wither Storm ka part hai (Mod/Plugin specific)
+                entity.remove(); 
+            }
+            
+            // Purani Giant Swords hatane ke liye
+            if (entity instanceof ItemDisplay display) {
                 if (display.getItemStack() != null && display.getItemStack().getType() == Material.NETHERITE_SWORD) {
-                    entity.remove(); 
+                    entity.remove();
                 }
             }
         }
