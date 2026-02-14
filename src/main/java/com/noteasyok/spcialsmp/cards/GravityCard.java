@@ -34,7 +34,6 @@ public class GravityCard extends BaseCard implements Listener {
     @Override
     public Material getMaterial() { return Material.ECHO_SHARD; }
 
-    @Override
     public List<String> getLore() {
         List<String> lore = new ArrayList<>();
         lore.add("§8§m--------------------------");
