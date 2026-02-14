@@ -3,6 +3,7 @@ package com.noteasyok.spcialsmp.cards;
 import com.noteasyok.spcialsmp.SpcialSmp;
 import org.bukkit.*;
 import org.bukkit.block.Block;
+import com.noteasyok.spcialsmp.cards.BaseCard;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.FallingBlock;
 import org.bukkit.entity.LivingEntity;
