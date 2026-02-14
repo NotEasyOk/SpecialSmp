@@ -16,6 +16,8 @@ import org.bukkit.util.Vector;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.Map;
+import java.util.HashMap;
 
 public class GravityCard extends BaseCard implements Listener {
 
