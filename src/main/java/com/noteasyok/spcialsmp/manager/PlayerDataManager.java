@@ -51,6 +51,15 @@ public class PlayerDataManager {
         save();
     }
 
+    public long getLastBookTime(UUID uuid) {
+    return data.getLong("players." + uuid + ".lastBookTime", 0L);
+}
+
+public void setLastBookTime(UUID uuid, long time) {
+    data.set("players." + uuid + ".lastBookTime", time);
+    save();
+}
+
     /* ================= FIRST JOIN CARD ================= */
 
     public boolean hasReceivedFirstCard(UUID uuid) {
