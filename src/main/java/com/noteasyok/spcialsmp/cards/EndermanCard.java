@@ -68,7 +68,7 @@ public Material getMaterial() {
             p.getWorld().spawnParticle(org.bukkit.Particle.PORTAL, safe, 80, 0.5, 1, 0.5, 0.2);
             p.playSound(p.getLocation(), org.bukkit.Sound.ENTITY_ENDERMAN_TELEPORT, 1f, 1f);
         } else {
-            cooldowns.remove(p.getUniqueId().toString() + "_tp");
+            return;
         }
     }
 
@@ -76,14 +76,7 @@ public Material getMaterial() {
     @Override
     public void rightClick(Player p) {
         // Cooldown check pehle karenge, par set baad mein (GUI click par)
-        String mapKey = p.getUniqueId().toString() + "_pull";
-        long now = System.currentTimeMillis();
-        if (cooldowns.containsKey(mapKey)) {
-            long timeLeft = (cooldowns.get(mapKey) - now) / 1000;
-            if (timeLeft > 0) {
-                String rawMsg = SpcialSmp.get().getConfig().getString("messages.cooldown-active", "§cWait %time%s");
-                p.sendMessage(rawMsg.replace("%time%", String.valueOf(timeLeft)));
-                return;
+        if (!isCool(p, "right")) return;
             }
         }
 
