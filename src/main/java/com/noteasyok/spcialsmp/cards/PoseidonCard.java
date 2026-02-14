@@ -167,11 +167,11 @@ public class PoseidonCard extends BaseCard implements Listener {
     /* ---------------- HELPER: DRAW WATER BOX ---------------- */
     private void trapEntityInWaterBox(LivingEntity target) {
         // Slow them down completely
-        target.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 60, 10)); // 3s freeze
-        target.addPotionEffect(new PotionEffect(PotionEffectType.JUMP_BOOST, 60, 250)); // No jump
+        target.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 200, 10)); // 3s freeze
+        target.addPotionEffect(new PotionEffect(PotionEffectType.JUMP_BOOST, 200, 250)); // No jump
 
         new BukkitRunnable() {
-            int duration = 60; // 3 seconds (20 ticks * 3)
+            int duration = 200; // 3 seconds (20 ticks * 3)
             
             @Override
             public void run() {
