@@ -116,69 +116,72 @@ public class GravityCard extends BaseCard implements Listener {
         if (!isCool(p, "shift_right")) return;
 
         Location origin = p.getLocation();
-        int radius = 50;
+        int radius = 16; // Ek poora chunk (16x16) cover karega
+        int maxHeight = 30; // 30 blocks height
+        List<FallingBlock> chunkDebris = new ArrayList<>();
 
-        p.sendMessage("§b§lGRAVITY » §e§lTHE WORLD IS FLOATING...");
-        p.getWorld().playSound(origin, Sound.ENTITY_WITHER_SPAWN, 1f, 0.2f);
+        p.sendMessage("§5§lGRAVITY » §d§lCHUNK ASCENSION ACTIVATED!");
+        p.getWorld().playSound(origin, Sound.BLOCK_BEACON_ACTIVATE, 2f, 0.5f);
 
-        List<FallingBlock> debris = new ArrayList<>();
+        // Scan and Lift Blocks
+        for (int x = -radius/2; x <= radius/2; x++) {
+            for (int z = -radius/2; z <= radius/2; z++) {
+                // Har column mein sirf sabse upar wala solid block uthayenge (Optimization)
+                Block b = p.getWorld().getHighestBlockAt(origin.clone().add(x, 0, z)).getRelative(0, -1, 0);
+                
+                if (b.getType() != Material.AIR && b.getType().isSolid()) {
+                    FallingBlock fb = p.getWorld().spawnFallingBlock(b.getLocation().add(0.5, 1.1, 0.5), b.getBlockData());
+                    fb.setDropItem(false);
+                    fb.setGravity(false); // Hawa mein rokne ke liye
+                    
+                    // Initial push up
+                    fb.setVelocity(new Vector(0, 0.5, 0));
+                    chunkDebris.add(fb);
+                }
+            }
+        }
 
         new BukkitRunnable() {
-            int timer = 0;
+            int timer = 0; // 10 seconds = 200 ticks
             @Override
             public void run() {
-                // STOP CONDITION: Time up ya Card hata diya
-                if (timer > 240 || !isHoldingCard(p)) {
-                    cleanup(debris, origin, radius);
-                    p.sendMessage("§c§lGRAVITY » §fAbsolute gravity restored.");
+                // Card check (Agar card hata diya toh turant niche girega)
+                if (timer > 200 || p.getInventory().getItemInMainHand().getType() != getMaterial()) {
+                    for (FallingBlock fb : chunkDebris) {
+                        if (fb.isValid()) fb.setGravity(true); // Gravity wapas
+                    }
                     this.cancel();
                     return;
                 }
 
-                // 1. RANDOM BLOCK LEVITATION (Optimization: max 80 blocks)
-                if (debris.size() < 80 && timer % 2 == 0) {
-                    int rx = random.nextInt(radius * 2) - radius;
-                    int rz = random.nextInt(radius * 2) - radius;
-                    Block b = origin.clone().add(rx, -1, rz).getBlock();
-                    
-                    if (b.getType().isSolid() && !b.getType().toString().contains("LEAVES")) {
-                        FallingBlock fb = origin.getWorld().spawnFallingBlock(b.getLocation().add(0.5, 1.2, 0.5), b.getBlockData());
-                        fb.setDropItem(false);
-                        fb.setGravity(false);
-                        fb.setVelocity(new Vector(0, 0.07, 0));
-                        debris.add(fb);
-                    }
-                }
+                // Blocks ko 30 block ki height tak le jana aur wahan rokna
+                for (FallingBlock fb : chunkDebris) {
+                    if (fb.isValid()) {
+                        double currentY = fb.getLocation().getY();
+                        double targetY = origin.getY() + maxHeight;
 
-                // 2. GRAVITY PULSE (Shockwave har 2 seconds)
-                if (timer % 40 == 0) {
-                    origin.getWorld().playSound(origin, Sound.ENTITY_GENERIC_EXPLODE, 2f, 0.1f);
-                    origin.getWorld().spawnParticle(Particle.EXPLOSION_EMITTER, origin, 5, 10, 1, 10, 0.1);
-                    for (Entity e : origin.getWorld().getNearbyEntities(origin, radius, 15, radius)) {
-                        if (e instanceof LivingEntity le && e != p) {
-                            le.setVelocity(le.getVelocity().add(new Vector(0, 1.2, 0))); // Sabko hawa mein uchal dega
+                        if (currentY < targetY) {
+                            fb.setVelocity(new Vector(0, 0.2, 0)); // Upar uthao
+                        } else {
+                            fb.setVelocity(new Vector(0, 0.01, 0)); // Hawa mein float karao
                         }
                     }
                 }
 
-                // 3. CONTINUOUS LEVITATION & PARTICLES
-                for (Entity e : origin.getWorld().getNearbyEntities(origin, radius, 15, radius)) {
-                    if (e instanceof LivingEntity le && e != p) {
+                // Entities (Players/Mobs) ko bhi upar khicho
+                for (Entity e : p.getNearbyEntities(radius, 20, radius)) {
+                    if (e instanceof LivingEntity le) {
                         le.setGravity(false);
-                        le.setVelocity(le.getVelocity().add(new Vector(0, 0.03, 0)));
-                        le.getWorld().spawnParticle(Particle.ENCHANT, le.getLocation().add(0, 1, 0), 2, 0.2, 0.2, 0.2, 0);
+                        le.setVelocity(new Vector(0, 0.15, 0));
                     }
                 }
 
-                // Dome Visual Effect
-                if (timer % 15 == 0) {
-                    origin.getWorld().spawnParticle(Particle.DRAGON_BREATH, origin, 150, radius/2, 2, radius/2, 0.02);
-                }
+                if (timer % 20 == 0) p.getWorld().spawnParticle(Particle.CLOUD, origin, 100, 8, 1, 8, 0.1);
                 
-                timer++;
+                timer += 5;
             }
-        }.runTaskTimer(SpcialSmp.get(), 0, 1);
-    }
+        }.runTaskTimer(SpcialSmp.get(), 0, 5);
+                            }
 
     // --- HELPER METHODS FOR BUG-FREE LOGIC ---
 
