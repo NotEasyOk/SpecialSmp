@@ -45,6 +45,9 @@ public class CardsCommand implements CommandExecutor, TabCompleter, Listener {
             return true;
         }
 
+        
+
+        if (!sender.hasPermission("spcial// --- LINE 66 START ---
         if (args[0].equalsIgnoreCase("fuel") && args.length >= 3 && args[1].equalsIgnoreCase("withdraw")) {
             if (!(sender instanceof Player p)) {
                 sender.sendMessage("Only players can withdraw fuel!");
@@ -57,38 +60,35 @@ public class CardsCommand implements CommandExecutor, TabCompleter, Listener {
             }
 
             String input = args[2].toLowerCase();
-            long secondsToWithdraw;
+            int secondsToWithdraw; // FuelManager int use kar raha hai
             try {
-                // FIXED: Unit calculation logic
-                if (input.endsWith("h")) secondsToWithdraw = Long.parseLong(input.replace("h", "")) * 3600;
-                else if (input.endsWith("m")) secondsToWithdraw = Long.parseLong(input.replace("m", "")) * 60;
-                else if (input.endsWith("s")) secondsToWithdraw = Long.parseLong(input.replace("s", ""));
-                else secondsToWithdraw = Long.parseLong(input); // Removed automatic hour multiply
+                if (input.endsWith("h")) secondsToWithdraw = Integer.parseInt(input.replace("h", "")) * 3600;
+                else if (input.endsWith("m")) secondsToWithdraw = Integer.parseInt(input.replace("m", "")) * 60;
+                else if (input.endsWith("s")) secondsToWithdraw = Integer.parseInt(input.replace("s", ""));
+                else secondsToWithdraw = Integer.parseInt(input); 
             } catch (NumberFormatException e) {
                 p.sendMessage("§c§l[!] §7Invalid format! Use 1h, 10m, or 30s.");
                 return true;
             }
 
+            // --- SYNC WITH FUELMANAGER ---
             int currentFuelSec = FuelManager.getFuel(p); 
             if (currentFuelSec < secondsToWithdraw) {
                 p.sendMessage("§c§l[!] §7You don't have enough Soul Fuel!");
                 return true;
             }
 
-            int totalAfterCut = (int) (currentFuelSec - secondsToWithdraw);
-            // Line 84 se replace karein:
-             FuelManager.setFuel(p, totalAfterCut);
-           // DATABASE UPDATE: Ye line missing thi
-           SpcialSmp.get().getPlayerDataManager().setFuel(p.getUniqueId(), totalAfterCut);
+            // 1. FUEL CUT: FuelManager ke method ko use karo (Ye Cache aur Database dono update karega)
+            FuelManager.removeFuelSeconds(p, secondsToWithdraw);
 
-           p.getInventory().addItem(createFuelBottle(secondsToWithdraw, input));
+            // 2. ITEM GIVE: Bottle do
+            p.getInventory().addItem(createFuelBottle(secondsToWithdraw, input));
             
             p.sendMessage("§a§l[!] §7Withdrew §e" + input + " §7Soul Fuel into a bottle!");
             p.playSound(p.getLocation(), Sound.ENTITY_ITEM_PICKUP, 1f, 1f);
             return true;
         }
-
-        if (!sender.hasPermission("spcialsmp.admin")) {
+           if(!sender.hasPermission("spcialsmp.admin")) {
             sender.sendMessage("§c§lERROR! §7You do not have permission to use this admin command.");
             return true;
         }
