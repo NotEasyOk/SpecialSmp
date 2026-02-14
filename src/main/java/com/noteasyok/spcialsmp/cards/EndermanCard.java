@@ -78,7 +78,6 @@ public Material getMaterial() {
         // Cooldown check pehle karenge, par set baad mein (GUI click par)
         if (!isCool(p, "right")) return;
             }
-        }
 
         // GUI create karna
         Inventory inv = Bukkit.createInventory(null, 54, GUI_TITLE);
