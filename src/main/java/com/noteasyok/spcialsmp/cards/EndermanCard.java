@@ -77,7 +77,6 @@ public Material getMaterial() {
     public void rightClick(Player p) {
         // Cooldown check pehle karenge, par set baad mein (GUI click par)
         if (!isCool(p, "right")) return;
-            }
 
         // GUI create karna
         Inventory inv = Bukkit.createInventory(null, 54, GUI_TITLE);
@@ -120,8 +119,7 @@ public Material getMaterial() {
 
         if (target != null && target.isOnline()) {
             // Ab Cooldown Set karo (120 seconds)
-            int cd = SpcialSmp.get().getConfig().getInt("cards.enderman.pull_cooldown", 120); // 120s set kiya
-            cooldowns.put(p.getUniqueId().toString() + "_pull", System.currentTimeMillis() + (cd * 1000L));
+            SpcialSmp.get().getCooldownManager().applyCooldown(p, getName(), "right");
 
             // Teleport Logic
             target.teleport(p.getLocation());
