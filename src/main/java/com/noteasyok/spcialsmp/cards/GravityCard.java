@@ -148,95 +148,88 @@ public class GravityCard extends BaseCard implements Listener {
     }
 
     private void startUltimateAscension(Player p, Location origin, int radius, int depth, int maxHeight) {
-        List<Entity> islandEntities = new ArrayList<>();
-        List<Location> removedBlocks = new ArrayList<>(); // Track original block locations
-        
-        p.getWorld().playSound(origin, Sound.ENTITY_ENDER_DRAGON_GROWL, 1.5f, 0.1f);
-        p.getWorld().playSound(origin, Sound.BLOCK_BEACON_ACTIVATE, 2f, 0.5f);
+    List<Entity> islandEntities = new ArrayList<>();
+    List<Location> removedBlocks = new ArrayList<>(); 
+    // FIX: Original block ka data save karne ke liye
+    Map<Location, org.bukkit.block.data.BlockData> blockDataMap = new HashMap<>();
+    
+    p.getWorld().playSound(origin, Sound.ENTITY_ENDER_DRAGON_GROWL, 1.5f, 0.1f);
+    p.getWorld().playSound(origin, Sound.BLOCK_BEACON_ACTIVATE, 2f, 0.5f);
 
-        // --- STAGE 2: MASSIVE BLOCK REMOVAL & ENTITY SPAWN ---
-        for (int x = -radius; x <= radius; x++) {
-            for (int z = -radius; z <= radius; z++) {
-                for (int y = -1; y > -depth -1; y--) { // -1 se shuru karke deep uthana
-                    Block b = origin.clone().add(x, y, z).getBlock();
-                    if (b.getType() != Material.AIR && b.getType().isSolid()) {
-                        Location spawnLoc = b.getLocation().add(0.5, 0, 0.5);
-                        
-                        // Falling Block for visuals
-                        FallingBlock fb = p.getWorld().spawnFallingBlock(spawnLoc, b.getBlockData());
-                        fb.setDropItem(false);
-                        fb.setGravity(false);
-                        islandEntities.add(fb);
+    for (int x = -radius; x <= radius; x++) {
+        for (int z = -radius; z <= radius; z++) {
+            for (int y = -1; y > -depth -1; y--) {
+                Block b = origin.clone().add(x, y, z).getBlock();
+                if (b.getType() != Material.AIR && b.getType().isSolid()) {
+                    blockDataMap.put(b.getLocation(), b.getBlockData()); // Store data
+                    Location spawnLoc = b.getLocation().add(0.5, 0, 0.5);
+                    
+                    FallingBlock fb = p.getWorld().spawnFallingBlock(spawnLoc, b.getBlockData());
+                    fb.setDropItem(false);
+                    fb.setGravity(false);
+                    islandEntities.add(fb);
 
-                        // Invisible Shulker for REAL COLLISION
-                        org.bukkit.entity.Shulker shulker = p.getWorld().spawn(spawnLoc, org.bukkit.entity.Shulker.class);
-                        shulker.setInvisible(true);
-                        shulker.setAI(false);
-                        shulker.setInvulnerable(true);
-                        shulker.setGravity(false);
-                        islandEntities.add(shulker);
-                        
-                        // Zameen mein gaddha (hole) ban jayega
-                        removedBlocks.add(b.getLocation()); // Original location store karo
-                        b.setType(Material.AIR);
-                    }
+                    org.bukkit.entity.Shulker shulker = p.getWorld().spawn(spawnLoc, org.bukkit.entity.Shulker.class);
+                    shulker.setInvisible(true);
+                    shulker.setAI(false);
+                    shulker.setInvulnerable(true);
+                    shulker.setGravity(false);
+                    islandEntities.add(shulker);
+                    
+                    removedBlocks.add(b.getLocation());
+                    b.setType(Material.AIR);
                 }
             }
         }
+    }
 
-        // --- STAGE 3: ASCENSION LOOP & VISUALS ---
-        new BukkitRunnable() {
-            int ticks = 0;
-            @Override
-            public void run() {
-                // Total duration 15 seconds (300 ticks) or Card removed
-                if (ticks > 300 || !p.getInventory().getItemInMainHand().getType().equals(getMaterial())) {
-                    // Cleanup: FallingBlocks niche girenge, Shulkers gayab
-                    for (Entity ent : islandEntities) {
-                        if (ent instanceof FallingBlock fb) fb.setGravity(true);
-                        else ent.remove();
+    new BukkitRunnable() {
+        int ticks = 0;
+        @Override
+        public void run() {
+            if (ticks > 300 || !p.getInventory().getItemInMainHand().getType().equals(getMaterial())) {
+                for (Entity ent : islandEntities) ent.remove();
+
+                // FIX: Zameen wapas bharna (Restore)
+                for (Location loc : removedBlocks) {
+                    if (blockDataMap.containsKey(loc)) {
+                        loc.getBlock().setBlockData(blockDataMap.get(loc));
                     }
-                    // Particles when blocks fall back
-                    for(Location loc : removedBlocks) {
-                         loc.getWorld().spawnParticle(Particle.POOF, loc, 10, 0.5, 0.5, 0.5, 0.1);
-                    }
-
-                    p.sendMessage("§c§lGRAVITY » §fThe world reclaims its pieces.");
-                    this.cancel();
-                    return;
+                    loc.getWorld().spawnParticle(Particle.POOF, loc, 10, 0.5, 0.5, 0.5, 0.1);
                 }
 
-                // Smooth upward velocity
-                Vector v = new Vector(0, 0.18, 0); 
-                if (ticks > 250) v.setY(0); // Pause at peak for last 2.5 seconds
-
-                for (Entity ent : islandEntities) {
-                    if (ent.isValid()) {
-                        if (ent.getLocation().getY() < origin.getY() + maxHeight) {
-                            ent.setVelocity(v);
-                        } else {
-                            ent.setVelocity(new Vector(0, 0.01, 0)); // Hover vibration
-                        }
-                    }
-                }
-
-                // Main Gravity Core particle effect at the bottom of the floating island
-                if (ticks % 5 == 0) {
-                    origin.getWorld().spawnParticle(Particle.REVERSE_PORTAL, origin.clone().add(0, -depth -5, 0), 50, radius/2, 2, radius/2, 0.05);
-                    origin.getWorld().spawnParticle(Particle.DRAGON_BREATH, origin.clone().add(0, -depth -3, 0), 30, radius/2, 1, radius/2, 0.02);
-                }
-
-                // Falling debris from the floating island
-                if (ticks % 10 == 0) {
-                     int rX = random.nextInt(radius * 2) - radius;
-                     int rZ = random.nextInt(radius * 2) - radius;
-                     origin.getWorld().spawnParticle(Particle.FALLING_DUST, origin.clone().add(rX, origin.getY() + maxHeight - 5, rZ), 5, 0.1, 0.1, 0.1, 0, Material.DIRT.createBlockData());
-                }
-                
-                ticks++;
+                p.sendMessage("§c§lGRAVITY » §fThe world reclaims its pieces.");
+                this.cancel();
+                return;
             }
-        }.runTaskTimer(SpcialSmp.get(), 0, 1);
-                        }
+
+            // FIX: Smooth upward movement using teleport instead of velocity
+            // velocity shulker ko unstable banati hai, teleport solid rakhta hai.
+            double moveSpeed = (ticks < 250) ? 0.18 : 0;
+            
+            for (Entity ent : islandEntities) {
+                if (ent.isValid()) {
+                    Location next = ent.getLocation().add(0, moveSpeed, 0);
+                    ent.teleport(next); // Isse collision box solid rahega
+                }
+            }
+
+            // Particles (Same as your code)
+            if (ticks % 5 == 0) {
+                origin.getWorld().spawnParticle(Particle.REVERSE_PORTAL, origin.clone().add(0, -depth -5, 0), 50, radius/2, 2, radius/2, 0.05);
+                origin.getWorld().spawnParticle(Particle.DRAGON_BREATH, origin.clone().add(0, -depth -3, 0), 30, radius/2, 1, radius/2, 0.02);
+            }
+
+            if (ticks % 10 == 0) {
+                 int rX = random.nextInt(radius * 2) - radius;
+                 int rZ = random.nextInt(radius * 2) - radius;
+                 origin.getWorld().spawnParticle(Particle.FALLING_DUST, origin.clone().add(rX, origin.getY() + maxHeight - 5, rZ), 5, 0.1, 0.1, 0.1, 0, Material.DIRT.createBlockData());
+            }
+            
+            ticks++;
+        }
+    }.runTaskTimer(SpcialSmp.get(), 0, 1);
+                }
 
     // --- HELPER METHODS FOR BUG-FREE LOGIC ---
 
