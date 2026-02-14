@@ -45,9 +45,6 @@ public class CardsCommand implements CommandExecutor, TabCompleter, Listener {
             return true;
         }
 
-        
-
-        if (!sender.hasPermission("spcial// --- LINE 66 START ---
         if (args[0].equalsIgnoreCase("fuel") && args.length >= 3 && args[1].equalsIgnoreCase("withdraw")) {
             if (!(sender instanceof Player p)) {
                 sender.sendMessage("Only players can withdraw fuel!");
