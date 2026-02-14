@@ -12,6 +12,24 @@ import java.util.List;
 
 public class GravityCard extends BaseCard {
 
+    public GravityCard() {
+        super("§5§lGravity Card", Material.ECHO_SHARD, 
+            "§8§m--------------------------",
+            "§7Control the fundamental forces",
+            " ",
+            "§6§l⚡ §e§lLEFT CLICK: §bGravity Push",
+            "§f  ➥ §7Launch enemies into the sky.",
+            " ",
+            "§5§l🌀 §d§lRIGHT CLICK: §5Black Hole",
+            "§f  ➥ §7Pulls and spins nearby mobs.",
+            " ",
+            "§b§l✨ §b§lSHIFT+R: §3Zero-G Zone",
+            "§f  ➥ §7Floating zone for 8 seconds.",
+            "§8§m--------------------------",
+            "§e§lRarity: §d§lMYTHIC"
+        );
+    }
+
     @Override
     public String getName() {
         return "Gravity Card";
