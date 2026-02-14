@@ -75,6 +75,7 @@ public class CardsCommand implements CommandExecutor, TabCompleter, Listener {
                 return true;
             }
 
+            int totalAfterCut = (int) (currentFuelSec - secondsToWithdraw);
             // Line 84 se replace karein:
              FuelManager.setFuel(p, totalAfterCut);
            // DATABASE UPDATE: Ye line missing thi
