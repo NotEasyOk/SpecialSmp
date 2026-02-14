@@ -10,8 +10,8 @@ settings:
   soul-fuel-kick-message: "&c&lSOUL DEPLETED! \n\n&7Your existence has reached its limit."
   # Soul Fuel On/Off
   soul-fuel:
-    enabled: true
-    enable-ban: true
+    enabled: false
+    enable-ban: false
   # Action Bar display
   show-fuel-by-default: true
   display:
