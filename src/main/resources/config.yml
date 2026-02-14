@@ -4,7 +4,7 @@
 
 settings:
   # Initial fuel for new players (86399 = 23h 59m 59s)
-  default-soul-fuel: 86399
+  default-soul-fuel: 57599
   # Ban reason and kick notification
   soul-fuel-ban-reason: "Terminated: Soul Fuel Exhausted"
   soul-fuel-kick-message: "&c&lSOUL DEPLETED! \n\n&7Your existence has reached its limit."
