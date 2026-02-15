@@ -59,6 +59,7 @@ public class StartManager {
 
                     for (Player p : Bukkit.getOnlinePlayers()) {
                         p.sendTitle(sTitle, sSub, 10, 70, 20);
+                        CardSpinner.openSpinGUI(p);
                         p.playSound(p.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 1f, 1f);
                     }
                     
