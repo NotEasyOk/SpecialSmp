@@ -107,6 +107,10 @@ public void onEnable() {
         return cooldownManager;
     }
 
+    public StartManager getStartManager() {
+    return startManager;
+    }
+
     public PlayerDataManager getPlayerDataManager() {
         return playerDataManager;
     }
