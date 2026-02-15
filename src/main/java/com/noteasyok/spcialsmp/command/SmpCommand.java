@@ -1,4 +1,4 @@
-package com.noteasyok.spcialsmp.commands;
+package com.noteasyok.spcialsmp.command;
 
 import com.noteasyok.spcialsmp.SpcialSmp;
 import com.noteasyok.spcialsmp.manager.StartManager;
