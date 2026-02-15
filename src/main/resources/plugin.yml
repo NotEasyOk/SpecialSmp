@@ -11,6 +11,11 @@ commands:
     usage: /cards
     permission: spcialsmp.admin
     permission-message: §c§lERROR! §7You do not have permission to use this command.
+  smp:
+    description: Control the SMP startup sequence
+    usage: /smp <start|reload>
+    permission: spcialsmp.admin
+    permission-message: §c§lERROR! §7You do not have permission to use this command.
 
 permissions:
   spcialsmp.admin:
