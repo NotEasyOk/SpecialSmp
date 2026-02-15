@@ -83,3 +83,35 @@ allowed-first-join-cards:
   - "Lighting Card"
   - "Ghost Card"
   - "Ruin Card"
+
+# =============================================================
+# SPECIAL SMP: SCREEN-ONLY STARTUP CONFIGURATION
+# =============================================================
+
+smp-start-system:
+  enabled: true
+  starter-name: "THE SERVER ARCHITECT"
+  # WORLD BORDER SETTINGS
+  border:
+    initial-size: 5.0
+    final-size: 1000.0
+    expansion-duration: 15
+  # TIMERS (IN SECONDS)
+  timers:
+    countdown-delay: 300      # Time until SMP starts
+    item-distribution-delay: 600 # Time until Card/Book distribution
+  # SCREEN ANNOUNCEMENTS (TITLES & SUBTITLES)
+  # Use %time% for seconds, %starter% for the name, and %size% for border
+  messages:
+    # 5-Second Countdown
+    countdown-title: "§c§l%time%"
+    countdown-subtitle: "§7The World is Tearing Apart..."
+    # Main SMP Start
+    startup-title: "§6§lSMP INITIATED"
+    startup-subtitle: "§fStarted By: §b%starter%"
+    # Card/Book Spin Warning (5s before distribution)
+    fate-warning-title: "§e§lFATE ARRIVING IN"
+    fate-warning-subtitle: "§6%time%..."
+    # Final Item Grant Message
+    fate-grant-title: "§b§lFATE SYNCHRONIZED"
+    fate-grant-subtitle: "§fStarter Fate Kit Distributed!"
