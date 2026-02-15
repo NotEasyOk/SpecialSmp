@@ -3,6 +3,8 @@ package com.noteasyok.spcialsmp;
 import com.noteasyok.spcialsmp.cards.BaseCard;
 import com.noteasyok.spcialsmp.cards.RuinWorldGenerator;
 import com.noteasyok.spcialsmp.command.CardsCommand;
+import com.noteasyok.spcialsmp.command.SmpCommand;
+import com.noteasyok.spcialsmp.manager.StartManager;
 import com.noteasyok.spcialsmp.listener.*;
 import com.noteasyok.spcialsmp.manager.*;
 import org.bukkit.Bukkit;
@@ -15,6 +17,7 @@ public class SpcialSmp extends JavaPlugin {
     private static SpcialSmp instance;
     private CooldownManager cooldownManager;
     private PlayerDataManager playerDataManager;
+    private StartManager startManager;
 
     @Override
 public void onEnable() {
@@ -30,6 +33,7 @@ public void onEnable() {
     // --- 2. MANAGERS INITIALIZATION ---
     playerDataManager = new PlayerDataManager(this);
     cooldownManager = new CooldownManager(this);
+    startManager = new StartManager(this);
 
         // --- 3. FUEL SYSTEM CHECK ---
         // Null safety ke saath task start karein
@@ -70,6 +74,7 @@ public void onEnable() {
         // --- 6. COMMANDS ---
         if (getCommand("cards") != null) {
             getCommand("cards").setExecutor(new CardsCommand());
+            getCommand("smp").setExecutor(new SmpCommand(this));
         }
 
         getLogger().info("§a[SpcialSmp] Plugin loaded successfully!");
