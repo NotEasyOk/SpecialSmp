@@ -31,67 +31,84 @@ public class StartManager {
         world.getWorldBorder().setCenter(starter.getLocation());
         world.getWorldBorder().setSize(config.getDouble("smp-start-system.border.initial-size"));
 
-        // --- STAGE 1: INITIAL COUNTDOWN (e.g. 10s) ---
+        // --- STAGE 1: SMART COUNTDOWN ---
         new BukkitRunnable() {
             int timer = config.getInt("smp-start-system.timers.countdown-delay");
 
             @Override
             public void run() {
-                if (timer > 0) {
+                // Aakhri 5 seconds mein config se message uthayega
+                if (timer <= 5 && timer > 0) {
+                    String title = color(config.getString("smp-start-system.messages.countdown-title").replace("%time%", String.valueOf(timer)));
+                    String sub = color(config.getString("smp-start-system.messages.countdown-subtitle"));
+
                     for (Player p : Bukkit.getOnlinePlayers()) {
-                        p.sendTitle("§c§l" + timer, "§fPreparing World...", 0, 21, 0);
+                        p.sendTitle(title, sub, 0, 21, 0);
                         p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 1f, 1.5f);
                     }
-                } else {
-                    // Border starts expanding
+                } else if (timer > 5) {
+                    starter.sendActionBar("§eSetup in progress: §f" + timer + "s left");
+                }
+
+                if (timer <= 0) {
                     double finalSize = config.getDouble("smp-start-system.border.final-size");
                     int duration = config.getInt("smp-start-system.border.expansion-duration");
                     world.getWorldBorder().setSize(finalSize, duration);
 
+                    // Startup Titles from Config
+                    String sTitle = color(config.getString("smp-start-system.messages.startup-title"));
+                    String sSub = color(config.getString("smp-start-system.messages.startup-subtitle"));
+
                     for (Player p : Bukkit.getOnlinePlayers()) {
-                        p.sendTitle("§a§lSTARTED!", "§fThe world is expanding...", 10, 70, 20);
+                        p.sendTitle(sTitle, sSub, 10, 70, 20);
                         p.playSound(p.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 1f, 1f);
                     }
                     
                     this.cancel();
-                    // --- PHASE 2: WAIT FOR 120S THEN SPIN ---
-                    startItemTimer(config); 
+                    startItemTimer(config, world); 
                 }
                 timer--;
             }
-        }.runTaskTimer(plugin, 0, 20L); // 20L = 1 second interval
+        }.runTaskTimer(plugin, 0, 20L);
     }
 
-    private void startItemTimer(FileConfiguration config) {
-        long totalDelay = config.getLong("smp-start-system.timers.item-distribution-delay"); // 120s
+    private void startItemTimer(FileConfiguration config, World world) {
+        long totalDelay = config.getLong("smp-start-system.timers.item-distribution-delay");
 
-        // Pehle 120s (minus 5s warning) tak wait karega
         new BukkitRunnable() {
             @Override
             public void run() {
-                // Warning Countdown (Final 5s)
                 new BukkitRunnable() {
                     int warning = 5;
                     @Override
                     public void run() {
                         if (warning > 0) {
+                            // Fate Titles from Config
+                            String fTitle = color(config.getString("smp-start-system.messages.fate-warning-title"));
+                            String fSub = color(config.getString("smp-start-system.messages.fate-warning-subtitle").replace("%time%", String.valueOf(warning)));
+
                             for (Player p : Bukkit.getOnlinePlayers()) {
-                                p.sendTitle("§6§lFATE ARRIVING", "§eIn " + warning + "s...", 0, 21, 0);
+                                p.sendTitle(fTitle, fSub, 0, 21, 0);
                                 p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_CHIME, 1f, 1.2f);
                             }
                         } else {
-                            // --- FINAL STEP: ANIMATION START ---
                             for (Player p : Bukkit.getOnlinePlayers()) {
-                                CardSpinner.openSpinGUI(p); // Spin trigger!
+                                CardSpinner.openSpinGUI(p);
                                 p.spawnParticle(Particle.TOTEM_OF_UNDYING, p.getLocation(), 100, 0.5, 1, 0.5, 0.2);
                             }
-                            isRunning = false; // System free for next time
+                            isRunning = false;
                             this.cancel();
                         }
                         warning--;
                     }
                 }.runTaskTimer(plugin, 0, 20L);
             }
-        }.runTaskLater(plugin, (totalDelay - 5) * 20L); // Asli wait yahan ho raha hai
+        }.runTaskLater(plugin, (totalDelay - 5) * 20L);
     }
-                        }
+
+    // Helper method to support color codes (&)
+    private String color(String msg) {
+        if (msg == null) return "";
+        return ChatColor.translateAlternateColorCodes('&', msg);
+    }
+                }
