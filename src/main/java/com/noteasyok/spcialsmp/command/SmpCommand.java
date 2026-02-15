@@ -7,7 +7,7 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-public class SmpCommand implements CommandExecutor {
+public class SmpCommand implements CommandExecutor, org.bukkit.command.TabCompleter {
 
     private final SpcialSmp plugin;
 
@@ -50,4 +50,14 @@ public class SmpCommand implements CommandExecutor {
 
         return true;
     }
-                               }
+
+    @Override
+public java.util.List<String> onTabComplete(org.bukkit.command.CommandSender sender, org.bukkit.command.Command command, String alias, String[] args) {
+    java.util.List<String> completions = new java.util.ArrayList<>();
+    if (args.length == 1) {
+        if ("start".startsWith(args[0].toLowerCase())) completions.add("start");
+        if ("reload".startsWith(args[0].toLowerCase())) completions.add("reload");
+    }
+    return completions;
+}
+   }
