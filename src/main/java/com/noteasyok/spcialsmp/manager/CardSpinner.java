@@ -14,10 +14,6 @@ import java.util.stream.Collectors;
 public class CardSpinner {
 
     public static void openSpinGUI(Player player) {
-        // Double Check: Agar player ko pehle mil chuka hai to spin open hi mat karo
-        if (SpcialSmp.get().getPlayerDataManager().hasReceivedFirstCard(player.getUniqueId())) {
-            return;
-        }
 
         // Filter out the Ultimate Card
         List<BaseCard> allCards = CardRegistry.getCards().values().stream()
@@ -55,10 +51,6 @@ public class CardSpinner {
     }
 
     private static void finishSpin(Player player, BaseCard winner) {
-        // 1. Check again for double trigger protection
-        if (SpcialSmp.get().getPlayerDataManager().hasReceivedFirstCard(player.getUniqueId())) {
-            return;
-        }
 
         // 2. Mark as RECEIVED immediately (Database update)
         SpcialSmp.get().getPlayerDataManager().setReceivedFirstCard(player.getUniqueId(), winner.getName());
