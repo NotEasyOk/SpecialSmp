@@ -57,7 +57,7 @@ public class StartManager {
                     for (Player p : Bukkit.getOnlinePlayers()) {
                         p.sendTitle(sTitle, sSub, 10, 100, 20);
                         p.playSound(p.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 1f, 1f);
-                        p.spawnParticle(Particle.EXPLOSION_HUGE, p.getLocation(), 5);
+                        p.spawnParticle(Particle.EXPLOSION, p.getLocation(), 5);
                     }
                     this.cancel();
                 }
@@ -89,7 +89,7 @@ public class StartManager {
                             for (Player p : Bukkit.getOnlinePlayers()) {
                                 p.sendTitle(gTitle, gSub, 10, 70, 20);
                                 p.playSound(p.getLocation(), Sound.ITEM_TOTEM_USE, 1f, 1f);
-                                p.spawnParticle(Particle.TOTEM, p.getLocation(), 100, 0.5, 1, 0.5, 0.2);
+                                p.spawnParticle(Particle.TOTEM_OF_UNDYING, p.getLocation(), 100, 0.5, 1, 0.5, 0.2);
                                 
                                 // YOUR SPIN LOGIC HERE
                             }
