@@ -25,8 +25,9 @@ public class JoinListener implements Listener {
         var dataManager = SpcialSmp.get().getPlayerDataManager();
         var config = SpcialSmp.get().getConfig();
 
-        // 1. Fuel Logic
-        if (!p.hasPlayedBefore() && FuelManager.isSystemEnabled()) {
+        // 1. Fuel Logic & Setup
+        boolean isFuelEnabled = config.getBoolean("fuel-system.enabled"); // Config check direct
+        if (!p.hasPlayedBefore() && isFuelEnabled) {
             FuelManager.setFuel(p, (15 * 3600) + (59 * 60) + 59);
         }
 
@@ -34,44 +35,49 @@ public class JoinListener implements Listener {
         p.setAllowFlight(false);
         p.setFlying(false);
         p.getWorld().getWorldBorder().setWarningDistance(0);
-        cleanupWitherStormEntities(p); // Method niche banaya hai
+        cleanupWitherStormEntities(p);
 
-        // 3. Task Logic (5 Min Delay)
+        // 3. Task Logic (FIXED: Message only if Fuel System is ON)
         Bukkit.getScheduler().runTaskLater(SpcialSmp.get(), () -> {
-            if (!p.isOnline() || !FuelManager.isSystemEnabled()) return;
+            // BUG FIX: Fuel system OFF hai to Task wala message ya book nahi aayegi
+            if (!p.isOnline() || !isFuelEnabled) return;
+
             long currentTime = System.currentTimeMillis();
             long lastBookTime = dataManager.getLastBookTime(p.getUniqueId());
+            
             if (currentTime - lastBookTime >= 86400000L) {
                 if (!hasTaskBook(p)) {
                     TaskManager.giveRandomTask(p);
                     dataManager.setLastBookTime(p.getUniqueId(), currentTime);
                     p.sendMessage("§6§lSURVIVAL BOT §8» §fA new task assigned!");
+                    p.playSound(p.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1f, 1f);
                 }
             }
-        }, 6000L);
+        }, 1200L); // 1 minute delay (zyada lamba nahi)
 
         // 4. Reset Scale
         if (p.getAttribute(Attribute.GENERIC_SCALE) != null)
             p.getAttribute(Attribute.GENERIC_SCALE).setBaseValue(1.0);
 
-        // 5. CARD SPIN LOGIC (THE FIX)
+        // 5. CARD SPIN LOGIC (FIXED: No double cards, No double messages)
         boolean startSystemEnabled = config.getBoolean("smp-start-system.enabled");
 
         if (!startSystemEnabled) {
-            // Agar system FALSE hai, toh purana logic: Join par card check
+            // FALSE: Join par tabhi spin hoga agar use aaj tak card na mila ho
             if (!dataManager.hasReceivedFirstCard(p.getUniqueId())) {
                 Bukkit.getScheduler().runTaskLater(SpcialSmp.get(), () -> {
-                    if (p.isOnline()) CardSpinner.openSpinGUI(p);
+                    // Re-check online status and card status to prevent double spin
+                    if (p.isOnline() && !dataManager.hasReceivedFirstCard(p.getUniqueId())) {
+                        CardSpinner.openSpinGUI(p);
+                    }
                 }, 140L);
             }
         } else {
-            // Agar system TRUE hai, toh join par card NAHI milega.
-            // Admin jab /smp start marega, tab StartManager handle karega.
-            p.sendMessage("§e§lSMP §8» §fWaiting for the Admin to initiate the sequence...");
+            // TRUE: Wait for admin
+            p.sendMessage("§e§lSMP §8» §fWait for the Admin to initiate the sequence...");
         }
     }
 
-    // Alag se cleanup method taaki code saaf dikhe
     private void cleanupWitherStormEntities(Player p) {
         for (Entity entity : p.getWorld().getEntities()) {
             if (entity.getType() == org.bukkit.entity.EntityType.WITHER || 
@@ -79,7 +85,8 @@ public class JoinListener implements Listener {
                 entity.remove();
             }
             if (entity instanceof ItemDisplay display) {
-                if (display.getItemStack() != null && display.getItemStack().getType() == Material.NETHERITE_SWORD) {
+                ItemStack item = display.getItemStack();
+                if (item != null && item.getType() == Material.NETHERITE_SWORD) {
                     entity.remove();
                 }
             }
@@ -106,4 +113,4 @@ public class JoinListener implements Listener {
         }
         return false;
     }
-                        }
+            }
