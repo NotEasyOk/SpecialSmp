@@ -2,6 +2,7 @@ package com.noteasyok.spcialsmp.manager;
 
 import com.noteasyok.spcialsmp.SpcialSmp;
 import com.noteasyok.spcialsmp.cards.BaseCard;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
