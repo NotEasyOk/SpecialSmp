@@ -17,7 +17,7 @@ public class StartManager {
 
     public void runStartSequence(Player starter) {
         if (isRunning) {
-            starter.sendMessage("§c§lERROR » §fSMP already starting!");
+            starter.sendMessage("§c§lERROR » §fSequence already in progress!");
             return;
         }
         
@@ -31,71 +31,67 @@ public class StartManager {
         world.getWorldBorder().setCenter(starter.getLocation());
         world.getWorldBorder().setSize(config.getDouble("smp-start-system.border.initial-size"));
 
-        // --- STAGE 1: INITIAL COUNTDOWN (e.g. 5 Seconds) ---
+        // --- STAGE 1: INITIAL COUNTDOWN (e.g. 10s) ---
         new BukkitRunnable() {
             int timer = config.getInt("smp-start-system.timers.countdown-delay");
 
             @Override
             public void run() {
                 if (timer > 0) {
-                    String title = ChatColor.translateAlternateColorCodes('&', config.getString("smp-start-system.messages.countdown-title").replace("%time%", String.valueOf(timer)));
                     for (Player p : Bukkit.getOnlinePlayers()) {
-                        p.sendTitle(title, "§fPreparing World...", 0, 21, 0);
+                        p.sendTitle("§c§l" + timer, "§fPreparing World...", 0, 21, 0);
                         p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 1f, 1.5f);
                     }
-                }
-
-                if (timer <= 0) {
+                } else {
                     // Border starts expanding
                     double finalSize = config.getDouble("smp-start-system.border.final-size");
                     int duration = config.getInt("smp-start-system.border.expansion-duration");
                     world.getWorldBorder().setSize(finalSize, duration);
 
                     for (Player p : Bukkit.getOnlinePlayers()) {
-                        p.sendTitle("§a§lSTARTED!", "§fWait for fate to decide your card...", 10, 70, 20);
+                        p.sendTitle("§a§lSTARTED!", "§fThe world is expanding...", 10, 70, 20);
                         p.playSound(p.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 1f, 1f);
                     }
                     
                     this.cancel();
-                    // AB 120 SECONDS KA WAIT SHURU HOGA (Stage 2)
-                    startSpinSequence(config); 
+                    // --- PHASE 2: WAIT FOR 120S THEN SPIN ---
+                    startItemTimer(config); 
                 }
                 timer--;
             }
-        }.runTaskTimer(plugin, 0, 20);
+        }.runTaskTimer(plugin, 0, 20L); // 20L = 1 second interval
     }
 
-    private void startSpinSequence(FileConfiguration config) {
-        // Yahan se 120 seconds ki ginti shuru hoti hai
-        long totalWait = config.getLong("smp-start-system.timers.item-distribution-delay");
-        
+    private void startItemTimer(FileConfiguration config) {
+        long totalDelay = config.getLong("smp-start-system.timers.item-distribution-delay"); // 120s
+
+        // Pehle 120s (minus 5s warning) tak wait karega
         new BukkitRunnable() {
-            int warningTimer = 5; // Fate warning countdown
-            
             @Override
             public void run() {
-                if (warningTimer > 0) {
-                    String fTitle = ChatColor.translateAlternateColorCodes('&', config.getString("smp-start-system.messages.fate-warning-title"));
-                    String fSub = ChatColor.translateAlternateColorCodes('&', config.getString("smp-start-system.messages.fate-warning-subtitle").replace("%time%", String.valueOf(warningTimer)));
-
-                    for (Player p : Bukkit.getOnlinePlayers()) {
-                        p.sendTitle(fTitle, fSub, 0, 21, 0);
-                        p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_CHIME, 1f, 1.2f);
+                // Warning Countdown (Final 5s)
+                new BukkitRunnable() {
+                    int warning = 5;
+                    @Override
+                    public void run() {
+                        if (warning > 0) {
+                            for (Player p : Bukkit.getOnlinePlayers()) {
+                                p.sendTitle("§6§lFATE ARRIVING", "§eIn " + warning + "s...", 0, 21, 0);
+                                p.playSound(p.getLocation(), Sound.BLOCK_NOTE_BLOCK_CHIME, 1f, 1.2f);
+                            }
+                        } else {
+                            // --- FINAL STEP: ANIMATION START ---
+                            for (Player p : Bukkit.getOnlinePlayers()) {
+                                CardSpinner.openSpinGUI(p); // Spin trigger!
+                                p.spawnParticle(Particle.TOTEM_OF_UNDYING, p.getLocation(), 100, 0.5, 1, 0.5, 0.2);
+                            }
+                            isRunning = false; // System free for next time
+                            this.cancel();
+                        }
+                        warning--;
                     }
-                } else {
-                    // --- FINAL STEP: ANIMATION START ---
-                    for (Player p : Bukkit.getOnlinePlayers()) {
-                        // Card Spinner trigger kar rahe hain sabke liye
-                        CardSpinner.openSpinGUI(p); 
-                        
-                        p.spawnParticle(Particle.TOTEM_OF_UNDYING, p.getLocation(), 100, 0.5, 1, 0.5, 0.2);
-                    }
-                    isRunning = false; // Reset for next time
-                    this.cancel();
-                }
-                warningTimer--;
+                }.runTaskTimer(plugin, 0, 20L);
             }
-            // Ye 120s baad chalega (minus 5s for the fate warning)
-        }.runTaskTimer(plugin, (totalWait - 5) * 20L, 20L);
+        }.runTaskLater(plugin, (totalDelay - 5) * 20L); // Asli wait yahan ho raha hai
     }
-                         }
+                        }
