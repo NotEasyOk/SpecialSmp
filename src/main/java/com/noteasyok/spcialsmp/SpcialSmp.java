@@ -74,8 +74,11 @@ public void onEnable() {
         // --- 6. COMMANDS ---
         if (getCommand("cards") != null) {
             getCommand("cards").setExecutor(new CardsCommand());
-            getCommand("smp").setExecutor(new SmpCommand(this));
-        }
+            if (getCommand("smp") != null) {
+                  SmpCommand smpCmd = new SmpCommand(this);
+                   getCommand("smp").setExecutor(smpCmd);
+                   getCommand("smp").setTabCompleter(smpCmd); // Ye line add kar
+               }
 
         getLogger().info("§a[SpcialSmp] Plugin loaded successfully!");
     }
