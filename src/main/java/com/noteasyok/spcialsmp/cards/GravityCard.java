@@ -77,40 +77,51 @@ public class GravityCard extends BaseCard implements Listener {
     }
 
     /* ---------------- RIGHT CLICK: SINGULARITY (Heavy Vortex) ---------------- */
-    @Override
-    public void rightClick(Player p) {
-        if (!isCool(p, "right")) return;
+@Override
+public void rightClick(Player p) {
+    if (!isCool(p, "right")) return;
 
-        Block targetBlock = p.getTargetBlockExact(25);
-        if (targetBlock == null) return;
-        Location center = targetBlock.getLocation().add(0.5, 2.5, 0.5);
+    Block targetBlock = p.getTargetBlockExact(25);
+    if (targetBlock == null) return;
+    Location center = targetBlock.getLocation().add(0.5, 2.5, 0.5);
 
-        new BukkitRunnable() {
-            int t = 0;
-            @Override
-            public void run() {
-                // BUG FIX: Card hata diya to stop
-                if (t > 140 || !isHoldingCard(p)) {
-                    this.cancel();
-                    return;
-                }
+    new BukkitRunnable() {
+        int t = 0;
+        @Override
+        public void run() {
+            // Card hata diya ya time khatam toh stop
+            if (t > 140 || !isHoldingCard(p)) {
+                this.cancel();
+                return;
+            }
 
-                // Black Hole Animation
-                center.getWorld().spawnParticle(Particle.SQUID_INK, center, 30, 0.3, 0.3, 0.3, 0.05);
-                center.getWorld().spawnParticle(Particle.REVERSE_PORTAL, center, 10, 3, 3, 3, 0.1);
-                
-                if (t % 10 == 0) center.getWorld().playSound(center, Sound.ENTITY_ENDERMAN_TELEPORT, 0.8f, 0.1f);
+            // Visuals
+            center.getWorld().spawnParticle(Particle.SQUID_INK, center, 30, 0.3, 0.3, 0.3, 0.05);
+            center.getWorld().spawnParticle(Particle.REVERSE_PORTAL, center, 15, 3, 3, 3, 0.1);
+            
+            if (t % 10 == 0) center.getWorld().playSound(center, Sound.ENTITY_ENDERMAN_TELEPORT, 0.8f, 0.1f);
 
-                for (Entity e : center.getWorld().getNearbyEntities(center, 12, 12, 12)) {
-                    if (e instanceof LivingEntity target && e != p) {
-                        Vector pull = center.toVector().subtract(target.getLocation().toVector()).normalize().multiply(0.5);
-                        target.setVelocity(pull.setY(0.2)); // Strong pull to center
+            // --- PULL LOGIC FIX ---
+            for (Entity e : center.getWorld().getNearbyEntities(center, 12, 12, 12)) {
+                // p != e ensures the caster isn't pulled
+                if (e != p && (e instanceof LivingEntity || e instanceof Player)) {
+                    
+                    Vector pull = center.toVector().subtract(e.getLocation().toVector()).normalize().multiply(0.4);
+                    
+                    // Players ke liye velocity thodi strong aur upward y-axis zaruri hai
+                    // varna wo zameen se "friction" ki wajah se hilenge nahi
+                    e.setVelocity(pull.add(new Vector(0, 0.15, 0))); 
+                    
+                    // Animation for pulling
+                    if (t % 5 == 0) {
+                        e.getWorld().spawnParticle(Particle.SMOKE, e.getLocation(), 5, 0.1, 0.1, 0.1, 0.01);
                     }
                 }
-                t++;
             }
-        }.runTaskTimer(SpcialSmp.get(), 0, 1);
-    }
+            t++;
+        }
+    }.runTaskTimer(SpcialSmp.get(), 0, 1);
+}
 
     /* ---------------- SHIFT+R: EVENT HORIZON (50-Block Pulse Field) ---------------- */
     @Override
