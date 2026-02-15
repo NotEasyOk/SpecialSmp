@@ -114,124 +114,62 @@ public class GravityCard extends BaseCard implements Listener {
 
     /* ---------------- SHIFT+R: EVENT HORIZON (50-Block Pulse Field) ---------------- */
     @Override
-    public void shiftRightClick(Player p) {
-        if (!isCool(p, "shift_right")) return;
+public void shiftRightClick(Player p) {
+    if (!isCool(p, "shift_right")) return;
 
-        Location origin = p.getLocation();
-        int radius = 7; // Total 15x15 Area (Max stable for Shulkers)
-        int depth = 5;  // 5 layers deep: Grass, Dirt, Stone
-        int maxHeight = 35; // Higher lift
-        
-        p.sendMessage("§5§lGRAVITY » §4§lTHE WORLD IS TEARING APART!");
-        p.getWorld().playSound(origin, Sound.ENTITY_WITHER_SPAWN, 2f, 0.1f);
-        p.getWorld().playSound(origin, Sound.BLOCK_RESPAWN_ANCHOR_CHARGE, 1f, 0.5f);
+    Block target = p.getTargetBlockExact(7);
+    if (target == null || target.getType() == Material.AIR) return;
 
-        // --- STAGE 1: EARTH CRACKING & INITIAL PULSE (3 Seconds) ---
-        new BukkitRunnable() {
-            int preTicks = 0;
-            @Override
-            public void run() {
-                if (preTicks >= 60) { // 3 seconds baad actual lift shuru
-                    startUltimateAscension(p, origin, radius, depth, maxHeight);
-                    this.cancel();
-                    return;
-                }
-
-                // Visuals: Cracks, Dust, Smoke
-                if (preTicks % 5 == 0) {
-                    p.getWorld().spawnParticle(Particle.BLOCK, origin, 80, radius, 0.5, radius, 0.1, Material.STONE.createBlockData());
-                    p.getWorld().spawnParticle(Particle.ENCHANTED_HIT, origin, 50, radius, 1, radius, 0.1);
-                    p.getWorld().spawnParticle(Particle.EXPLOSION, origin, 1, 0, 0, 0, 0); // Mini-explosions
-                    p.getWorld().playSound(origin, Sound.BLOCK_STONE_BREAK, 0.8f, 0.5f);
-                }
-                preTicks++;
-            }
-        }.runTaskTimer(SpcialSmp.get(), 0, 1);
-    }
-
-    private void startUltimateAscension(Player p, Location origin, int radius, int depth, int maxHeight) {
-    List<Entity> islandEntities = new ArrayList<>();
-    List<Location> removedBlocks = new ArrayList<>(); 
-    // FIX: Original block ka data save karne ke liye
-    Map<Location, org.bukkit.block.data.BlockData> blockDataMap = new HashMap<>();
+    Location startLoc = target.getLocation();
+    Material wallMaterial = target.getType(); // Ground block ka material lega
     
-    p.getWorld().playSound(origin, Sound.ENTITY_ENDER_DRAGON_GROWL, 1.5f, 0.1f);
-    p.getWorld().playSound(origin, Sound.BLOCK_BEACON_ACTIVATE, 2f, 0.5f);
+    Vector direction = p.getLocation().getDirection().setY(0).normalize();
+    Vector side = new Vector(-direction.getZ(), 0, direction.getX()).normalize();
 
-    for (int x = -radius; x <= radius; x++) {
-        for (int z = -radius; z <= radius; z++) {
-            for (int y = -1; y > -depth -1; y--) {
-                Block b = origin.clone().add(x, y, z).getBlock();
-                if (b.getType() != Material.AIR && b.getType().isSolid()) {
-                    blockDataMap.put(b.getLocation(), b.getBlockData()); // Store data
-                    Location spawnLoc = b.getLocation().add(0.5, 0, 0.5);
-                    
-                    FallingBlock fb = p.getWorld().spawnFallingBlock(spawnLoc, b.getBlockData());
-                    fb.setDropItem(false);
-                    fb.setGravity(false);
-                    islandEntities.add(fb);
+    List<Block> wallBlocks = new ArrayList<>();
+    p.getWorld().playSound(startLoc, Sound.BLOCK_RESPAWN_ANCHOR_CHARGE, 1f, 0.5f);
 
-                    org.bukkit.entity.Shulker shulker = p.getWorld().spawn(spawnLoc, org.bukkit.entity.Shulker.class);
-                    shulker.setInvisible(true);
-                    shulker.setAI(false);
-                    shulker.setInvulnerable(true);
-                    shulker.setGravity(false);
-                    islandEntities.add(shulker);
-                    
-                    removedBlocks.add(b.getLocation());
-                    b.setType(Material.AIR);
-                }
-            }
-        }
-    }
-
+    // --- PHASE 1: RISING (7 High, 5 Wide) ---
     new BukkitRunnable() {
-        int ticks = 0;
+        int height = 1;
         @Override
         public void run() {
-            if (ticks > 300 || !p.getInventory().getItemInMainHand().getType().equals(getMaterial())) {
-                for (Entity ent : islandEntities) ent.remove();
-
-                // FIX: Zameen wapas bharna (Restore)
-                for (Location loc : removedBlocks) {
-                    if (blockDataMap.containsKey(loc)) {
-                        loc.getBlock().setBlockData(blockDataMap.get(loc));
-                    }
-                    loc.getWorld().spawnParticle(Particle.POOF, loc, 10, 0.5, 0.5, 0.5, 0.1);
-                }
-
-                p.sendMessage("§c§lGRAVITY » §fThe world reclaims its pieces.");
+            if (height > 7) {
+                startRemovalTask(wallBlocks, wallMaterial); // Phase 2 trigger
                 this.cancel();
                 return;
             }
 
-            // FIX: Smooth upward movement using teleport instead of velocity
-            // velocity shulker ko unstable banati hai, teleport solid rakhta hai.
-            double moveSpeed = (ticks < 250) ? 0.18 : 0;
-            
-            for (Entity ent : islandEntities) {
-                if (ent.isValid()) {
-                    Location next = ent.getLocation().add(0, moveSpeed, 0);
-                    ent.teleport(next); // Isse collision box solid rahega
+            for (int w = -2; w <= 2; w++) { // 5 Wide (-2 to 2)
+                Location loc = startLoc.clone().add(side.clone().multiply(w)).add(0, height, 0);
+                Block b = loc.getBlock();
+                if (b.getType() == Material.AIR) {
+                    b.setType(wallMaterial);
+                    wallBlocks.add(b);
+                    p.getWorld().playEffect(loc, Effect.STEP_SOUND, wallMaterial);
                 }
             }
-
-            // Particles (Same as your code)
-            if (ticks % 5 == 0) {
-                origin.getWorld().spawnParticle(Particle.REVERSE_PORTAL, origin.clone().add(0, -depth -5, 0), 50, radius/2, 2, radius/2, 0.05);
-                origin.getWorld().spawnParticle(Particle.DRAGON_BREATH, origin.clone().add(0, -depth -3, 0), 30, radius/2, 1, radius/2, 0.02);
-            }
-
-            if (ticks % 10 == 0) {
-                 int rX = random.nextInt(radius * 2) - radius;
-                 int rZ = random.nextInt(radius * 2) - radius;
-                 origin.getWorld().spawnParticle(Particle.FALLING_DUST, origin.clone().add(rX, origin.getY() + maxHeight - 5, rZ), 5, 0.1, 0.1, 0.1, 0, Material.DIRT.createBlockData());
-            }
-            
-            ticks++;
+            p.getWorld().playSound(p.getLocation(), Sound.BLOCK_STONE_PLACE, 1f, 0.8f);
+            height++;
         }
-    }.runTaskTimer(SpcialSmp.get(), 0, 1);
+    }.runTaskTimer(SpcialSmp.get(), 0, 2);
+}
+
+private void startRemovalTask(List<Block> blocks, Material mat) {
+    new BukkitRunnable() {
+        @Override
+        public void run() {
+            for (Block b : blocks) {
+                if (b.getType() == mat) {
+                    // Glass breaking style animation & particles
+                    b.getWorld().spawnParticle(Particle.BLOCK, b.getLocation().add(0.5, 0.5, 0.5), 20, 0.3, 0.3, 0.3, mat.createBlockData());
+                    b.getWorld().playSound(b.getLocation(), Sound.BLOCK_GLASS_BREAK, 0.5f, 1.2f);
+                    b.setType(Material.AIR);
                 }
+            }
+        }
+    }.runTaskLater(SpcialSmp.get(), 200L); // 10 Seconds (200 ticks)
+        }
 
     // --- HELPER METHODS FOR BUG-FREE LOGIC ---
 
