@@ -65,6 +65,9 @@ public class CardSpinner {
         // Winning Sound
         player.playSound(player.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 1f, 1.2f);
         player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1f, 0.8f);
+
+        ItemStack finalCard = CardRegistry.getCardItem(winner); 
+         player.getInventory().addItem(finalCard);
         
         // Give Item and Save Data
         player.getInventory().addItem(winner.getItemStackWithLore(winner.getName()));
