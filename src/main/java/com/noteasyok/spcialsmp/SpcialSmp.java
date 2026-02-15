@@ -74,6 +74,8 @@ public void onEnable() {
         // --- 6. COMMANDS ---
         if (getCommand("cards") != null) {
             getCommand("cards").setExecutor(new CardsCommand());
+        }
+    
             if (getCommand("smp") != null) {
                   SmpCommand smpCmd = new SmpCommand(this);
                    getCommand("smp").setExecutor(smpCmd);
