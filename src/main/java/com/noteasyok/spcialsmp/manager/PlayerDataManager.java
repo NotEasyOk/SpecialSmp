@@ -27,25 +27,6 @@ public class PlayerDataManager {
         }
         data = YamlConfiguration.loadConfiguration(file);
     }
-    
-   /* ================= LIFE SYSTEM (NEW & CLEAN) ================= */
-
-    // Default 5 lives naye players ke liye
-    public int getLives(UUID uuid) {
-        return data.getInt("players." + uuid + ".lives", 5);
-    }
-
-    public void setLives(UUID uuid, int amount) {
-        int finalAmount = Math.max(0, amount);
-        data.set("players." + uuid + ".lives", finalAmount);
-        
-        // Critical data hai isliye turant save
-        try {
-            data.save(file);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
 
     /* ================= FIRST JOIN CARD ================= */
 
@@ -73,7 +54,7 @@ public class PlayerDataManager {
     /* ================= SAVE (PERFORMANCE FIX) ================= */
 
     private void saveAsync() {
-        // Background thread taaki server lag na kare
+        // Background thread taaki server lag na kare (Async save)
         Bukkit.getScheduler().runTaskAsynchronously(SpcialSmp.get(), this::save);
     }
 
@@ -84,4 +65,4 @@ public class PlayerDataManager {
             e.printStackTrace();
         }
     }
-        }
+    }
