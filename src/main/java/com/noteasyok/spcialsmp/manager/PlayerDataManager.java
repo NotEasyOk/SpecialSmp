@@ -27,7 +27,7 @@ public class PlayerDataManager {
         }
         data = YamlConfiguration.loadConfiguration(file);
     }
-
+    
    /* ================= FUEL SYSTEM (FIXED & SYNCED) ================= */
 
     // FuelManager int use kar raha hai, isliye yahan bhi int rakha hai
@@ -45,6 +45,7 @@ public class PlayerDataManager {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
 
     /* ================= JOIN TRACKING ================= */
 
