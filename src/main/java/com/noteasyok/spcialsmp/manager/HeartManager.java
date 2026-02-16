@@ -1,50 +1,53 @@
 package com.noteasyok.spcialsmp.manager;
 
 import com.noteasyok.spcialsmp.SpcialSmp;
-import net.md_5.bungee.api.ChatMessageType;
-import net.md_5.bungee.api.chat.TextComponent;
 import org.bukkit.Bukkit;
-import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.boss.BarColor;
+import org.bukkit.boss.BarStyle;
+import org.bukkit.boss.BossBar;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitRunnable;
+import java.util.HashMap;
+import java.util.UUID;
 
 public class HeartManager {
 
-    public static void startHeartDisplayTask() {
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                // Config check: Agar system off hai toh display mat dikhao
-                if (!SpcialSmp.get().getConfig().getBoolean("life-system.enabled")) return;
-
-                for (Player p : Bukkit.getOnlinePlayers()) {
-                    updateActionBar(p);
-                }
-            }
-        }.runTaskTimer(SpcialSmp.get(), 0L, 20L); // 1 Second refresh
-    }
+    private static final HashMap<UUID, BossBar> heartBars = new HashMap<>();
 
     public static void updateActionBar(Player p) {
-        FileConfiguration config = SpcialSmp.get().getConfig();
+        if (!SpcialSmp.get().getConfig().getBoolean("life-system.enabled")) {
+            removeBar(p);
+            return;
+        }
+
         int lives = SpcialSmp.get().getPlayerDataManager().getLives(p.getUniqueId());
-        int maxLives = config.getInt("life-system.max-lives", 5);
+        int maxLives = SpcialSmp.get().getConfig().getInt("life-system.max-lives", 10);
 
-        String iconAlive = config.getString("life-system.icons.alive", "§c❤");
-        String iconEmpty = config.getString("life-system.icons.empty", "§7♡");
+        // NOTE: Ye symbols aapke texture pack ke hisaab se Hunger bar ke upar align honge
+        // Agar aapke paas texture pack hai, toh unke codes yahan dalein (e.g., "\uE001")
+        String heartFull = "§c❤"; 
+        String heartEmpty = "§8❤";
 
-        StringBuilder bar = new StringBuilder();
-
-        // Texture Logic:
-        // Agar 3 lives hain aur max 5 hai:  ❤ ❤ ❤ ♡ ♡
+        StringBuilder sb = new StringBuilder();
         for (int i = 1; i <= maxLives; i++) {
-            if (i <= lives) {
-                bar.append(iconAlive).append(" ");
-            } else {
-                bar.append(iconEmpty).append(" ");
-            }
+            sb.append(i <= lives ? heartFull : heartEmpty).append(" ");
         }
 
-        // Action Bar bhejho (Hunger bar ke theek upar)
-        p.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(bar.toString()));
-    }
+        BossBar bar = heartBars.get(p.getUniqueId());
+        if (bar == null) {
+            // BossBar Hunger bar ke upar natural jagah banata hai
+            bar = Bukkit.createBossBar(sb.toString(), BarColor.WHITE, BarStyle.SOLID);
+            bar.addPlayer(p);
+            heartBars.put(p.getUniqueId(), bar);
         }
+
+        bar.setTitle(sb.toString().trim());
+        bar.setVisible(true);
+    }
+
+    public static void removeBar(Player p) {
+        if (heartBars.containsKey(p.getUniqueId())) {
+            heartBars.get(p.getUniqueId()).removeAll();
+            heartBars.remove(p.getUniqueId());
+        }
+    }
+                }
