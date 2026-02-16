@@ -22,16 +22,8 @@ public class JoinListener implements Listener {
         Player p = e.getPlayer();
         var dataManager = SpcialSmp.get().getPlayerDataManager();
         var config = SpcialSmp.get().getConfig();
-
-        // 1. LIFE SYSTEM SETUP (Fuel ki jagah ab Life check hogi)
-        if (!p.hasPlayedBefore()) {
-            // Naye player ko 5 lives set karo
-            dataManager.setLives(p.getUniqueId(), 5);
-        }
-        
-        // Hunger Bar ke upar hearts dikhane wala task
-        HeartManager.updateActionBar(p);
-
+    }
+    
         // 2. Storm & Flight Cleanup
         p.setAllowFlight(false);
         p.setFlying(false);
