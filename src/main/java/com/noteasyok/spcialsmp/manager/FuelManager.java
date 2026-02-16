@@ -38,13 +38,14 @@ public class FuelManager {
 
         UUID uid = p.getUniqueId();
         
-        // SIMPLE LOADING: Agar cache mein nahi hai toh database se uthao (No offline calculation)
         if (!fuelCache.containsKey(uid)) {
-            int savedFuel = (int) SpcialSmp.get().getPlayerDataManager().getFuel(uid);
+            // PlayerDataManager mein humne getFuel ko -1 return karne ko bola tha agar data na ho
+            int savedFuel = SpcialSmp.get().getPlayerDataManager().getFuel(uid);
             
-            // Agar naya player hai (0 fuel), toh use default fuel do
-            if (savedFuel <= 0) {
+            // Agar pehli baar join kiya hai (-1), tabhi default do
+            if (savedFuel == -1) {
                 savedFuel = DEFAULT_FUEL;
+                saveToDatabase(uid, savedFuel); // Naye player ka data save karo
             }
             fuelCache.put(uid, savedFuel);
         }
@@ -84,7 +85,6 @@ public class FuelManager {
     }
 
     private static void saveToDatabase(UUID uid, int fuel) {
-        Bukkit.getScheduler().runTaskAsynchronously(SpcialSmp.get(), () -> {
             SpcialSmp.get().getPlayerDataManager().setFuel(uid, fuel);
         });
     }
@@ -99,11 +99,9 @@ public class FuelManager {
         if (!isSystemEnabled()) return;
         UUID uid = p.getUniqueId();
         
-        // 1. Cache turant update karo
         fuelCache.put(uid, totalSeconds);
-        
-        // 2. Database update (Direct save taaki cut/add kaam kare)
-        saveToDatabase(uid, totalSeconds);
+        // Direct save call
+        SpcialSmp.get().getPlayerDataManager().setFuel(uid, totalSeconds);
         
         Bukkit.getLogger().info("[Fuel] " + p.getName() + " fuel updated to " + totalSeconds + "s");
     }
