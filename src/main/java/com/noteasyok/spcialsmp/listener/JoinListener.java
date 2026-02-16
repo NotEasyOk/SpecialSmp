@@ -2,7 +2,6 @@ package com.noteasyok.spcialsmp.listener;
 
 import com.noteasyok.spcialsmp.SpcialSmp;
 import com.noteasyok.spcialsmp.manager.CardSpinner;
-import com.noteasyok.spcialsmp.manager.HeartManager; // Naya import
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.attribute.Attribute;
@@ -17,12 +16,11 @@ import org.bukkit.inventory.ItemStack;
 
 public class JoinListener implements Listener {
 
-    @EventHandler
+  @EventHandler
     public void onJoin(PlayerJoinEvent e) {
         Player p = e.getPlayer();
-        var dataManager = SpcialSmp.get().getPlayerDataManager();
-        var config = SpcialSmp.get().getConfig();
-    }
+        PlayerDataManager dataManager = SpcialSmp.get().getPlayerDataManager();
+        FileConfiguration config = SpcialSmp.get().getConfig();
     
         // 2. Storm & Flight Cleanup
         p.setAllowFlight(false);
