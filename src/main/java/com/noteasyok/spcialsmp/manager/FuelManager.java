@@ -86,8 +86,7 @@ public class FuelManager {
 
     private static void saveToDatabase(UUID uid, int fuel) {
             SpcialSmp.get().getPlayerDataManager().setFuel(uid, fuel);
-        });
-    }
+        }
 
     public static int getFuel(Player p) {
         return fuelCache.getOrDefault(p.getUniqueId(), 0);
