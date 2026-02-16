@@ -31,6 +31,8 @@ import java.util.List;
 
 public class CardsCommand implements CommandExecutor, TabCompleter, Listener {
 
+    private static final NamespacedKey FUEL_KEY = new NamespacedKey(SpcialSmp.get(), "fuel_seconds_data");
+
     public CardsCommand() {
         if (SpcialSmp.get().getCommand("cards") != null) {
             SpcialSmp.get().getCommand("cards").setTabCompleter(this);
@@ -163,36 +165,36 @@ public class CardsCommand implements CommandExecutor, TabCompleter, Listener {
         return true;
     }
 
-    private ItemStack createFuelBottle(long seconds, String label) {
-        ItemStack bottle = new ItemStack(Material.POTION); 
-        ItemMeta meta = bottle.getItemMeta();
-        if (meta != null) {
-            meta.setDisplayName("§b§lSoul Fuel Bottle §7(§e" + label + "§7)");
-            List<String> lore = new ArrayList<>();
-            lore.add("§8------------------");
-            lore.add("§7Drink this to claim fuel.");
-            lore.add("§7Contains: §e" + label);
-            lore.add("§8------------------");
-            NamespacedKey key = new NamespacedKey(SpcialSmp.get(), "fuel_seconds_data");
-            meta.getPersistentDataContainer().set(key, PersistentDataType.LONG, seconds);
-            bottle.setItemMeta(meta);
-        }
-        return bottle;
+    private ItemStack createFuelBottle(int seconds, String label) {
+    ItemStack bottle = new ItemStack(Material.POTION); 
+    ItemMeta meta = bottle.getItemMeta();
+    if (meta != null) {
+        meta.setDisplayName("§b§lSoul Fuel Bottle §7(§e" + label + "§7)");
+        List<String> lore = new ArrayList<>();
+        lore.add("§8------------------");
+        lore.add("§7Drink this to claim fuel.");
+        lore.add("§7Contains: §e" + label);
+        lore.add("§8------------------");
+        
+        // FIX: Yahan INTEGER use karo
+        meta.getPersistentDataContainer().set(FUEL_KEY, PersistentDataType.INTEGER, seconds);
+        bottle.setItemMeta(meta);
     }
-
+    return bottle;
+}
     @EventHandler
 public void onDrink(PlayerItemConsumeEvent e) {
     ItemStack item = e.getItem();
     if (item.getType() == Material.POTION && item.hasItemMeta()) {
-        NamespacedKey key = new NamespacedKey(SpcialSmp.get(), "fuel_seconds_data");
         ItemMeta meta = item.getItemMeta();
 
-        if (meta.getPersistentDataContainer().has(key, PersistentDataType.LONG)) {
-            long seconds = meta.getPersistentDataContainer().get(key, PersistentDataType.LONG);
+        // FIX: INTEGER type check karo
+        if (meta.getPersistentDataContainer().has(FUEL_KEY, PersistentDataType.INTEGER)) {
+            int seconds = meta.getPersistentDataContainer().get(FUEL_KEY, PersistentDataType.INTEGER);
             Player p = e.getPlayer();
 
-            // Seedha FuelManager use karo, ye cache aur database dono handle kar lega
-            FuelManager.addFuelSeconds(p, (int) seconds);
+            // FuelManager database update kar dega
+            FuelManager.addFuelSeconds(p, seconds);
 
             p.sendMessage("§b§l[+] §7Restored §e" + seconds + "s §7of Soul Fuel!");
             p.playSound(p.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 1f, 2f);
