@@ -3,6 +3,8 @@ package com.noteasyok.spcialsmp.command;
 import com.noteasyok.spcialsmp.SpcialSmp;
 import com.noteasyok.spcialsmp.manager.HeartManager;
 import com.noteasyok.spcialsmp.manager.PlayerDataManager;
+import com.noteasyok.spcialsmp.manager.RevivalManager;
+import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -21,65 +23,65 @@ public class LifeCommand implements CommandExecutor, TabCompleter {
         if (!(sender instanceof Player p)) return true;
 
         if (args.length == 0) {
-            p.sendMessage("§cUsage: /life withdraw <amount> or /life recipe");
+            p.sendMessage("§cUsage: /life <withdraw|recipe|revive>");
             return true;
         }
 
-        // --- WITHDRAW LOGIC ---
+        // --- WITHDRAW: Life ko item mein badlo ---
         if (args[0].equalsIgnoreCase("withdraw")) {
             if (args.length < 2) {
                 p.sendMessage("§cUsage: /life withdraw <amount>");
                 return true;
             }
-
             try {
                 int amount = Integer.parseInt(args[1]);
-                if (amount <= 0) {
-                    p.sendMessage("§cInvalid amount!");
-                    return true;
-                }
-
                 PlayerDataManager data = SpcialSmp.get().getPlayerDataManager();
                 int currentLives = data.getLives(p.getUniqueId());
 
-                // Safety: Player ke paas kam se kam 1 life bachni chahiye
-                if (currentLives <= amount) {
-                    p.sendMessage("§c§l[!] §7You cannot withdraw all your lives! You need at least 1 to stay.");
+                if (amount <= 0 || currentLives <= amount) {
+                    p.sendMessage("§c§l[!] §7Invalid amount or not enough lives to keep 1!");
                     return true;
                 }
 
-                // Update Data & Give Item
                 data.setLives(p.getUniqueId(), currentLives - amount);
-                p.getInventory().addItem(HeartManager.getHeartItem(amount));
+                // HeartManager mein getHeartItem method hona chahiye physical life ke liye
+                p.getInventory().addItem(HeartManager.getHeartItem(amount)); 
                 
-                p.sendMessage("§a§l✔ §7Withdrew §e" + amount + " §7lives into items!");
-                HeartManager.updateActionBar(p); // Hunger bar ke upar update
-
+                p.sendMessage("§a§l✔ §7Withdrew §e" + amount + " §7lives!");
+                HeartManager.updateActionBar(p);
             } catch (NumberFormatException e) {
-                p.sendMessage("§cPlease enter a valid number.");
+                p.sendMessage("§cEnter a valid number.");
             }
             return true;
         }
 
-        // --- RECIPE GUI ---
+        // --- RECIPE: Crafting dikhane ke liye ---
         if (args[0].equalsIgnoreCase("recipe")) {
-            // HeartManager mein jo GUI wala method banaya tha use call karo
-            // openRecipeGui(p); 
+            p.sendMessage("§d§lRECIPE §8» §fUse §e/recipe revival_card §f (Agar plugin registered hai)");
+            // Yahan tum GUI open karne wala code bhi dal sakte ho
+            return true;
+        }
+
+        // --- REVIVE: Banned player ko unban karne ke liye ---
+        if (args[0].equalsIgnoreCase("revive")) {
+            if (args.length < 2) {
+                p.sendMessage("§cUsage: /life revive <player>");
+                return true;
+            }
+            String target = args[1];
+            RevivalManager.unbanPlayer(target); // RevivalManager ka pardon logic
+            p.sendMessage("§a§l✔ §f" + target + " has been pardoned!");
             return true;
         }
 
         return true;
     }
 
-    // --- TAB COMPLETER ---
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         if (args.length == 1) {
-            return StringUtil.copyPartialMatches(args[0], Arrays.asList("withdraw", "recipe"), new ArrayList<>());
-        }
-        if (args.length == 2 && args[0].equalsIgnoreCase("withdraw")) {
-            return Arrays.asList("1", "2", "3"); // Suggestions
+            return StringUtil.copyPartialMatches(args[0], Arrays.asList("withdraw", "recipe", "revive"), new ArrayList<>());
         }
         return new ArrayList<>();
     }
-        }
+                        }
