@@ -40,9 +40,7 @@ public class RuinCard extends BaseCard implements Listener {
             WorldCreator wc = new WorldCreator(DIM_NAME);
             wc.environment(World.Environment.NORMAL);
             World world = wc.createWorld();
-            if (world != null) {
-                world.setKeepSpawnInMemory(true);
-            }
+            if (world != null) world.setKeepSpawnInMemory(true);
         }
     }
 
@@ -50,75 +48,68 @@ public class RuinCard extends BaseCard implements Listener {
     @Override public int getModelData() { return 7; }
     @Override public Material getMaterial() { return Material.GRAY_DYE; }
 
+    // --- LEFT CLICK: TARGET TELEPORT (OWNER SAFE) ---
     @Override
     public void leftClick(Player p) {
         CooldownManager cd = SpcialSmp.get().getCooldownManager();
         if (!cd.canUse(p, getName(), "left")) return;
 
-        Block target = p.getTargetBlockExact(5);
-        if (target == null || target.getType() == Material.AIR) {
-            p.sendMessage("§c§l[!] §7Look at a block to open the rift!");
+        // Aim-Based Target Selection
+        Entity targetEntity = getTarget(p, 25);
+        if (!(targetEntity instanceof Player victim) || victim.equals(p)) {
+            p.sendMessage("§c§l[!] §7Look at a player to send them to Ruin!");
             return;
         }
 
-        Location loc = target.getLocation().add(0.5, 1.1, 0.5);
-        p.sendMessage("§2§l[!] §aOpening Toxic Rift...");
+        Location riftLoc = victim.getLocation().add(0, 1, 0);
+        p.sendMessage("§2§l[!] §aSending §f" + victim.getName() + " §ato the Toxic Rift...");
         
         new BukkitRunnable() {
             int t = 0;
             @Override
             public void run() {
-                if (t >= 20) {
-                    teleportToRuin(p, loc);
+                if (t >= 10) {
+                    teleportToRuin(victim, p); // Victim goes, P is owner
                     this.cancel();
                     return;
                 }
-                loc.getWorld().spawnParticle(Particle.SQUID_INK, loc, 15, 0.2, 0.2, 0.2, 0.05);
-                t += 2;
+                riftLoc.getWorld().spawnParticle(Particle.SQUID_INK, riftLoc, 20, 0.5, 0.5, 0.5, 0.05);
+                t++;
             }
         }.runTaskTimer(SpcialSmp.get(), 0L, 2L);
         
         cd.applyCooldown(p, getName(), "left");
     }
 
-    private void teleportToRuin(Player p, Location oldLoc) {
+    private void teleportToRuin(Player victim, Player owner) {
         World ruinWorld = Bukkit.getWorld(DIM_NAME);
         if (ruinWorld == null) return;
 
-        Location target = ruinWorld.getHighestBlockAt(0, 0).getLocation().add(0.5, 2, 0.5);
-        p.teleport(target);
-        p.playSound(p.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1f, 0.5f);
+        Location targetLoc = ruinWorld.getHighestBlockAt(0, 0).getLocation().add(0.5, 2, 0.5);
+        victim.teleport(targetLoc);
+        victim.playSound(victim.getLocation(), Sound.ENTITY_ENDERMAN_TELEPORT, 1f, 0.5f);
+        victim.sendMessage("§2§l[!] §cYou have been banished to the Ruin by " + owner.getName());
 
         BossBar bar = Bukkit.createBossBar("§2§lTOXIC ATMOSPHERE", BarColor.GREEN, BarStyle.SEGMENTED_10);
-        bar.addPlayer(p);
-        activeBars.put(p, bar);
+        bar.addPlayer(victim);
+        activeBars.put(victim, bar);
 
         new BukkitRunnable() {
             int time = 60;
             @Override
             public void run() {
-                if (time <= 0 || !p.isOnline() || !p.getWorld().getName().equals(DIM_NAME)) {
-                    p.teleport(Bukkit.getWorlds().get(0).getSpawnLocation());
+                if (time <= 0 || !victim.isOnline() || !victim.getWorld().getName().equals(DIM_NAME)) {
+                    victim.teleport(Bukkit.getWorlds().get(0).getSpawnLocation());
                     bar.removeAll();
-                    activeBars.remove(p);
+                    activeBars.remove(victim);
                     this.cancel();
                     return;
                 }
 
-                // --- TOXIC WORLD LOGIC ---
-                // 1. Water & Block Poisoning
-                Material standingOn = p.getLocation().getBlock().getType();
-                Material inBody = p.getLocation().add(0, 1, 0).getBlock().getType();
-                if (standingOn != Material.AIR || inBody == Material.WATER) {
-                    p.addPotionEffect(new PotionEffect(PotionEffectType.POISON, 40, 1));
-                    p.addPotionEffect(new PotionEffect(PotionEffectType.HUNGER, 40, 1));
-                }
-
-                // 2. Visual Effects
-                p.getWorld().spawnParticle(Particle.WARPED_SPORE, p.getLocation().add(0, 3, 0), 20, 2, 2, 2, 0.01);
+                victim.addPotionEffect(new PotionEffect(PotionEffectType.POISON, 40, 1));
+                victim.getWorld().spawnParticle(Particle.WARPED_SPORE, victim.getLocation().add(0, 3, 0), 20, 2, 2, 2, 0.01);
                 
-                // 3. Mutant Mob Spawning
-                if (time % 8 == 0) spawnMutantMob(p.getLocation());
+                if (time % 8 == 0) spawnMutantMob(victim.getLocation());
 
                 bar.setProgress(time / 60.0);
                 bar.setTitle("§2§lToxic Collapse in: §f" + time + "s");
@@ -127,54 +118,65 @@ public class RuinCard extends BaseCard implements Listener {
         }.runTaskTimer(SpcialSmp.get(), 0L, 20L);
     }
 
-    private void spawnMutantMob(Location center) {
-        Location spawnLoc = center.clone().add(random.nextInt(10) - 5, 0, random.nextInt(10) - 5);
-        spawnLoc.setY(spawnLoc.getWorld().getHighestBlockYAt(spawnLoc) + 1);
-        
-        LivingEntity mutant;
-        if (random.nextBoolean()) {
-            mutant = (Zombie) center.getWorld().spawn(spawnLoc, Zombie.class);
-            mutant.setCustomName("§4§lMutant Hulk");
-        } else {
-            mutant = (Skeleton) center.getWorld().spawn(spawnLoc, Skeleton.class);
-            mutant.setCustomName("§b§lFrost Archer");
-        }
-
-        // --- SUN PROTECTION & BUFFS ---
-        mutant.getEquipment().setHelmet(new ItemStack(Material.NETHERITE_HELMET)); // Prevents burning
-        mutant.getEquipment().setHelmetDropChance(0.0f);
-        mutant.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 99999, 1));
-        mutant.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH, 99999, 1));
-        
-        if (mutant.getAttribute(Attribute.GENERIC_MAX_HEALTH) != null) {
-            mutant.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(40.0);
-            mutant.setHealth(40.0);
-        }
-    }
-
-    @Override public void rightClick(Player p) {
+    // --- RIGHT CLICK: DARK AURA ANIMATION ---
+    @Override
+    public void rightClick(Player p) {
         p.addPotionEffect(new PotionEffect(PotionEffectType.RESISTANCE, 100, 3));
-        p.sendMessage("§8§l[!] §7Shadow Shield Active!");
+        p.sendMessage("§8§l[!] §7Shadow Shield & Aura Active!");
+        
+        // Dark Aura Particle Task
+        new BukkitRunnable() {
+            int ticks = 0;
+            @Override
+            public void run() {
+                if (ticks >= 100 || !p.isOnline()) { this.cancel(); return; }
+                
+                Location loc = p.getLocation();
+                for (double i = 0; i < Math.PI * 2; i += Math.PI / 8) {
+                    double x = Math.cos(i) * 1.5;
+                    double z = Math.sin(i) * 1.5;
+                    loc.add(x, 0.2, z);
+                    p.getWorld().spawnParticle(Particle.SQUID_INK, loc, 1, 0, 0, 0, 0);
+                    p.getWorld().spawnParticle(Particle.SMOKE, loc, 1, 0, 0, 0, 0);
+                    loc.subtract(x, 0.2, z);
+                }
+                ticks += 5;
+            }
+        }.runTaskTimer(SpcialSmp.get(), 0L, 5L);
     }
 
-    @Override public void shiftRightClick(Player p) {
-        p.sendMessage("§2§l[!] §7Summoning " + p.getName() + "'s Guards...");
+    @Override
+    public void shiftRightClick(Player p) {
+        p.sendMessage("§2§l[!] §7Summoning Guards...");
         for (int i = 0; i < 4; i++) {
             Silverfish s = (Silverfish) p.getWorld().spawn(p.getLocation(), Silverfish.class);
             s.setCustomName("§a" + p.getName() + "'s Guard");
             s.setCustomNameVisible(true);
             
-            // Protect Owner Logic
             new BukkitRunnable() {
                 @Override
                 public void run() {
                     if (!s.isValid() || !p.isOnline()) { this.cancel(); return; }
                     if (s.getTarget() != null && s.getTarget().getUniqueId().equals(p.getUniqueId())) {
-                        s.setTarget(null); // Will not attack owner
+                        s.setTarget(null);
                     }
                 }
             }.runTaskTimer(SpcialSmp.get(), 0L, 5L);
         }
+    }
+
+    private Entity getTarget(Player p, int range) {
+        var ray = p.getWorld().rayTraceEntities(p.getEyeLocation(), p.getEyeLocation().getDirection(), range, e -> !e.equals(p));
+        return (ray != null) ? ray.getHitEntity() : null;
+    }
+
+    private void spawnMutantMob(Location center) {
+        Location spawnLoc = center.clone().add(random.nextInt(10) - 5, 0, random.nextInt(10) - 5);
+        spawnLoc.setY(spawnLoc.getWorld().getHighestBlockYAt(spawnLoc) + 1);
+        LivingEntity mutant = (LivingEntity) center.getWorld().spawn(spawnLoc, random.nextBoolean() ? Zombie.class : Skeleton.class);
+        mutant.getEquipment().setHelmet(new ItemStack(Material.NETHERITE_HELMET));
+        mutant.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(40.0);
+        mutant.setHealth(40.0);
     }
 
     @Override
@@ -186,8 +188,8 @@ public class RuinCard extends BaseCard implements Listener {
             List<String> lore = new ArrayList<>();
             lore.add("§7Power of the corrupted world.");
             lore.add("");
-            lore.add("§eLeft-Click: §2Ruin Dimension");
-            lore.add("§eRight-Click: §8Dark Shield");
+            lore.add("§eLeft-Click: §2Send Victim to Ruin");
+            lore.add("§eRight-Click: §8Dark Shield & Aura");
             lore.add("§eShift + Right: §aGuard Summon");
             meta.setLore(lore);
             meta.setCustomModelData(getModelData());
@@ -196,4 +198,4 @@ public class RuinCard extends BaseCard implements Listener {
         }
         return item;
     }
-                                             }
+    }
