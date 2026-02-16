@@ -64,10 +64,6 @@ public class RecipeManager {
         return new RecipeChoice.MaterialChoice(fallback);
     }
 
-    public static void registerReviveRecipe(SpcialSmp plugin) {
-        ItemStack reviveCard = RevivalManager.getRevivalCard();
-        if (reviveCard == null) return;
-
         NamespacedKey key = new NamespacedKey(plugin, "revival_card_recipe");
         if (Bukkit.getRecipe(key) != null) Bukkit.removeRecipe(key);
 
