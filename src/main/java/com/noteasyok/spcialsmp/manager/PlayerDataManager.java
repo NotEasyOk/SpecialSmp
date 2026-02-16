@@ -38,8 +38,13 @@ public class PlayerDataManager {
     public void setFuel(UUID uuid, int amount) {
         int finalAmount = Math.max(0, amount);
         data.set("players." + uuid + ".fuel", finalAmount);
-        saveAsync(); // Lag-free background saving
-    }
+        
+        // ZAROORI: Fuel ke liye turant save karo bina delay ke
+        try {
+            data.save(file);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
     /* ================= JOIN TRACKING ================= */
 
