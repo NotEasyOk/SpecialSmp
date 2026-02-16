@@ -4,7 +4,6 @@ import com.noteasyok.spcialsmp.cards.BaseCard;
 import com.noteasyok.spcialsmp.cards.RuinWorldGenerator;
 import com.noteasyok.spcialsmp.command.CardsCommand;
 import com.noteasyok.spcialsmp.command.SmpCommand;
-import com.noteasyok.spcialsmp.command.LifeCommand;
 import com.noteasyok.spcialsmp.manager.StartManager;
 import com.noteasyok.spcialsmp.listener.*;
 import com.noteasyok.spcialsmp.manager.*;
@@ -33,17 +32,12 @@ public class SpcialSmp extends JavaPlugin {
         cooldownManager = new CooldownManager(this);
         startManager = new StartManager(this);
 
-        // --- 3. LIFE SYSTEM INITIALIZATION ---
-        // Purana Fuel aur Task system delete kar diya gaya hai
-        HeartManager.registerReviveRecipe();
-        HeartManager.startHeartDisplayTask();
-
-        // --- 4. CARDS & DIMENSIONS ---
+        // --- 3. CARDS & DIMENSIONS ---
         CardRegistry.registerAll();
         com.noteasyok.spcialsmp.cards.RuinCard.preLoadDimension();
         RecipeManager.registerAllRecipes(this);
 
-        // --- 5. LISTENERS REGISTRATION ---
+        // --- 4. LISTENERS REGISTRATION ---
         Map<String, BaseCard> cardsMap = CardRegistry.getCards();
         
         // Registering card-specific listeners
@@ -53,7 +47,7 @@ public class SpcialSmp extends JavaPlugin {
             }
         });
 
-        // Essential Core Listeners
+        // Essential Core Listeners (No Life/Fuel Listeners here)
         Bukkit.getPluginManager().registerEvents(new CardUseListener(cardsMap), this);  
         Bukkit.getPluginManager().registerEvents(new ZombieOwnerListener(), this);    
         Bukkit.getPluginManager().registerEvents(new UltimateHoldListener(), this);    
@@ -62,10 +56,9 @@ public class SpcialSmp extends JavaPlugin {
         Bukkit.getPluginManager().registerEvents(new InventoryListener(), this);
         Bukkit.getPluginManager().registerEvents(new RuinWorldListener(), this);
         
-        // Naya Life System Listener (Death, Animation aur Heart Use handle karta hai)
-        Bukkit.getPluginManager().registerEvents(new LifeEvents(), this);
+        // Note: LifeEvents and DeathListener removed to keep it purely card-based
 
-        // --- 6. COMMANDS ---
+        // --- 5. COMMANDS ---
         if (getCommand("cards") != null) {
             getCommand("cards").setExecutor(new CardsCommand());
         }
@@ -76,12 +69,7 @@ public class SpcialSmp extends JavaPlugin {
             getCommand("smp").setTabCompleter(smpCmd);
         }
 
-        // Registering the new Life command (/life withdraw/recipe)
-        if (getCommand("life") != null) {
-            getCommand("life").setExecutor(new LifeCommand());
-        }
-
-        getLogger().info("§a[SpcialSmp] Life System & Cards loaded successfully!");
+        getLogger().info("§b[SpcialSmp] Special Cards System loaded! (successful)");
     }
 
     @Override
@@ -113,4 +101,4 @@ public class SpcialSmp extends JavaPlugin {
     public PlayerDataManager getPlayerDataManager() {
         return playerDataManager;
     }
-}
+            }
