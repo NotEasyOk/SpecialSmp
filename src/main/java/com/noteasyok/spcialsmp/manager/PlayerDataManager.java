@@ -28,43 +28,23 @@ public class PlayerDataManager {
         data = YamlConfiguration.loadConfiguration(file);
     }
     
-   /* ================= FUEL SYSTEM (FIXED & SYNCED) ================= */
+   /* ================= LIFE SYSTEM (NEW & CLEAN) ================= */
 
-    // FuelManager int use kar raha hai, isliye yahan bhi int rakha hai
-    public int getFuel(UUID uuid) {
-        return data.getInt("players." + uuid + ".fuel", -1);
+    // Default 5 lives naye players ke liye
+    public int getLives(UUID uuid) {
+        return data.getInt("players." + uuid + ".lives", 5);
     }
 
-    public void setFuel(UUID uuid, int amount) {
+    public void setLives(UUID uuid, int amount) {
         int finalAmount = Math.max(0, amount);
-        data.set("players." + uuid + ".fuel", finalAmount);
+        data.set("players." + uuid + ".lives", finalAmount);
         
-        // ZAROORI: Fuel ke liye turant save karo bina delay ke
+        // Critical data hai isliye turant save
         try {
             data.save(file);
         } catch (IOException e) {
             e.printStackTrace();
         }
-    }
-
-    /* ================= JOIN TRACKING ================= */
-
-    public boolean hasJoinedBefore(UUID uuid) {
-        return data.getBoolean("players." + uuid + ".joined", false);
-    }
-
-    public void setJoinedBefore(UUID uuid, boolean value) {
-        data.set("players." + uuid + ".joined", value);
-        saveAsync();
-    }
-
-    public long getLastBookTime(UUID uuid) {
-        return data.getLong("players." + uuid + ".lastBookTime", 0L);
-    }
-
-    public void setLastBookTime(UUID uuid, long time) {
-        data.set("players." + uuid + ".lastBookTime", time);
-        saveAsync();
     }
 
     /* ================= FIRST JOIN CARD ================= */
@@ -90,21 +70,10 @@ public class PlayerDataManager {
         saveAsync();
     }
 
-    /* ================= LOGOUT & OFFLINE SYSTEM ================= */
-
-    public long getLastLogout(UUID uuid) {
-        return data.getLong("players." + uuid + ".lastLogout", 0L);
-    }
-
-    public void setLastLogout(UUID uuid, long timestamp) {
-        data.set("players." + uuid + ".lastLogout", timestamp);
-        saveAsync();
-    }
-
     /* ================= SAVE (PERFORMANCE FIX) ================= */
 
     private void saveAsync() {
-        // File saving ko background thread par shift kiya taaki TPS drop na ho
+        // Background thread taaki server lag na kare
         Bukkit.getScheduler().runTaskAsynchronously(SpcialSmp.get(), this::save);
     }
 
@@ -115,4 +84,4 @@ public class PlayerDataManager {
             e.printStackTrace();
         }
     }
-            }
+        }
