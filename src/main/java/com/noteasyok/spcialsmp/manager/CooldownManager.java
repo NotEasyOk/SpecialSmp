@@ -55,61 +55,45 @@ public class CooldownManager {
         if (t == null) return 0;
         return Math.max(0, (t - System.currentTimeMillis()) / 1000);
     }
-/* ================= ACTION BAR DISPLAY LOGIC ================= */
-private void startDisplayTask() {
-    Bukkit.getScheduler().runTaskTimer(plugin, () -> {
-        for (Player p : Bukkit.getOnlinePlayers()) {
-            ItemStack item = p.getInventory().getItemInMainHand();
-            
-            // CHECK: Kya haath mein card hai?
-            boolean holdingCard = false;
-            String cardId = null;
-            if (item != null && item.getType() != Material.AIR && item.hasItemMeta()) {
-                NamespacedKey cardKey = new NamespacedKey(plugin, "card_id");
-                cardId = item.getItemMeta().getPersistentDataContainer().get(cardKey, PersistentDataType.STRING);
-                if (cardId != null) holdingCard = true;
-            }
 
-            if (holdingCard) {
-                // CARD HAATH MEIN HAI: Soul Fuel HIDE karo, sirf Cooldown dikhao
-                long leftCD = getRemainingSeconds(p, cardId, "left");
-                long rightCD = getRemainingSeconds(p, cardId, "right");
-                long shiftCD = getRemainingSeconds(p, cardId, "shift_right");
-                long maxCD = Math.max(leftCD, Math.max(rightCD, shiftCD));
-
-                if (maxCD > 0) {
-                    coolingDownPlayers.add(p.getUniqueId());
-                    String message = "§6§l" + cardId + " §8[§f||||||§8] §c" + maxCD + "s";
-                    p.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(message));
-                } else if (coolingDownPlayers.contains(p.getUniqueId())) {
-                    // Just Ready Effect
-                    coolingDownPlayers.remove(p.getUniqueId());
-                    p.getWorld().spawnParticle(Particle.TOTEM_OF_UNDYING, p.getEyeLocation(), 40, 0.3, 0.3, 0.3, 0.5);
-                    p.playSound(p.getLocation(), Sound.ITEM_TOTEM_USE, 1.0f, 1.2f);
-                }
-            } else {
-                // ADDED: Check if Soul Fuel System is enabled in config
-                if (!FuelManager.isSystemEnabled()) {
-                    continue; // System OFF hai toh Action Bar par kuch nahi dikhega
+    /* ================= ACTION BAR DISPLAY LOGIC ================= */
+    private void startDisplayTask() {
+        Bukkit.getScheduler().runTaskTimer(plugin, () -> {
+            for (Player p : Bukkit.getOnlinePlayers()) {
+                ItemStack item = p.getInventory().getItemInMainHand();
+                
+                boolean holdingCard = false;
+                String cardId = null;
+                if (item != null && item.getType() != Material.AIR && item.hasItemMeta()) {
+                    NamespacedKey cardKey = new NamespacedKey(plugin, "card_id");
+                    cardId = item.getItemMeta().getPersistentDataContainer().get(cardKey, PersistentDataType.STRING);
+                    if (cardId != null) holdingCard = true;
                 }
 
-                // CARD HAATH MEIN NAHI HAI: Soul Fuel dikhao (23h 59m Logic)
-                long dayMillis = 24 * 60 * 60 * 1000L; 
-                long remainingMillis = dayMillis - (System.currentTimeMillis() % dayMillis);
+                if (holdingCard) {
+                    // --- CARD COOLDOWN BAR (Wapis On) ---
+                    long leftCD = getRemainingSeconds(p, cardId, "left");
+                    long rightCD = getRemainingSeconds(p, cardId, "right");
+                    long shiftCD = getRemainingSeconds(p, cardId, "shift_right");
+                    long maxCD = Math.max(leftCD, Math.max(rightCD, shiftCD));
 
-                long h = (remainingMillis / 3600000) % 24;
-                long m = (remainingMillis / 60000) % 60;
-                long s = (remainingMillis / 1000) % 60;
-
-                String timeStr = String.format("%02dh %02dm %02ds", h, m, s);
-                
-                // ADDED: Use professional format from config
-                String format = plugin.getConfig().getString("settings.display.fuel-format", "&b&lSOUL FUEL: &f%time%");
-                String finalMessage = ChatColor.translateAlternateColorCodes('&', format.replace("%time%", timeStr));
-                
-                p.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(finalMessage));
+                    if (maxCD > 0) {
+                        coolingDownPlayers.add(p.getUniqueId());
+                        // Ye raha tumhara purana format [||||||]
+                        String message = "§6§l" + cardId + " §8[§f||||||§8] §c" + maxCD + "s";
+                        p.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(message));
+                    } else if (coolingDownPlayers.contains(p.getUniqueId())) {
+                        // Ready Effect
+                        coolingDownPlayers.remove(p.getUniqueId());
+                        p.getWorld().spawnParticle(Particle.TOTEM_OF_UNDYING, p.getEyeLocation(), 40, 0.3, 0.3, 0.3, 0.5);
+                        p.playSound(p.getLocation(), Sound.ITEM_TOTEM_USE, 1.0f, 1.2f);
+                        p.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent("§a§l✔ " + cardId + " READY"));
+                    }
+                } else {
+                    // Card haath mein nahi hai toh Action bar khali rahega.
+                    // Lives hunger bar ke upar HeartManager se dikhengi.
+                }
             }
-        }
-    }, 0L, 20L); 
+        }, 0L, 20L); 
     }
-}
+                    }
