@@ -17,6 +17,7 @@ public class TaskManager {
 
     public static void startGlobalTaskTimer() {
         Bukkit.getScheduler().runTaskTimer(SpcialSmp.get(), () -> {
+            if (!FuelManager.isSystemEnabled()) return;
             for (Player p : Bukkit.getOnlinePlayers()) {
                 p.playSound(p.getLocation(), Sound.BLOCK_BEACON_ACTIVATE, 1f, 1f);
                 p.sendTitle("§6§lNEW TASKS", "§eCheck your inventory!", 10, 70, 20);
