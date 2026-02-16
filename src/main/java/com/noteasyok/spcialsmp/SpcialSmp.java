@@ -4,6 +4,7 @@ import com.noteasyok.spcialsmp.cards.BaseCard;
 import com.noteasyok.spcialsmp.cards.RuinWorldGenerator;
 import com.noteasyok.spcialsmp.command.CardsCommand;
 import com.noteasyok.spcialsmp.command.SmpCommand;
+import com.noteasyok.spcialsmp.command.LifeCommand;
 import com.noteasyok.spcialsmp.manager.StartManager;
 import com.noteasyok.spcialsmp.listener.*;
 import com.noteasyok.spcialsmp.manager.*;
@@ -20,69 +21,67 @@ public class SpcialSmp extends JavaPlugin {
     private StartManager startManager;
 
     @Override
-public void onEnable() {
-    instance = this;
+    public void onEnable() {
+        instance = this;
 
-    // --- 1. CONFIG INITIALIZATION (Sahi Tarika) ---
-    // Sirf ye line kafi hai. Ye error nahi degi agar file pehle se hai.
-    saveDefaultConfig();
-    
-    // Agar tune manually config edit ki hai, toh ye usse memory mein refresh kar dega
-    reloadConfig(); 
+        // --- 1. CONFIG INITIALIZATION ---
+        saveDefaultConfig();
+        reloadConfig(); 
 
-    // --- 2. MANAGERS INITIALIZATION ---
-    playerDataManager = new PlayerDataManager(this);
-    cooldownManager = new CooldownManager(this);
-    startManager = new StartManager(this);
+        // --- 2. MANAGERS INITIALIZATION ---
+        playerDataManager = new PlayerDataManager(this);
+        cooldownManager = new CooldownManager(this);
+        startManager = new StartManager(this);
 
-        // --- 3. FUEL SYSTEM CHECK ---
-        // Null safety ke saath task start karein
-        try {
-            FuelManager.startFuelTask();
-        } catch (Exception e) {
-            getLogger().severe("Fuel System load nahi ho saka! Config check karein.");
-        }
+        // --- 3. LIFE SYSTEM INITIALIZATION ---
+        // Purana Fuel aur Task system delete kar diya gaya hai
+        HeartManager.registerReviveRecipe();
+        HeartManager.startHeartDisplayTask();
 
-        // --- 4. CARDS & RECIPES ---
+        // --- 4. CARDS & DIMENSIONS ---
         CardRegistry.registerAll();
         com.noteasyok.spcialsmp.cards.RuinCard.preLoadDimension();
         RecipeManager.registerAllRecipes(this);
-        TaskManager.startGlobalTaskTimer();
 
         // --- 5. LISTENERS REGISTRATION ---
         Map<String, BaseCard> cardsMap = CardRegistry.getCards();
         
-        // Registering individual card listeners
+        // Registering card-specific listeners
         cardsMap.values().forEach(card -> {
             if (card instanceof org.bukkit.event.Listener) {
                 Bukkit.getPluginManager().registerEvents((org.bukkit.event.Listener) card, this);
             }
         });
 
-        // Event Listeners
+        // Essential Core Listeners
         Bukkit.getPluginManager().registerEvents(new CardUseListener(cardsMap), this);  
         Bukkit.getPluginManager().registerEvents(new ZombieOwnerListener(), this);    
         Bukkit.getPluginManager().registerEvents(new UltimateHoldListener(), this);    
         Bukkit.getPluginManager().registerEvents(new JoinListener(), this);
-        Bukkit.getPluginManager().registerEvents(new DeathListener(), this);
         Bukkit.getPluginManager().registerEvents(new UltimateCraftListener(), this);
         Bukkit.getPluginManager().registerEvents(new InventoryListener(), this);
-        Bukkit.getPluginManager().registerEvents(new TaskCompletionListener(), this);
-        Bukkit.getPluginManager().registerEvents(new RevivalListener(), this);
         Bukkit.getPluginManager().registerEvents(new RuinWorldListener(), this);
+        
+        // Naya Life System Listener (Death, Animation aur Heart Use handle karta hai)
+        Bukkit.getPluginManager().registerEvents(new LifeEvents(), this);
 
         // --- 6. COMMANDS ---
         if (getCommand("cards") != null) {
             getCommand("cards").setExecutor(new CardsCommand());
         }
     
-            if (getCommand("smp") != null) {
-                  SmpCommand smpCmd = new SmpCommand(this);
-                   getCommand("smp").setExecutor(smpCmd);
-                   getCommand("smp").setTabCompleter(smpCmd); // Ye line add kar
-               }
+        if (getCommand("smp") != null) {
+            SmpCommand smpCmd = new SmpCommand(this);
+            getCommand("smp").setExecutor(smpCmd);
+            getCommand("smp").setTabCompleter(smpCmd);
+        }
 
-        getLogger().info("§a[SpcialSmp] Plugin loaded successfully!");
+        // Registering the new Life command (/life withdraw/recipe)
+        if (getCommand("life") != null) {
+            getCommand("life").setExecutor(new LifeCommand());
+        }
+
+        getLogger().info("§a[SpcialSmp] Life System & Cards loaded successfully!");
     }
 
     @Override
@@ -108,10 +107,10 @@ public void onEnable() {
     }
 
     public StartManager getStartManager() {
-    return startManager;
+        return startManager;
     }
 
     public PlayerDataManager getPlayerDataManager() {
         return playerDataManager;
     }
-                                                  }
+}
