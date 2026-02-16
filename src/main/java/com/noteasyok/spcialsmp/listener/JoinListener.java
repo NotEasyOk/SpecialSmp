@@ -1,6 +1,8 @@
 package com.noteasyok.spcialsmp.listener;
 
 import com.noteasyok.spcialsmp.SpcialSmp;
+import com.noteasyok.spcialsmp.manager.PlayerDataManager;
+import org.bukkit.configuration.file.FileConfiguration;
 import com.noteasyok.spcialsmp.manager.CardSpinner;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
