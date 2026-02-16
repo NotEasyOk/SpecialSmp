@@ -62,6 +62,7 @@ public class CooldownManager {
             for (Player p : Bukkit.getOnlinePlayers()) {
                 ItemStack item = p.getInventory().getItemInMainHand();
                 
+                // CHECK: Card detection
                 boolean holdingCard = false;
                 String cardId = null;
                 if (item != null && item.getType() != Material.AIR && item.hasItemMeta()) {
@@ -71,7 +72,7 @@ public class CooldownManager {
                 }
 
                 if (holdingCard) {
-                    // --- CARD COOLDOWN BAR (Wapis On) ---
+                    // DISPLAY COOLDOWN BAR
                     long leftCD = getRemainingSeconds(p, cardId, "left");
                     long rightCD = getRemainingSeconds(p, cardId, "right");
                     long shiftCD = getRemainingSeconds(p, cardId, "shift_right");
@@ -79,19 +80,19 @@ public class CooldownManager {
 
                     if (maxCD > 0) {
                         coolingDownPlayers.add(p.getUniqueId());
-                        // Ye raha tumhara purana format [||||||]
+                        // Card format [||||||] restore kiya gaya
                         String message = "§6§l" + cardId + " §8[§f||||||§8] §c" + maxCD + "s";
                         p.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent(message));
                     } else if (coolingDownPlayers.contains(p.getUniqueId())) {
-                        // Ready Effect
+                        // Ready Effect (Particle + Sound)
                         coolingDownPlayers.remove(p.getUniqueId());
                         p.getWorld().spawnParticle(Particle.TOTEM_OF_UNDYING, p.getEyeLocation(), 40, 0.3, 0.3, 0.3, 0.5);
                         p.playSound(p.getLocation(), Sound.ITEM_TOTEM_USE, 1.0f, 1.2f);
                         p.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent("§a§l✔ " + cardId + " READY"));
                     }
                 } else {
-                    // Card haath mein nahi hai toh Action bar khali rahega.
-                    // Lives hunger bar ke upar HeartManager se dikhengi.
+                    // Card haath mein nahi hai toh Action bar khali rahega
+                    // Yahan se saara "Soul Fuel" aur "Hearts" ka logic hata diya gaya hai
                 }
             }
         }, 0L, 20L); 
