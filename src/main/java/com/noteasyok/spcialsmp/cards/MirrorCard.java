@@ -58,6 +58,53 @@ public class MirrorCard extends BaseCard implements Listener {
         }
     }
 
+    @Override
+    public void rightClick(Player p) {
+        if (!SpcialSmp.get().getCooldownManager().canUse(p, getName(), "right")) return;
+
+        Entity target = getTarget(p, 15); // 15 block ki range
+        if (target instanceof Player victim) {
+            p.sendMessage("§b§l[!] §fDistorting §e" + victim.getName() + "'s §ftime perception!");
+            p.playSound(p.getLocation(), Sound.ENTITY_ILLUSIONER_CAST_SPELL, 1.5f, 0.8f);
+
+            // Effect for the Victim
+            victim.sendTitle("§c§lTIME DISTORTION", "§7Reality is bending...", 10, 60, 10);
+            
+            // Apply Chromatic Aberration (Packet-based)
+            // Note: Actual chromatic aberration is hard in Bukkit, simulating with client-side darkness/blur
+            victim.addPotionEffect(new PotionEffect(PotionEffectType.DARKNESS, 100, 0, false, false));
+            victim.addPotionEffect(new PotionEffect(PotionEffectType.NAUSEA, 100, 0, false, false));
+
+            // Temporal Distortion Animation (Client-side illusion)
+            new BukkitRunnable() {
+                int ticks = 0;
+                Location lastLoc = victim.getLocation();
+
+                @Override
+                public void run() {
+                    if (ticks++ > 100 || !victim.isOnline()) { // 5 seconds
+                        this.cancel();
+                        return;
+                    }
+
+                    // Reverse particle trail
+                    victim.getWorld().spawnParticle(Particle.REVERSE_PORTAL, victim.getLocation(), 10, 0.2, 0.2, 0.2, -0.1); // Negative speed for reverse
+
+                    // Simulate movement distortion
+                    if (!victim.getLocation().equals(lastLoc)) {
+                        Vector direction = victim.getLocation().toVector().subtract(lastLoc.toVector());
+                        victim.getWorld().spawnParticle(Particle.SONIC_BOOM, victim.getLocation(), 3, direction.getX(), direction.getY(), direction.getZ(), 0.01);
+                    }
+                    lastLoc = victim.getLocation();
+                }
+            }.runTaskTimer(SpcialSmp.get(), 0L, 1L); // Har tick par update
+
+            SpcialSmp.get().getCooldownManager().applyCooldown(p, getName(), "right"); // 10s cooldown
+        } else {
+            p.sendMessage("§c§l[!] §7Aim at a player to distort their reality!");
+        }
+    }
+
     // --- SHIFT+RIGHT: REFLECTION SHIELD ---
     @Override
     public void shiftRightClick(Player p) {
