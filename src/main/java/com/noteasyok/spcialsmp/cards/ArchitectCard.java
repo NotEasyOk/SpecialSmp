@@ -72,6 +72,38 @@ public class ArchitectCard extends BaseCard {
         }
     }
 
+    @Override
+    public void rightClick(Player p) {
+        if (!SpcialSmp.get().getCooldownManager().canUse(p, getName(), "right")) return;
+
+        p.sendMessage("§6§l[!] §fKinetic Shield Active! (3s)");
+        p.playSound(p.getLocation(), Sound.BLOCK_BEACON_ACTIVATE, 1f, 2f);
+
+        new BukkitRunnable() {
+            int ticks = 0;
+            @Override
+            public void run() {
+                if (ticks++ > 60) { this.cancel(); return; } // 3 seconds active
+
+                // Visual Animation
+                Location loc = p.getLocation().add(p.getLocation().getDirection().multiply(1.5)).add(0, 1, 0);
+                p.getWorld().spawnParticle(Particle.TRIAL_SPAWNER_DETECTION, loc, 5, 0.5, 0.5, 0.5, 0.05);
+
+                // Logic: Push nearby enemies
+                for (Entity e : p.getNearbyEntities(3, 3, 3)) {
+                    if (e instanceof LivingEntity target && !e.equals(p)) {
+                        Vector push = target.getLocation().toVector().subtract(p.getLocation().toVector()).normalize().multiply(1.2);
+                        push.setY(0.5);
+                        target.setVelocity(push);
+                        target.damage(1.0, p); // Light damage
+                    }
+                }
+            }
+        }.runTaskTimer(SpcialSmp.get(), 0L, 1L);
+
+        SpcialSmp.get().getCooldownManager().applyCooldown(p, getName(), "right"); // Set to 10s in config
+                    }
+
     // --- SHIFT+RIGHT: GOLD BRIDGE ---
     @Override
     public void shiftRightClick(Player p) {
