@@ -15,8 +15,7 @@ import java.util.*;
 public class ArchitectCard extends BaseCard {
 
     public ArchitectCard() {
-        super(); Material.GOLD_INGOT, "§6§lArchitect Card", "§7Aim and Build.");
-    }
+        super(); }
 
     @Override
     public String getName() { return "Architect Card"; }
