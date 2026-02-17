@@ -74,7 +74,7 @@ public class ArchitectCard extends BaseCard {
 
     // --- SHIFT+RIGHT: GOLD BRIDGE ---
     @Override
-    public void ShiftRightClick(Player p, PlayerInteractEvent e) {
+    public void ShiftRightClick(Player p) {
         if (!isHoldingCard(p)) return;
         if (!SpcialSmp.get().getCooldownManager().canUse(p, getName(), "shift_right")) return;
 
