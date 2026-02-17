@@ -39,50 +39,81 @@ public class IllusionistCard extends BaseCard {
     public void leftClick(Player p) {
         if (!SpcialSmp.get().getCooldownManager().canUse(p, getName(), "left")) return;
 
-        Location targetLoc = p.getTargetBlockExact(30) != null ? p.getTargetBlockExact(30).getLocation() : p.getLocation().add(p.getEyeLocation().getDirection().multiply(10));
-        p.sendMessage("§6§l[!] §fSummoning Flame Tornado!");
+        // Target location jahan tornado shuru hoga
+        Location targetLoc = p.getTargetBlockExact(30) != null ? p.getTargetBlockExact(30).getLocation() : p.getLocation().add(p.getEyeLocation().getDirection().multiply(5));
+        p.sendMessage("§6§l[!] §4§lCRITICAL: §fSummoning Infernal Vortex!");
 
         new BukkitRunnable() {
             int ticks = 0;
             Location currentLoc = targetLoc.clone();
-            final Vector direction = p.getEyeLocation().getDirection().setY(0).normalize().multiply(0.2);
+            // Tornado ki direction (Aage badhne ke liye)
+            final Vector moveDir = p.getEyeLocation().getDirection().setY(0).normalize().multiply(0.1);
 
             @Override
             public void run() {
-                if (ticks++ > 200 || !currentLoc.getChunk().isLoaded()) { this.cancel(); return; }
+                if (ticks++ > 160 || !currentLoc.getChunk().isLoaded()) { this.cancel(); return; }
 
-                currentLoc.add(direction); // Tornado moves forward
+                currentLoc.add(moveDir); // Tornado slow move karega taaki tabahi zyada ho
 
-                // Visual Spiral (Optimized)
-                for (int i = 0; i < 15; i++) {
-                    double radius = 0.5 + (i * 0.3);
-                    double angle = (ticks * 0.4) + i;
-                    double x = Math.cos(angle) * radius;
-                    double z = Math.sin(angle) * radius;
+                // --- ULTRA ANIMATION: TRIPLE LAYER SPIRAL ---
+                for (int i = 0; i < 20; i++) { // 20 Blocks high
+                    double radius = 0.8 + (i * 0.45); // Har layer par tornado chauda hota jayega (V-Shape)
+                    double angle = (ticks * 0.6) + (i * 0.5);
                     
-                    Location pLoc = currentLoc.clone().add(x, i * 0.6, z);
-                    p.getWorld().spawnParticle(Particle.FLAME, pLoc, 2, 0.05, 0.05, 0.05, 0.02);
-                    if (ticks % 2 == 0) p.getWorld().spawnParticle(Particle.LARGE_SMOKE, pLoc, 1, 0, 0, 0, 0.01);
+                    // Spiral 1 (Flame)
+                    double x1 = Math.cos(angle) * radius;
+                    double z1 = Math.sin(angle) * radius;
+                    Location pLoc1 = currentLoc.clone().add(x1, i * 0.6, z1);
+                    pLoc1.getWorld().spawnParticle(Particle.FLAME, pLoc1, 4, 0.1, 0.1, 0.1, 0.05);
+                    
+                    // Spiral 2 (Lava/Smoke - Opposite Side)
+                    double x2 = Math.cos(angle + Math.PI) * radius;
+                    double z2 = Math.sin(angle + Math.PI) * radius;
+                    Location pLoc2 = currentLoc.clone().add(x2, i * 0.6, z2);
+                    pLoc2.getWorld().spawnParticle(Particle.SMOKE_LARGE, pLoc2, 2, 0.1, 0.1, 0.1, 0.02);
+                    
+                    // Center Core (Lava Drips)
+                    if (i < 5) pLoc1.getWorld().spawnParticle(Particle.LAVA, currentLoc.clone().add(0, i, 0), 1);
                 }
 
-                // Entity Pull & Spin
-                for (Entity e : currentLoc.getWorld().getNearbyEntities(currentLoc, 6, 12, 6)) {
-                    if (e.equals(p) || !(e instanceof LivingEntity)) continue;
+                // --- SOUND EFFECTS ---
+                if (ticks % 5 == 0) {
+                    currentLoc.getWorld().playSound(currentLoc, Sound.ENTITY_GHAST_SHOOT, 2.0f, 0.5f);
+                    currentLoc.getWorld().playSound(currentLoc, Sound.ITEM_ELYTRA_FLYING, 1.5f, 0.1f);
+                }
+
+                // --- MASSIVE PULL & DAMAGE ---
+                double scanRadius = 8.0; 
+                for (Entity e : currentLoc.getWorld().getNearbyEntities(currentLoc, scanRadius, 15, scanRadius)) {
+                    if (e.equals(p) || !(e instanceof LivingEntity le)) continue;
+
+                    // Pull towards center (Inward force)
+                    Vector pullVec = currentLoc.toVector().subtract(e.getLocation().toVector());
+                    double distance = pullVec.length();
                     
-                    Vector vec = currentLoc.toVector().subtract(e.getLocation().toVector());
-                    double dist = vec.length();
+                    // Rotation Force (Tangent force)
+                    Vector rotateVec = new Vector(-pullVec.getZ(), 0, pullVec.getX()).normalize().multiply(0.8);
                     
-                    // Rotate and Lift
-                    Vector rotate = new Vector(-vec.getZ(), 0.5, vec.getX()).normalize().multiply(0.5);
-                    e.setVelocity(vec.normalize().multiply(0.3).add(rotate));
-                    ((LivingEntity) e).damage(1.0, p);
+                    // Vertical Lift
+                    Vector liftVec = new Vector(0, 0.45, 0);
+
+                    // Combine forces
+                    Vector finalVelocity = pullVec.normalize().multiply(0.4).add(rotateVec).add(liftVec);
+                    e.setVelocity(finalVelocity);
+
+                    // Damage with Fire
+                    le.damage(1.5, p);
+                    le.setFireTicks(40);
+                    
+                    // Damage Sound
+                    if (ticks % 10 == 0) p.getWorld().playSound(e.getLocation(), Sound.BLOCK_FIRE_AMBIENT, 1f, 1f);
                 }
             }
         }.runTaskTimer(SpcialSmp.get(), 0, 1);
 
         SpcialSmp.get().getCooldownManager().applyCooldown(p, getName(), "left");
-                                  }
-
+    }
+    
     @Override
     public void shiftRightClick(Player p) {
         if (!isHoldingCard(p)) return; // Security Check
