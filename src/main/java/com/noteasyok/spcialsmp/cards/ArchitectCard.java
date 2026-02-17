@@ -92,7 +92,7 @@ public class ArchitectCard extends BaseCard {
                 // Logic: Push nearby enemies
                 for (Entity e : p.getNearbyEntities(3, 3, 3)) {
                     if (e instanceof LivingEntity target && !e.equals(p)) {
-                        Vector push = target.getLocation().toVector().subtract(p.getLocation().toVector()).normalize().multiply(1.2);
+                        org.bukkit.util.Vector push = target.getLocation().toVector().subtract(p.getLocation().toVector()).normalize().multiply(1.2);
                         push.setY(0.5);
                         target.setVelocity(push);
                         target.damage(1.0, p); // Light damage
