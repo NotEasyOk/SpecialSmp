@@ -34,7 +34,7 @@ public class GravityCard extends BaseCard implements Listener {
     public int getModelData() { return 105; }
 
     @Override
-    public Material getMaterial() { return Material.ECHO_SHARD; }
+    public Material getMaterial() { return Material.BROWN_DYE; }
 
     public List<String> getLore() {
         List<String> lore = new ArrayList<>();
