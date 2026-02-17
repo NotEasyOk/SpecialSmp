@@ -48,7 +48,8 @@ public class SpcialSmp extends JavaPlugin {
         });
 
         // Essential Core Listeners (No Life/Fuel Listeners here)
-        Bukkit.getPluginManager().registerEvents(new CardUseListener(cardsMap), this);  
+        Bukkit.getPluginManager().registerEvents(new CardUseListener(cardsMap), this);
+        Bukkit.getPluginManager().registerEvents(new DeathListener(), this);
         Bukkit.getPluginManager().registerEvents(new ZombieOwnerListener(), this);    
         Bukkit.getPluginManager().registerEvents(new UltimateHoldListener(), this);    
         Bukkit.getPluginManager().registerEvents(new JoinListener(), this);
