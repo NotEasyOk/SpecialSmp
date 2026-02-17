@@ -18,13 +18,7 @@ import java.util.List;
 public class IllusionistCard extends BaseCard {
 
     public IllusionistCard() {
-        super(); Material.AMETHYST_SHARD, 
-              "§d§lIllusionist Card", 
-              "§7The Forbidden Art of Shadow Clones.",
-              "",
-              "§6Left-Click: §eMind Fracture (Aim-Based)",
-              "§6Shift+Right: §e5 Real Clones (Owner Skin)");
-    }
+        super(); }
 
     @Override
     public String getName() { return "Illusionist Card"; }
