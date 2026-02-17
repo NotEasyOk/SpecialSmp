@@ -16,10 +16,7 @@ public class MirrorCard extends BaseCard implements Listener {
 
     private final Set<UUID> reflectingPlayers = new HashSet<>();
 
-    public MirrorCard() {
-        super(); Material.GLASS_PANE, "§b§lMirror Card", "§7Aim to Mimic.");
-        Bukkit.getPluginManager().registerEvents(this, SpcialSmp.get());
-    }
+    public MirrorCard() { super(); Bukkit.getPluginManager().registerEvents(this, com.noteasyok.spcialsmp.SpcialSmp.get()); }
 
     @Override
     public String getName() { return "Mirror Card"; }
