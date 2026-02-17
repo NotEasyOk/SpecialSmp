@@ -15,7 +15,7 @@ import java.util.*;
 public class ArchitectCard extends BaseCard {
 
     public ArchitectCard() {
-        super("Architect Card", Material.GOLD_INGOT, "§6§lArchitect Card", "§7Aim and Build.");
+        super(); Material.GOLD_INGOT, "§6§lArchitect Card", "§7Aim and Build.");
     }
 
     @Override
@@ -23,7 +23,7 @@ public class ArchitectCard extends BaseCard {
     @Override
     public Material getMaterial() { return Material.GOLD_INGOT; }
     @Override
-    public int getCustomModelData() { return 102; }
+    public int getModelData() { return 102; }
 
     private boolean isHoldingCard(Player p) {
         ItemStack item = p.getInventory().getItemInMainHand();
@@ -32,7 +32,7 @@ public class ArchitectCard extends BaseCard {
 
     // --- LEFT CLICK: AIM-BASED BEDROCK PRISON ---
     @Override
-    public void onLeftClick(Player p) {
+    public void LeftClick(Player p) {
         if (!isHoldingCard(p)) return;
         if (!SpcialSmp.get().getCooldownManager().canUse(p, getName(), "left")) return;
 
@@ -75,7 +75,7 @@ public class ArchitectCard extends BaseCard {
 
     // --- SHIFT+RIGHT: GOLD BRIDGE ---
     @Override
-    public void onShiftRightClick(Player p, PlayerInteractEvent e) {
+    public void ShiftRightClick(Player p, PlayerInteractEvent e) {
         if (!isHoldingCard(p)) return;
         if (!SpcialSmp.get().getCooldownManager().canUse(p, getName(), "shift_right")) return;
 
