@@ -35,22 +35,53 @@ public class IllusionistCard extends BaseCard {
         return item.getItemMeta().getDisplayName().contains(getName());
     }
 
-    @Override
+    @@Override
     public void leftClick(Player p) {
-        if (!isHoldingCard(p)) return; // Card haath mein nahi toh kuch nahi hoga
-        
         if (!SpcialSmp.get().getCooldownManager().canUse(p, getName(), "left")) return;
 
-        Entity target = getTarget(p, 25);
-        if (target instanceof LivingEntity victim && !victim.equals(p)) {
-            victim.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 100, 255));
-            victim.addPotionEffect(new PotionEffect(PotionEffectType.DARKNESS, 100, 1));
-            
-            p.playSound(p.getLocation(), Sound.ENTITY_ILLUSIONER_CAST_SPELL, 1.0f, 1.2f);
-            p.sendMessage("§d§l[!] §fMind Fractured!");
-            SpcialSmp.get().getCooldownManager().applyCooldown(p, getName(), "left");
-        }
-    }
+        Location targetLoc = p.getTargetBlockExact(30) != null ? p.getTargetBlockExact(30).getLocation() : p.getLocation().add(p.getEyeLocation().getDirection().multiply(10));
+        p.sendMessage("§6§l[!] §fSummoning Flame Tornado!");
+
+        new BukkitRunnable() {
+            int ticks = 0;
+            Location currentLoc = targetLoc.clone();
+            final Vector direction = p.getEyeLocation().getDirection().setY(0).normalize().multiply(0.2);
+
+            @Override
+            public void run() {
+                if (ticks++ > 200 || !currentLoc.getChunk().isLoaded()) { this.cancel(); return; }
+
+                currentLoc.add(direction); // Tornado moves forward
+
+                // Visual Spiral (Optimized)
+                for (int i = 0; i < 15; i++) {
+                    double radius = 0.5 + (i * 0.3);
+                    double angle = (ticks * 0.4) + i;
+                    double x = Math.cos(angle) * radius;
+                    double z = Math.sin(angle) * radius;
+                    
+                    Location pLoc = currentLoc.clone().add(x, i * 0.6, z);
+                    p.getWorld().spawnParticle(Particle.FLAME, pLoc, 2, 0.05, 0.05, 0.05, 0.02);
+                    if (ticks % 2 == 0) p.getWorld().spawnParticle(Particle.LARGE_SMOKE, pLoc, 1, 0, 0, 0, 0.01);
+                }
+
+                // Entity Pull & Spin
+                for (Entity e : currentLoc.getWorld().getNearbyEntities(currentLoc, 6, 12, 6)) {
+                    if (e.equals(p) || !(e instanceof LivingEntity)) continue;
+                    
+                    Vector vec = currentLoc.toVector().subtract(e.getLocation().toVector());
+                    double dist = vec.length();
+                    
+                    // Rotate and Lift
+                    Vector rotate = new Vector(-vec.getZ(), 0.5, vec.getX()).normalize().multiply(0.5);
+                    e.setVelocity(vec.normalize().multiply(0.3).add(rotate));
+                    ((LivingEntity) e).damage(1.0, p);
+                }
+            }
+        }.runTaskTimer(SpcialSmp.get(), 0, 1);
+
+        SpcialSmp.get().getCooldownManager().applyCooldown(p, getName(), "left");
+                                  }
 
     @Override
     public void shiftRightClick(Player p) {
