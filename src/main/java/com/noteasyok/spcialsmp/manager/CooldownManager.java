@@ -40,7 +40,7 @@ public class CooldownManager {
 
     public void applyCooldown(Player player, String cardName, String action) {
         String cleanName = ChatColor.stripColor(cardName);
-        String path = "cooldowns.\"" + cleanName + "\"." + action;
+        String path = "cooldowns." + cleanName + "." + action;
         long seconds = plugin.getConfig().getLong(path, 60L);
         if (seconds <= 0) return;
 
