@@ -89,7 +89,7 @@ public class ArchitectCard extends BaseCard {
                 Block b = under.getBlock();
                 if (b.getType() == Material.AIR) {
                     b.setType(Material.GOLD_BLOCK);
-                    p.playSound(p.getLocation(), Sound.BLOCK_GOLD_PLACE, 0.5f, 2f);
+                    p.playSound(p.getLocation(), Sound.BLOCK_METAL_PLACE, 0.5f, 2f);
                     
                     // 2s baad remove
                     new BukkitRunnable() {
