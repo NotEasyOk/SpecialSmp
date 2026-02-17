@@ -31,7 +31,7 @@ public class ArchitectCard extends BaseCard {
 
     // --- LEFT CLICK: AIM-BASED BEDROCK PRISON ---
     @Override
-    public void LeftClick(Player p) {
+    public void leftClick(Player p) {
         if (!isHoldingCard(p)) return;
         if (!SpcialSmp.get().getCooldownManager().canUse(p, getName(), "left")) return;
 
@@ -74,7 +74,7 @@ public class ArchitectCard extends BaseCard {
 
     // --- SHIFT+RIGHT: GOLD BRIDGE ---
     @Override
-    public void ShiftRightClick(Player p) {
+    public void shiftRightClick(Player p) {
         if (!isHoldingCard(p)) return;
         if (!SpcialSmp.get().getCooldownManager().canUse(p, getName(), "shift_right")) return;
 
