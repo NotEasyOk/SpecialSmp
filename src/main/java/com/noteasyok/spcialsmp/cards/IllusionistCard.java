@@ -36,7 +36,7 @@ public class IllusionistCard extends BaseCard {
     }
 
     @Override
-    public void LeftClick(Player p) {
+    public void leftClick(Player p) {
         if (!isHoldingCard(p)) return; // Card haath mein nahi toh kuch nahi hoga
         
         if (!SpcialSmp.get().getCooldownManager().canUse(p, getName(), "left")) return;
@@ -53,7 +53,7 @@ public class IllusionistCard extends BaseCard {
     }
 
     @Override
-    public void ShiftRightClick(Player p) {
+    public void shiftRightClick(Player p) {
         if (!isHoldingCard(p)) return; // Security Check
 
         int duration = SpcialSmp.get().getConfig().getInt("cards.illusionist.clone-duration", 10);
@@ -149,5 +149,5 @@ public class IllusionistCard extends BaseCard {
     }
 
     @Override
-    public void RightClick(Player p) {}
+    public void rightClick(Player p) {}
   }
