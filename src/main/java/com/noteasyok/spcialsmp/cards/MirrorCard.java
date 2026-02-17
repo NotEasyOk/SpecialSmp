@@ -9,40 +9,6 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
-import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.scheduler.BukkitRunnable;
-
-import java.util.*;
-
-public class MirrorCard extends BaseCard implements Listener {
-
-    private final Set<UUID> reflectingPlayers = new HashSet<>();
-
-    public MirrorCard() { super(); Bukkit.getPluginManager().registerEvents(this, com.noteasyok.spcialsmp.SpcialSmp.get()); }
-
-    @Override
-    public String getName() { return "Mirror Card"; }
-    @Override
-    public Material getMaterial() { return Material.ECHO_SHARD; }
-    @Override
-    public int getModelData() { return 103; }
-
-    private boolean isHoldingCard(Player p) {
-        ItemStack item = p.getInventory().getItemInMainHand();
-        return item != null && item.getType() == getMaterial() && item.hasItemMeta() && item.getItemMeta().getDisplayName().contains(getName());
-    }
-package com.noteasyok.spcialsmp.cards;
-
-import com.noteasyok.spcialsmp.SpcialSmp;
-import org.bukkit.*;
-import org.bukkit.entity.*;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.Listener;
-import org.bukkit.potion.PotionEffect;
-import org.bukkit.potion.PotionEffectType;
-import org.bukkit.util.Vector;
-import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Scoreboard;
@@ -181,6 +147,4 @@ public class MirrorCard extends BaseCard implements Listener {
         var ray = p.getWorld().rayTraceEntities(p.getEyeLocation(), p.getEyeLocation().getDirection(), range, 1.5, e -> !e.equals(p));
         return (ray != null) ? ray.getHitEntity() : null;
     }
-            }tHitEntity() : null;
-    }
-          }
+                }
