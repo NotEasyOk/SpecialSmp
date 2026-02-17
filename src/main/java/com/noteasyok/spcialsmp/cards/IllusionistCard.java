@@ -18,7 +18,7 @@ import java.util.List;
 public class IllusionistCard extends BaseCard {
 
     public IllusionistCard() {
-        super("Illusionist Card", Material.AMETHYST_SHARD, 
+        super(); Material.AMETHYST_SHARD, 
               "§d§lIllusionist Card", 
               "§7The Forbidden Art of Shadow Clones.",
               "",
@@ -31,7 +31,7 @@ public class IllusionistCard extends BaseCard {
     @Override
     public Material getMaterial() { return Material.AMETHYST_SHARD; }
     @Override
-    public int getCustomModelData() { return 101; }
+    public int getModelData() { return 101; }
 
     // --- CHECK IF PLAYER IS HOLDING THE CARD ---
     private boolean isHoldingCard(Player p) {
@@ -42,7 +42,7 @@ public class IllusionistCard extends BaseCard {
     }
 
     @Override
-    public void onLeftClick(Player p) {
+    public void LeftClick(Player p) {
         if (!isHoldingCard(p)) return; // Card haath mein nahi toh kuch nahi hoga
         
         if (!SpcialSmp.get().getCooldownManager().canUse(p, getName(), "left")) return;
@@ -59,7 +59,7 @@ public class IllusionistCard extends BaseCard {
     }
 
     @Override
-    public void onShiftRightClick(Player p, PlayerInteractEvent e) {
+    public void ShiftRightClick(Player p, PlayerInteractEvent e) {
         if (!isHoldingCard(p)) return; // Security Check
 
         int duration = SpcialSmp.get().getConfig().getInt("cards.illusionist.clone-duration", 10);
@@ -155,5 +155,5 @@ public class IllusionistCard extends BaseCard {
     }
 
     @Override
-    public void onRightClick(Player p, PlayerInteractEvent e) {}
+    public void RightClick(Player p, PlayerInteractEvent e) {}
   }
