@@ -5,6 +5,9 @@ import org.bukkit.*;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
+import org.bukkit.util.Vector;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
@@ -72,8 +75,8 @@ public class MirrorCard extends BaseCard implements Listener {
             
             // Apply Chromatic Aberration (Packet-based)
             // Note: Actual chromatic aberration is hard in Bukkit, simulating with client-side darkness/blur
-            victim.addPotionEffect(new PotionEffect(PotionEffectType.DARKNESS, 100, 0, false, false));
-            victim.addPotionEffect(new PotionEffect(PotionEffectType.NAUSEA, 100, 0, false, false));
+            victim.addPotionEffect(new org.bukkit.potion.PotionEffect( org.bukkit.potion.PotionEffectType.DARKNESS, 100, 0, false, false));
+            victim.addPotionEffect(new org.bukkit.potion.PotionEffect( org.bukkit.potion.PotionEffectType.NAUSEA, 100, 0, false, false));
 
             // Temporal Distortion Animation (Client-side illusion)
             new BukkitRunnable() {
@@ -92,8 +95,8 @@ public class MirrorCard extends BaseCard implements Listener {
 
                     // Simulate movement distortion
                     if (!victim.getLocation().equals(lastLoc)) {
-                        Vector direction = victim.getLocation().toVector().subtract(lastLoc.toVector());
-                        victim.getWorld().spawnParticle(Particle.SONIC_BOOM, victim.getLocation(), 3, direction.getX(), direction.getY(), direction.getZ(), 0.01);
+                    org.bukkit.util.Vector direction = victim.getLocation().toVector().subtract(lastLoc.toVector());
+                    victim.getWorld().spawnParticle(Particle.SONIC_BOOM, victim.getLocation(), 3, direction.getX(), direction.getY(), direction.getZ(), 0.01);
                     }
                     lastLoc = victim.getLocation();
                 }
