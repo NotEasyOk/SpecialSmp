@@ -24,7 +24,7 @@ public class MirrorCard extends BaseCard implements Listener {
     @Override
     public String getName() { return "Mirror Card"; }
     @Override
-    public Material getMaterial() { return Material.GLASS_PANE; }
+    public Material getMaterial() { return Material.ECHO_SHARD; }
     @Override
     public int getModelData() { return 103; }
 
