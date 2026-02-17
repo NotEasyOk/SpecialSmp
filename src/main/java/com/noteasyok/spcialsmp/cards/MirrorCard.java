@@ -17,7 +17,7 @@ public class MirrorCard extends BaseCard implements Listener {
     private final Set<UUID> reflectingPlayers = new HashSet<>();
 
     public MirrorCard() {
-        super("Mirror Card", Material.GLASS_PANE, "§b§lMirror Card", "§7Aim to Mimic.");
+        super(); Material.GLASS_PANE, "§b§lMirror Card", "§7Aim to Mimic.");
         Bukkit.getPluginManager().registerEvents(this, SpcialSmp.get());
     }
 
@@ -26,7 +26,7 @@ public class MirrorCard extends BaseCard implements Listener {
     @Override
     public Material getMaterial() { return Material.GLASS_PANE; }
     @Override
-    public int getCustomModelData() { return 103; }
+    public int getModelData() { return 103; }
 
     private boolean isHoldingCard(Player p) {
         ItemStack item = p.getInventory().getItemInMainHand();
@@ -35,7 +35,7 @@ public class MirrorCard extends BaseCard implements Listener {
 
     // --- LEFT CLICK: AIM-BASED IDENTITY THIEF ---
     @Override
-    public void onLeftClick(Player p) {
+    public void LeftClick(Player p) {
         if (!isHoldingCard(p)) return;
         if (!SpcialSmp.get().getCooldownManager().canUse(p, getName(), "left")) return;
 
@@ -63,7 +63,7 @@ public class MirrorCard extends BaseCard implements Listener {
 
     // --- SHIFT+RIGHT: REFLECTION SHIELD ---
     @Override
-    public void onShiftRightClick(Player p, PlayerInteractEvent e) {
+    public void ShiftRightClick(Player p, PlayerInteractEvent e) {
         if (!isHoldingCard(p)) return;
         if (!SpcialSmp.get().getCooldownManager().canUse(p, getName(), "shift_right")) return;
 
