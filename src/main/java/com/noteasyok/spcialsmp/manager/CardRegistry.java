@@ -24,6 +24,7 @@ public class CardRegistry {
         register(new NothingCard(), List.of("§7Left: Time Set", "§7Right: Mind Control", "§7Shift+R: No Fall damage"));
         register(new WardenCard(), List.of("§7Left: Darkness", "§7Right: Sonic Boom", "§7Shift+R: Tank Mode"));
         register(new IllusionistCard(), List.of("§7Left: Tornado", "§7Right: Info", "§7Shift+R: 5 Shadow Clones"));
+        register(new RealitySeverCard(), List.of("§b§lMASTERPIECE", "§7Left: Dimension Slash", "§7Right: Gravity Crush", "§7Shift+R: Orbital Strike"));
         register(new ArchitectCard(), List.of("§7Left: Bedrock Prison", "§7Right: Kinetic Barrier", "§7Shift+R: Sky Gold Bridge"));
         register(new MirrorCard(), List.of("§7Left: Identity Thief", "§7Right: Reality Glitch", "§7Shift+R: Damage Reflection"));
         register(new GravityCard(), List.of("§7Left: Gravity Yeet", "§7Right: Black Hole Vortex", "§7Shift+R: Zero Gravity Wall"));
