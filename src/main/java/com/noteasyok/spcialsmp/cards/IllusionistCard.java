@@ -23,7 +23,7 @@ public class IllusionistCard extends BaseCard {
     @Override
     public String getName() { return "Illusionist Card"; }
     @Override
-    public Material getMaterial() { return Material.AMETHYST_SHARD; }
+    public Material getMaterial() { return Material.ECHO_SHARD; }
     @Override
     public int getModelData() { return 101; }
 
