@@ -53,7 +53,7 @@ public class IllusionistCard extends BaseCard {
     }
 
     @Override
-    public void ShiftRightClick(Player p, PlayerInteractEvent e) {
+    public void ShiftRightClick(Player p) {
         if (!isHoldingCard(p)) return; // Security Check
 
         int duration = SpcialSmp.get().getConfig().getInt("cards.illusionist.clone-duration", 10);
@@ -149,5 +149,5 @@ public class IllusionistCard extends BaseCard {
     }
 
     @Override
-    public void RightClick(Player p, PlayerInteractEvent e) {}
+    public void RightClick(Player p) {}
   }
