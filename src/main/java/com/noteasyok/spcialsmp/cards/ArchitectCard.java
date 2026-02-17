@@ -83,7 +83,7 @@ public class ArchitectCard extends BaseCard {
             int ticks = 0;
             @Override
             public void run() {
-                if (ticks++ > 60) { this.cancel(); return; } // 3 seconds active
+                if (ticks++ > 200) { this.cancel(); return; } // 10 seconds active
 
                 // Visual Animation
                 Location loc = p.getLocation().add(p.getLocation().getDirection().multiply(1.5)).add(0, 1, 0);
