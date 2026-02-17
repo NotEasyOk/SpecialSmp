@@ -32,7 +32,7 @@ public class MirrorCard extends BaseCard implements Listener {
 
     // --- LEFT CLICK: AIM-BASED IDENTITY THIEF ---
     @Override
-    public void LeftClick(Player p) {
+    public void leftClick(Player p) {
         if (!isHoldingCard(p)) return;
         if (!SpcialSmp.get().getCooldownManager().canUse(p, getName(), "left")) return;
 
@@ -60,7 +60,7 @@ public class MirrorCard extends BaseCard implements Listener {
 
     // --- SHIFT+RIGHT: REFLECTION SHIELD ---
     @Override
-    public void ShiftRightClick(Player p) {
+    public void shiftRightClick(Player p) {
         if (!isHoldingCard(p)) return;
         if (!SpcialSmp.get().getCooldownManager().canUse(p, getName(), "shift_right")) return;
 
