@@ -91,15 +91,24 @@ public class IllusionistCard extends BaseCard {
                     return;
                 }
 
+                // --- Line 89 se 93 ka naya logic ---
                 for (Vindicator c : clones) {
-                    if (!c.isValid()) continue;
+              if (!c.isValid()) continue;
 
-                    // OWNER SAFETY & TARGETING
-                    if (c.getTarget() == null || c.getTarget().equals(p) || clones.contains(c.getTarget())) {
-                        p.getNearbyEntities(15, 15, 15).stream()
-                            .filter(en -> en instanceof LivingEntity && !en.equals(p) && !clones.contains(en))
-                            .findFirst().ifPresent(en -> c.setTarget((LivingEntity) en));
-                    }
+              LivingEntity currentTarget = c.getTarget();
+
+           // AGAR TARGET OWNER HAI YA DOOSRA CLONE HAI, TOH TARGET SAFF KARO
+           if (currentTarget != null && (currentTarget.equals(p) || clones.contains(currentTarget))) {
+            c.setTarget(null);
+        }
+
+    // NAYA TARGET DHUNDO (JO OWNER NA HO)
+    if (c.getTarget() == null) {
+        p.getNearbyEntities(15, 15, 15).stream()
+            .filter(en -> en instanceof LivingEntity && !en.equals(p) && !clones.contains(en))
+            .map(en -> (LivingEntity) en)
+            .findFirst().ifPresent(c::setTarget);
+        }
 
                     // ATTACK ANIMATION
                     if (c.getTarget() != null && c.getLocation().distance(c.getTarget().getLocation()) < 3.5) {
@@ -118,7 +127,6 @@ public class IllusionistCard extends BaseCard {
         clone.setCustomNameVisible(true);
         clone.setSilent(true);
         clone.setCanJoinRaid(false);
-        clone.setJohnny(true);
         
         clone.getAttribute(Attribute.GENERIC_MOVEMENT_SPEED).setBaseValue(0.48);
         clone.getAttribute(Attribute.GENERIC_ATTACK_DAMAGE).setBaseValue(6.5);
