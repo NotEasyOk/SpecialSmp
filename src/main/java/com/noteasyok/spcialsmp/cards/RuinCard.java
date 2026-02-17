@@ -173,7 +173,12 @@ public class RuinCard extends BaseCard implements Listener {
     private void spawnMutantMob(Location center) {
         Location spawnLoc = center.clone().add(random.nextInt(10) - 5, 0, random.nextInt(10) - 5);
         spawnLoc.setY(spawnLoc.getWorld().getHighestBlockYAt(spawnLoc) + 1);
-        LivingEntity mutant = (LivingEntity) center.getWorld().spawn(spawnLoc, random.nextBoolean() ? Zombie.class : Skeleton.class);
+        LivingEntity mutant;
+    if (random.nextBoolean()) {
+        mutant = (Zombie) center.getWorld().spawn(spawnLoc, Zombie.class);
+    } else {
+        mutant = (Skeleton) center.getWorld().spawn(spawnLoc, Skeleton.class);
+    }
         mutant.getEquipment().setHelmet(new ItemStack(Material.NETHERITE_HELMET));
         mutant.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(40.0);
         mutant.setHealth(40.0);
