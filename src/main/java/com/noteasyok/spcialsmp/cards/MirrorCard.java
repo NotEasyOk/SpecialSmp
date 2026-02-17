@@ -12,6 +12,7 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Scoreboard;
+import com.destroystokyo.paper.profile.PlayerProfile;
 import org.bukkit.scoreboard.Team;
 import org.bukkit.profile.PlayerProfile;
 
