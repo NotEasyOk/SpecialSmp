@@ -35,7 +35,7 @@ public class IllusionistCard extends BaseCard {
         return item.getItemMeta().getDisplayName().contains(getName());
     }
 
-    @@Override
+    @Override
     public void leftClick(Player p) {
         if (!SpcialSmp.get().getCooldownManager().canUse(p, getName(), "left")) return;
 
