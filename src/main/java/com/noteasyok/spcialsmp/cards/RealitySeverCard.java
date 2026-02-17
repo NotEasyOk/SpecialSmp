@@ -8,6 +8,8 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 import org.bukkit.Particle.DustOptions;
 
+import java.util.List;
+
 public class RealitySeverCard extends BaseCard {
 
     @Override
