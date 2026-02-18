@@ -70,7 +70,7 @@ public class IllusionistCard extends BaseCard {
                     double x2 = Math.cos(angle + Math.PI) * radius;
                     double z2 = Math.sin(angle + Math.PI) * radius;
                     Location pLoc2 = currentLoc.clone().add(x2, i * 0.6, z2);
-                    pLoc2.getWorld().spawnParticle(Particle.SMOKE_LARGE, pLoc2, 2, 0.1, 0.1, 0.1, 0.02);
+                    pLoc2.getWorld().spawnParticle(Particle.LARGE_SMOKE, pLoc2, 2, 0.1, 0.1, 0.1, 0.02);
                     
                     // Center Core (Lava Drips)
                     if (i < 5) pLoc1.getWorld().spawnParticle(Particle.LAVA, currentLoc.clone().add(0, i, 0), 1);
