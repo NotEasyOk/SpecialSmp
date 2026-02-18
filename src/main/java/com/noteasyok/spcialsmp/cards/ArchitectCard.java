@@ -20,7 +20,7 @@ public class ArchitectCard extends BaseCard {
     @Override
     public String getName() { return "Architect Card"; }
     @Override
-    public Material getMaterial() { return Material.MAGENTA_DYE; }
+    public Material getMaterial() { return Material.ECHO_SHARD; }
     @Override
     public int getModelData() { return 102; }
 
