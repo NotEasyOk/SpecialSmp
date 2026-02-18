@@ -15,7 +15,7 @@ public class RealitySeverCard extends BaseCard {
     @Override
     public String getName() { return "Reality Sever Card"; }
     @Override
-    public Material getMaterial() { return Material.NETHER_STAR; } 
+    public Material getMaterial() { return Material.ECHO_SHARD; } 
     @Override
     public int getModelData() { return 110; } // Custom Model ID
 
