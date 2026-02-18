@@ -55,8 +55,8 @@ public class RealitySeverCard extends BaseCard {
                 current.getWorld().spawnParticle(Particle.SWEEP_ATTACK, current, 1);
                 
                 // Magical Glow (Cyan & Purple)
-                current.getWorld().spawnParticle(Particle.REDSTONE, current, 3, 0.2, 0.2, 0.2, new DustOptions(Color.AQUA, 1.0f));
-                current.getWorld().spawnParticle(Particle.REDSTONE, current, 3, 0.2, 0.2, 0.2, new DustOptions(Color.FUCHSIA, 1.0f));
+                current.getWorld().spawnParticle(Particle.DUST, current, 3, 0.2, 0.2, 0.2, new DustOptions(Color.AQUA, 1.0f));
+                current.getWorld().spawnParticle(Particle.DUST, current, 3, 0.2, 0.2, 0.2, new DustOptions(Color.FUCHSIA, 1.0f));
 
                 // --- HIT DETECTION ---
                 for (Entity e : current.getWorld().getNearbyEntities(current, 1.5, 1.5, 1.5)) {
@@ -113,7 +113,7 @@ public class RealitySeverCard extends BaseCard {
                         // Step 2: SLAM DOWN
                         target.setGravity(true);
                         target.setVelocity(new Vector(0, -3.0, 0)); // Rocket down
-                        target.getWorld().spawnParticle(Particle.EXPLOSION_LARGE, target.getLocation(), 1);
+                        target.getWorld().spawnParticle(Particle.LARGE_EXPLOSION, target.getLocation(), 1);
                         target.damage(6.0, p); // Fall damage extra
                         p.getWorld().playSound(target.getLocation(), Sound.ENTITY_GENERIC_EXPLODE, 1f, 1f);
                     }
@@ -158,7 +158,7 @@ public class RealitySeverCard extends BaseCard {
                     
                     // Visual: Laser from sky
                     for (int y = 0; y < 20; y++) {
-                        strikeLoc.getWorld().spawnParticle(Particle.REDSTONE, strikeLoc.clone().add(0, y, 0), 1, 0.1, 0, 0.1, new DustOptions(Color.PURPLE, 2));
+                        strikeLoc.getWorld().spawnParticle(Particle.DUST, strikeLoc.clone().add(0, y, 0), 1, 0.1, 0, 0.1, new DustOptions(Color.PURPLE, 2));
                     }
                     
                     // Hit Effect
