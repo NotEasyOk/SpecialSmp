@@ -91,14 +91,24 @@ public class CardsCommand implements CommandExecutor, TabCompleter {
 
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
+        // Line 83: Sub-commands (list, give, reload, etc.)
         if (args.length == 1) {
             return StringUtil.copyPartialMatches(args[0], Arrays.asList("list", "give", "reroll", "reload"), new ArrayList<>());
         }
+        
+        // FIX: Player names suggestion (Line 87-91)
+        if (args.length == 2 && (args[0].equalsIgnoreCase("give") || args[0].equalsIgnoreCase("reroll"))) {
+            List<String> players = new ArrayList<>();
+            Bukkit.getOnlinePlayers().forEach(p -> players.add(p.getName()));
+            return StringUtil.copyPartialMatches(args[1], players, new ArrayList<>());
+        }
+
+        // Line 93: Card names suggestion
         if (args.length == 3 && args[0].equalsIgnoreCase("give")) {
             List<String> cards = new ArrayList<>(CardRegistry.getCards().keySet());
             cards.add("all");
             return StringUtil.copyPartialMatches(args[2], cards, new ArrayList<>());
         }
         return new ArrayList<>();
-    }
-                }
+   }
+       }
