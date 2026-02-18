@@ -87,7 +87,6 @@ public class CooldownManager {
                         // Ready Effect (Particle + Sound)
                         coolingDownPlayers.remove(p.getUniqueId());
                         p.getWorld().spawnParticle(Particle.TOTEM_OF_UNDYING, p.getEyeLocation(), 40, 0.3, 0.3, 0.3, 0.5);
-                        p.playSound(p.getLocation(), Sound.ITEM_TOTEM_USE, 1.0f, 1.2f);
                         p.spigot().sendMessage(ChatMessageType.ACTION_BAR, new TextComponent("§a§l✔ " + cardId + " READY"));
                     }
                 } else {
