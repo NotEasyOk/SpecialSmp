@@ -113,7 +113,7 @@ public class RealitySeverCard extends BaseCard {
                         // Step 2: SLAM DOWN
                         target.setGravity(true);
                         target.setVelocity(new Vector(0, -3.0, 0)); // Rocket down
-                        target.getWorld().spawnParticle(Particle.LARGE_EXPLOSION, target.getLocation(), 1);
+                        target.getWorld().spawnParticle(Particle.EXPLOSION, target.getLocation(), 1);
                         target.damage(6.0, p); // Fall damage extra
                         p.getWorld().playSound(target.getLocation(), Sound.ENTITY_GENERIC_EXPLODE, 1f, 1f);
                     }
