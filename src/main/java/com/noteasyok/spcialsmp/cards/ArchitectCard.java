@@ -76,7 +76,7 @@ public class ArchitectCard extends BaseCard {
     public void rightClick(Player p) {
         if (!SpcialSmp.get().getCooldownManager().canUse(p, getName(), "right")) return;
 
-        p.sendMessage("§6§l[!] §fKinetic Shield Active! (3s)");
+        p.sendMessage("§6§l[!] §fKinetic Shield Active!");
         p.playSound(p.getLocation(), Sound.BLOCK_BEACON_ACTIVATE, 1f, 2f);
 
         new BukkitRunnable() {
