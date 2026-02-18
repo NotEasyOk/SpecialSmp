@@ -84,7 +84,7 @@ public class RealitySeverCard extends BaseCard {
                 int timer = 0;
                 @Override
                 public void run() {
-                    if (timer++ > 40 || !target.isValid()) { 
+                    if (timer++ > 160 || !target.isValid()) { 
                         target.setGravity(true);
                         this.cancel(); 
                         return; 
