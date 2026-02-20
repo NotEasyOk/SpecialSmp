@@ -5,6 +5,10 @@ import org.bukkit.*;
 import org.bukkit.entity.Player;
 import org.bukkit.Material;
 import org.bukkit.entity.BlockDisplay;
+import com.sk89q.worldedit.bukkit.BukkitAdapter;
+import com.sk89q.worldguard.WorldGuard;
+import com.sk89q.worldguard.protection.regions.RegionContainer;
+import com.sk89q.worldguard.protection.regions.RegionQuery;
 import org.bukkit.util.RayTraceResult;
 import org.bukkit.util.Vector;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -32,6 +36,10 @@ public class CreeperCard extends BaseCard {
         Location loc = p.getTargetBlockExact(12) != null
                 ? p.getTargetBlockExact(12).getLocation().add(0, 1, 0)
                 : p.getLocation();
+
+           if (isInsideRegion(loc)) {
+         p.getWorld().createExplosion(loc, 5f, false, false, p); // Safe Explosion
+         } else {
 
         p.getWorld().createExplosion(loc, 5f, true, true, p);
     }
@@ -79,6 +87,9 @@ public class CreeperCard extends BaseCard {
                     display.remove();
                     
                     // MASSIVE 20 POWER EXPLOSION
+                    if (isInsideRegion(current)) {
+                 w.createExplosion(current, 20.0f, false, false, p); // Region safe
+              } else {
                     w.createExplosion(current, 20.0f, true, true, p);
                     
                     this.cancel();
@@ -125,6 +136,9 @@ public void shiftRightClick(Player p) {
 
                     if (tnt.isOnGround()) {
                         // 4.0F normal TNT power hoti hai
+                        if (isInsideRegion(tntLoc)) {
+                      w.createExplosion(tntLoc, 4.0F, false, false); // Safe TNT
+                    } else {
                         w.createExplosion(tnt.getLocation(), 4.0F, true, true); 
                         tnt.remove();
                         this.cancel();
@@ -143,6 +157,12 @@ public void shiftRightClick(Player p) {
         long remaining = SpcialSmp.get().getCooldownManager().getRemainingSeconds(p, getName(), action);
         p.sendMessage("§cWait " + remaining + "s");
         return false;
+    }
+
+        private boolean isInsideRegion(Location loc) {
+    com.sk89q.worldguard.protection.regions.RegionContainer container = com.sk89q.worldguard.protection.WorldGuard.getInstance().getPlatform().getRegionContainer();
+    com.sk89q.worldguard.protection.regions.RegionQuery query = container.createQuery();
+    return !query.getApplicableRegions(com.sk89q.worldedit.bukkit.BukkitAdapter.adapt(loc)).getRegions().isEmpty();
     }
 
     // Cooldown apply manager ke through karo
