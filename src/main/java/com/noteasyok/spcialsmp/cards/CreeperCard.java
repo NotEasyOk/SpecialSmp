@@ -43,6 +43,7 @@ public class CreeperCard extends BaseCard {
 
         p.getWorld().createExplosion(loc, 5f, true, true, p);
     }
+ }
 
     /* ================= RIGHT CLICK (Orbital Strike - Sync & Particles Fixed) ================= */
     @Override
@@ -91,7 +92,8 @@ public class CreeperCard extends BaseCard {
                  w.createExplosion(current, 20.0f, false, false, p); // Region safe
               } else {
                     w.createExplosion(current, 20.0f, true, true, p);
-                    
+                    }
+                        
                     this.cancel();
                     return;
                 }
@@ -151,18 +153,19 @@ public void shiftRightClick(Player p) {
     }.runTaskTimer(SpcialSmp.get(), 0L, 20L); // 20 ticks = Har 1 second mein ek TNT girega
 }
 
+    private boolean isInsideRegion(Location loc) {
+    com.sk89q.worldguard.protection.regions.RegionContainer container = com.sk89q.worldguard.protection.WorldGuard.getInstance().getPlatform().getRegionContainer();
+    com.sk89q.worldguard.protection.regions.RegionQuery query = container.createQuery();
+    return !query.getApplicableRegions(com.sk89q.worldedit.bukkit.BukkitAdapter.adapt(loc)).getRegions().isEmpty();
+    }
+}
+
     private boolean isCool(Player p, String action) {
     // Purana 'seconds' wala logic hata do, manager config se khud seconds uthayega
     if (!SpcialSmp.get().getCooldownManager().canUse(p, getName(), action)) {
         long remaining = SpcialSmp.get().getCooldownManager().getRemainingSeconds(p, getName(), action);
         p.sendMessage("§cWait " + remaining + "s");
         return false;
-    }
-
-        private boolean isInsideRegion(Location loc) {
-    com.sk89q.worldguard.protection.regions.RegionContainer container = com.sk89q.worldguard.protection.WorldGuard.getInstance().getPlatform().getRegionContainer();
-    com.sk89q.worldguard.protection.regions.RegionQuery query = container.createQuery();
-    return !query.getApplicableRegions(com.sk89q.worldedit.bukkit.BukkitAdapter.adapt(loc)).getRegions().isEmpty();
     }
 
     // Cooldown apply manager ke through karo
