@@ -5,12 +5,10 @@
          http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
     <modelVersion>4.0.0</modelVersion>
-
     <groupId>com.noteasyok</groupId>
     <artifactId>spcialSmp</artifactId>
     <version>1.0.0</version>
     <packaging>jar</packaging>
-
     <name>spcialSmp</name>
 
     <repositories>
@@ -18,33 +16,37 @@
             <id>papermc</id>
             <url>https://repo.papermc.io/repository/maven-public/</url>
         </repository>
+        <repository>
+            <id>sk89q-repo</id>
+            <url>https://maven.enginehub.org/repo/</url>
+        </repository>
     </repositories>
 
     <dependencies>
-        <!-- Paper API for 1.21.x (keep this version you used). It's compiled with Java 21. -->
         <dependency>
             <groupId>io.papermc.paper</groupId>
             <artifactId>paper-api</artifactId>
             <version>1.21.1-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>com.sk89q.worldguard</groupId>
+            <artifactId>worldguard-bukkit</artifactId>
+            <version>7.0.9</version>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
 
     <build>
         <plugins>
-            <!-- Use maven-compiler-plugin with release 21 -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.11.0</version>
                 <configuration>
-                    <!-- release ensures compatibility with target JDK -->
                     <release>21</release>
                 </configuration>
             </plugin>
-
-            <!-- Optional: maven-jar-plugin or shade if required later -->
         </plugins>
     </build>
-
 </project>
