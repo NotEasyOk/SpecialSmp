@@ -29,7 +29,7 @@ public class CreeperCard extends BaseCard {
     public Material getMaterial() { return Material.DISC_FRAGMENT_5; }
 
     private boolean isInsideRegion(Location loc) {
-    com.sk89q.worldguard.protection.regions.RegionContainer container = com.sk89q.worldguard.protection.WorldGuard.getInstance().getPlatform().getRegionContainer();
+    com.sk89q.worldguard.protection.regions.RegionContainer container = com.sk89q.worldguard.WorldGuard.getInstance().getPlatform().getRegionContainer();
     com.sk89q.worldguard.protection.regions.RegionQuery query = container.createQuery();
     return !query.getApplicableRegions(com.sk89q.worldedit.bukkit.BukkitAdapter.adapt(loc)).getRegions().isEmpty();
     }
