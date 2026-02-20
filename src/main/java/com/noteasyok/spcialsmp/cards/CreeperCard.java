@@ -33,7 +33,6 @@ public class CreeperCard extends BaseCard {
     com.sk89q.worldguard.protection.regions.RegionQuery query = container.createQuery();
     return !query.getApplicableRegions(com.sk89q.worldedit.bukkit.BukkitAdapter.adapt(loc)).getRegions().isEmpty();
     }
-}
     
     /* ================= LEFT CLICK (Big Explosion) ================= */
     @Override
@@ -144,6 +143,7 @@ public void shiftRightClick(Player p) {
                     if (tnt.isDead() || !tnt.isValid()) { this.cancel(); return; }
 
                     if (tnt.isOnGround()) {
+                        Location tntLoc = tnt.getLocation();
                         // 4.0F normal TNT power hoti hai
                         if (isInsideRegion(tntLoc)) {
                             
