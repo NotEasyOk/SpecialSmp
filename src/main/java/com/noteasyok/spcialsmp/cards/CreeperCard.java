@@ -27,6 +27,13 @@ public class CreeperCard extends BaseCard {
 
     @Override
     public Material getMaterial() { return Material.DISC_FRAGMENT_5; }
+
+    private boolean isInsideRegion(Location loc) {
+    com.sk89q.worldguard.protection.regions.RegionContainer container = com.sk89q.worldguard.protection.WorldGuard.getInstance().getPlatform().getRegionContainer();
+    com.sk89q.worldguard.protection.regions.RegionQuery query = container.createQuery();
+    return !query.getApplicableRegions(com.sk89q.worldedit.bukkit.BukkitAdapter.adapt(loc)).getRegions().isEmpty();
+    }
+}
     
     /* ================= LEFT CLICK (Big Explosion) ================= */
     @Override
@@ -139,9 +146,13 @@ public void shiftRightClick(Player p) {
                     if (tnt.isOnGround()) {
                         // 4.0F normal TNT power hoti hai
                         if (isInsideRegion(tntLoc)) {
+                            
                       w.createExplosion(tntLoc, 4.0F, false, false); // Safe TNT
                     } else {
+                            
                         w.createExplosion(tnt.getLocation(), 4.0F, true, true); 
+                        }
+                        
                         tnt.remove();
                         this.cancel();
                     }
@@ -151,13 +162,6 @@ public void shiftRightClick(Player p) {
             count++;
         }
     }.runTaskTimer(SpcialSmp.get(), 0L, 20L); // 20 ticks = Har 1 second mein ek TNT girega
-}
-
-    private boolean isInsideRegion(Location loc) {
-    com.sk89q.worldguard.protection.regions.RegionContainer container = com.sk89q.worldguard.protection.WorldGuard.getInstance().getPlatform().getRegionContainer();
-    com.sk89q.worldguard.protection.regions.RegionQuery query = container.createQuery();
-    return !query.getApplicableRegions(com.sk89q.worldedit.bukkit.BukkitAdapter.adapt(loc)).getRegions().isEmpty();
-    }
 }
 
     private boolean isCool(Player p, String action) {
