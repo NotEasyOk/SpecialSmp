@@ -29,9 +29,21 @@ public class CreeperCard extends BaseCard {
     public Material getMaterial() { return Material.DISC_FRAGMENT_5; }
 
     private boolean isInsideRegion(Location loc) {
-    com.sk89q.worldguard.protection.regions.RegionContainer container = com.sk89q.worldguard.WorldGuard.getInstance().getPlatform().getRegionContainer();
-    com.sk89q.worldguard.protection.regions.RegionQuery query = container.createQuery();
-    return !query.getApplicableRegions(com.sk89q.worldedit.bukkit.BukkitAdapter.adapt(loc)).getRegions().isEmpty();
+    if (loc == null || loc.getWorld() == null) return false;
+    try {
+        // WorldGuard ke naye version ke liye correct mapping
+        com.sk89q.worldedit.world.World world = com.sk89q.worldedit.bukkit.BukkitAdapter.adapt(loc.getWorld());
+        com.sk89q.worldedit.math.BlockVector3 position = com.sk89q.worldedit.math.BlockVector3.at(loc.getX(), loc.getY(), loc.getZ());
+        
+        com.sk89q.worldguard.protection.managers.RegionManager manager = 
+            com.sk89q.worldguard.WorldGuard.getInstance().getPlatform().getRegionContainer().get(world);
+            
+        if (manager == null) return false;
+        
+        // Agar regions milte hain toh blocks nahi tootne chahiye
+        return manager.getApplicableRegions(position).size() > 0;
+    } catch (Exception e) {
+        return false;
     }
     
     /* ================= LEFT CLICK (Big Explosion) ================= */
@@ -44,7 +56,7 @@ public class CreeperCard extends BaseCard {
                 : p.getLocation();
 
            if (isInsideRegion(loc)) {
-         p.getWorld().createExplosion(loc, 5f, false, false, p); // Safe Explosion
+         p.getWorld().createExplosion(loc, 5f, false, false, null); // Safe Explosion
          } else {
 
         p.getWorld().createExplosion(loc, 5f, true, true, p);
@@ -95,7 +107,7 @@ public class CreeperCard extends BaseCard {
                     
                     // MASSIVE 20 POWER EXPLOSION
                     if (isInsideRegion(current)) {
-                 w.createExplosion(current, 20.0f, false, false, p); // Region safe
+                 w.createExplosion(current, 20.0f, false, false, null); // Region safe
               } else {
                     w.createExplosion(current, 20.0f, true, true, p);
                     }
@@ -147,7 +159,7 @@ public void shiftRightClick(Player p) {
                         // 4.0F normal TNT power hoti hai
                         if (isInsideRegion(tntLoc)) {
                             
-                      w.createExplosion(tntLoc, 4.0F, false, false); // Safe TNT
+                      w.createExplosion(tntLoc, 4.0F, false, false, null); // Safe TNT
                     } else {
                             
                         w.createExplosion(tnt.getLocation(), 4.0F, true, true); 
