@@ -18,7 +18,7 @@ public class CardRegistry {
         CARDS.clear();
         DESC.clear();
 
-        register(new EndermanCard(), List.of("§7Left: Teleport", "§7Right: GUI Player Pull", "§7Shift+R: Dragon Breath"));
+        register(new EndermanCard(), List.of("§7Left: Teleport", "§7Right: Player Pull", "§7Shift+R: Dragon Breath"));
         register(new ZombieCard(), List.of("§7Left: Summon Zombie", "§7Right: Instant Feed", "§7Shift+R: Zombie Disguise"));
         register(new HerobrineCard(), List.of("§7Left: Lightning", "§7Right: Darkness + Fly", "§7Shift+R: Giant/Tiny Mode"));
         register(new NothingCard(), List.of("§7Left: Time Set", "§7Right: Mind Control", "§7Shift+R: No Fall damage"));
