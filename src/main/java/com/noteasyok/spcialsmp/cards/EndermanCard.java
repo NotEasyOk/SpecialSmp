@@ -156,6 +156,7 @@ public Material getMaterial() {
         cloud.setRadiusOnUse(0.0f);       
         cloud.setRadiusPerTick(-0.01f);   // Fix: Dheere dheere shrink hoga
         cloud.setParticle(org.bukkit.Particle.DRAGON_BREATH);
+        cloud.setColor(org.bukkit.Color.PURPLE);
         
         // Fix: Amplifier 1 (Harming II) kar diya taaki damage confirm ho
         // Note: PotionEffectType.HARM is Instant Damage
