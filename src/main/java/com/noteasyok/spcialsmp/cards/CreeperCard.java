@@ -45,6 +45,7 @@ public class CreeperCard extends BaseCard {
     } catch (Exception e) {
         return false;
     }
+}
     
     /* ================= LEFT CLICK (Big Explosion) ================= */
     @Override
