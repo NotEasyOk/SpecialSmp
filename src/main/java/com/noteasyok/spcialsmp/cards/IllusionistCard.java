@@ -51,7 +51,12 @@ public class IllusionistCard extends BaseCard {
 
             @Override
             public void run() {
-                if (ticks++ > 160 || !currentLoc.getChunk().isLoaded()) { this.cancel(); return; }
+                if (ticks++ > 160 || !currentLoc.getChunk().isLoaded()) 
+                { 
+                    p.stopSound(Sound.ENTITY_GHAST_SHOOT);
+                    p.stopSound(Sound.ITEM_ELYTRA_FLYING);
+                    this.cancel(); 
+                    return; }
 
                 currentLoc.add(moveDir); // Tornado slow move karega taaki tabahi zyada ho
 
