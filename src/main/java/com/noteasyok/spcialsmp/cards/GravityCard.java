@@ -31,6 +31,11 @@ public class GravityCard extends BaseCard implements Listener {
     public String getName() { return "Gravity Card"; }
 
     @Override
+public String getConfigKey() {
+    return "gravity-card";
+}
+
+    @Override
     public int getModelData() { return 105; }
 
     @Override
