@@ -43,6 +43,17 @@ public abstract class BaseCard {
         return item;
     }
 
+    public boolean isEnabled() {
+    FileConfiguration cardsConfig = SpcialSmp.get().getCardsConfig();
+    String path = "cards." + getConfigKey() + ".enabled";
+    if (!cardsConfig.contains(path)) return true;
+    return cardsConfig.getBoolean(path);
+}
+
+public String getConfigKey() {
+    return getName().toLowerCase().replace(" ", "-");
+}
+
     // Is method ko abstract nahi rakha hai taaki common cards registry use karein, 
     // lekin Ultimate Card isse Override kar sake bina kisi logic conflict ke.
     public ItemStack getItemStackWithLore(String cardName) {
