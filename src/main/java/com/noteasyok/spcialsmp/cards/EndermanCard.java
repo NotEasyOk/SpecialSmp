@@ -38,6 +38,11 @@ public class EndermanCard extends BaseCard implements Listener {
     }
 
     @Override
+public String getConfigKey() {
+    return "enderman-card";
+}
+
+    @Override
     public int getModelData() {
         return 0;
     }
