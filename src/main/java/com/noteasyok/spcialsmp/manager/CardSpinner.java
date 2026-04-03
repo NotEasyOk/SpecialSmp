@@ -16,10 +16,10 @@ public class CardSpinner {
     public static void openSpinGUI(Player player) {
 
         // Filter out the Ultimate Card
-        List<BaseCard> allCards = CardRegistry.getCards().values().stream()
-                .filter(c -> !c.getName().equalsIgnoreCase("Ultimate Card"))
-                .collect(Collectors.toList());
-
+        List<BaseCard> allCards = CardRegistry.getEnabledCards().stream()
+          .filter(c -> !c.getName().equalsIgnoreCase("Ultimate Card"))
+          .collect(Collectors.toList());
+        
         if (allCards.isEmpty()) return;
 
         new BukkitRunnable() {
