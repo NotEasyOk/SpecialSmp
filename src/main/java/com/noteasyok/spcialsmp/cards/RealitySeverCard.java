@@ -55,7 +55,7 @@ public class RealitySeverCard extends BaseCard {
 
                     for (Entity e : current.getWorld().getNearbyEntities(current, 2, 2, 2)) {
                         if (e instanceof LivingEntity victim && !e.equals(p)) {
-                            victim.damage(8.0, p); // MASSIVE DAMAGE
+                            victim.damage(12.0, p); // MASSIVE DAMAGE
                             victim.getWorld().spawnParticle(Particle.FLASH, victim.getLocation(), 1);
                             victim.getWorld().playSound(victim.getLocation(), Sound.ENTITY_ZOMBIE_BREAK_WOODEN_DOOR, 1f, 0.5f);
                             this.cancel();
