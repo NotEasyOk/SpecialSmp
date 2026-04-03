@@ -29,7 +29,7 @@ public String getConfigKey() {
 }
     
     @Override
-    public Material getMaterial() { return Material.ECHO_SHARD; }
+    public Material getMaterial() { return Material.BROWN_DYE; }
     @Override
     public int getModelData() { return 101; }
 
