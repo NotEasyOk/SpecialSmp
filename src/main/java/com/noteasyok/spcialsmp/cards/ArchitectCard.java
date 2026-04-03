@@ -24,7 +24,7 @@ public String getConfigKey() {
     return "architect-card";
 }
     @Override
-    public Material getMaterial() { return Material.ECHO_SHARD; }
+    public Material getMaterial() { return Material.ORANGE_DYE; }
     @Override
     public int getModelData() { return 102; }
 
