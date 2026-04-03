@@ -37,6 +37,12 @@ public class UltimateCard extends BaseCard implements Listener {
     }
 
     @Override public String getName() { return "Ultimate Card"; }
+
+     @Override
+public String getConfigKey() {
+    return "ultimate-card";
+}
+    
     @Override public int getModelData() { return 0; }
     @Override public Material getMaterial() { return Material.GREEN_DYE; }
 
