@@ -69,7 +69,7 @@ public class CardsCommand implements CommandExecutor, TabCompleter {
     }
     // CHANGE 2: disabled card check
     if (!foundCard.isEnabled()) {
-        sender.sendMessage("§cYeh card disabled hai (cards.yml mein off)!");
+        sender.sendMessage("§cThis Card disabled)!");
         return true;
     }
     target.getInventory().addItem(foundCard.getItemStackWithLore(foundCard.getName()));
