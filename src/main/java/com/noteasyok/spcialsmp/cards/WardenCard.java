@@ -68,9 +68,6 @@ public Material getMaterial() {
         pendingReset.remove(uuid);
     }
     
-    // ... baaki methods same ...
-}
-
     /* ---------------- RIGHT CLICK (SONIC BOOM) ---------------- */
     @Override
     public void rightClick(Player p) {
