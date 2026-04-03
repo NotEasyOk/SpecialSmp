@@ -36,6 +36,12 @@ public class CardRegistry {
         register(new UltimateCard(), List.of("§6§lGOD MODE", "§eOnly available via special craft", "§bUnstoppable Power"));
     }
 
+    public static List<BaseCard> getEnabledCards() {
+    return CARDS.values().stream()
+        .filter(BaseCard::isEnabled)
+        .collect(Collectors.toList());
+    }
+
     // ================== FIXED ERROR: ADDED MISSING METHOD ==================
     public static List<String> getDescriptionLore(String cardName) {
         return DESC.getOrDefault(cardName, new ArrayList<>());
@@ -52,17 +58,13 @@ public class CardRegistry {
     }
 
     public static ItemStack getRandomCard() {
-        if (CARDS.isEmpty()) return null;
-
-        List<BaseCard> pool = CARDS.values().stream()
-                .filter(c -> !c.getName().equalsIgnoreCase("Ultimate Card"))
-                .collect(Collectors.toList());
-
-        if (pool.isEmpty()) return null;
-
-        BaseCard randomCard = pool.get(new Random().nextInt(pool.size()));
-        return getCardItem(randomCard);
-    }
+    List<BaseCard> enabledCards = getEnabledCards().stream()
+        .filter(c -> !c.getName().equalsIgnoreCase("Ultimate Card"))
+        .collect(Collectors.toList());
+    if (enabledCards.isEmpty()) return null;
+    BaseCard randomCard = enabledCards.get(new Random().nextInt(enabledCards.size()));
+    return getCardItem(randomCard);
+}
 
     public static ItemStack getCardItem(BaseCard card) {
         // Step 1: Pehle card ka base item lo (Isme PDC 'card_id' already hai)
