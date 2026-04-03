@@ -218,7 +218,8 @@ if (timer % 15 == 0) {
                 center.getWorld().spawnParticle(Particle.LARGE_SMOKE, center, 400, 10, 8, 10, 0.05);
                 timer++;
             }
-        }.runTaskTimer(SpcialSmp.get(), 0L, 1L);
+        stormTask.runTaskTimer(SpcialSmp.get(), 0L, 1L);
+       activeStormTasks.put(p.getUniqueId(), stormTask);
     } 
 
     /* Baaki Right Click, Shift Right, aur helper methods same rakhein... */
