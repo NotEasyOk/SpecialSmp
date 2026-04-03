@@ -38,34 +38,43 @@ public class CardsCommand implements CommandExecutor, TabCompleter {
 
         switch (args[0].toLowerCase()) {
             case "list" -> {
-                sender.sendMessage("§e§lAvailable Cards:");
-                CardRegistry.getCards().keySet().forEach(name -> sender.sendMessage(" §7- §f" + name));
-            }
+              sender.sendMessage("§e§lAvailable Cards:");
+             CardRegistry.getCards().values().forEach(card -> {
+              String status = card.isEnabled() ? "§a✔" : "§c✘";
+              sender.sendMessage(" " + status + " §7- §f" + card.getName());
+            });
+         }
             case "give" -> {
-                if (args.length < 3) {
-                    sender.sendMessage("§cUsage: /cards give <player> <cardName/all>");
-                    return true;
-                }
-                Player target = Bukkit.getPlayer(args[1]);
-                if (target == null) {
-                    sender.sendMessage("§cPlayer not found!");
-                    return true;
-                }
-                if (args[2].equalsIgnoreCase("all")) {
-                    CardRegistry.getCards().values().forEach(card -> 
-                        target.getInventory().addItem(card.getItemStackWithLore(card.getName())));
-                    sender.sendMessage("§a§l✔ §fAll cards given to §b" + target.getName());
-                    return true;
-                }
-                String cardName = String.join(" ", Arrays.copyOfRange(args, 2, args.length));
-                BaseCard foundCard = CardRegistry.getCards().get(cardName);
-                if (foundCard == null) {
-                    sender.sendMessage("§cCard not found!");
-                    return true;
-                }
-                target.getInventory().addItem(foundCard.getItemStackWithLore(foundCard.getName()));
-                sender.sendMessage("§a§l✔ §fGiven §e" + foundCard.getName() + " §fto §b" + target.getName());
-            }
+    if (args.length < 3) {
+        sender.sendMessage("§cUsage: /cards give <player> <cardName/all>");
+        return true;
+    }
+    Player target = Bukkit.getPlayer(args[1]);
+    if (target == null) {
+        sender.sendMessage("§cPlayer not found!");
+        return true;
+    }
+    if (args[2].equalsIgnoreCase("all")) {
+        // CHANGE 1: sirf enabled cards do
+        CardRegistry.getEnabledCards().forEach(card -> 
+            target.getInventory().addItem(card.getItemStackWithLore(card.getName())));
+        sender.sendMessage("§a§l✔ §fAll enabled cards given to §b" + target.getName());
+        return true;
+    }
+    String cardName = String.join(" ", Arrays.copyOfRange(args, 2, args.length));
+    BaseCard foundCard = CardRegistry.getCards().get(cardName);
+    if (foundCard == null) {
+        sender.sendMessage("§cCard not found!");
+        return true;
+    }
+    // CHANGE 2: disabled card check
+    if (!foundCard.isEnabled()) {
+        sender.sendMessage("§cYeh card disabled hai (cards.yml mein off)!");
+        return true;
+    }
+    target.getInventory().addItem(foundCard.getItemStackWithLore(foundCard.getName()));
+    sender.sendMessage("§a§l✔ §fGiven §e" + foundCard.getName() + " §fto §b" + target.getName());
+}
             case "reroll" -> {
                 if (args.length >= 2) {
                     Player t = Bukkit.getPlayer(args[1]);
