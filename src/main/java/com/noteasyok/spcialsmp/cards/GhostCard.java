@@ -19,6 +19,11 @@ public class GhostCard extends BaseCard {
     public String getName() {
         return "Ghost Card";
     }
+
+    @Override
+public String getConfigKey() {
+    return "ghost-card";
+}
     
     @Override
 public int getModelData() {
