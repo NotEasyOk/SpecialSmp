@@ -21,6 +21,11 @@ public class LightingCard extends BaseCard implements Listener {
     public String getName() {
         return "Lighting Card";
     }
+
+    @Override
+public String getConfigKey() {
+    return "lighting-card";
+}
     
     @Override
 public int getModelData() {
