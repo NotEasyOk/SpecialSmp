@@ -1,0 +1,33 @@
+cards:
+  ruin-card:
+    enabled: true
+  enderman-card:
+    enabled: true
+  zombie-card:
+    enabled: true
+  herobrine-card:
+    enabled: true
+  nothing-card:
+    enabled: true
+  warden-card:
+    enabled: true
+  illusionist-card:
+    enabled: true
+  realitysever-card:
+    enabled: true
+  architect-card:
+    enabled: true
+  mirror-card:
+    enabled: true
+  gravity-card:
+    enabled: true
+  creeper-card:
+    enabled: true
+  lighting-card:
+    enabled: true
+  ghost-card:
+    enabled: true
+  poseidon-card:
+    enabled: true
+  ultimate-card:
+    enabled: false
