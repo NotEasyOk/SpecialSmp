@@ -5,6 +5,7 @@ import com.noteasyok.spcialsmp.cards.RuinWorldGenerator;
 import com.noteasyok.spcialsmp.command.CardsCommand;
 import com.noteasyok.spcialsmp.command.SmpCommand;
 import com.noteasyok.spcialsmp.manager.StartManager;
+import com.noteasyok.spcialsmp.cards.UltimateCard;
 import com.noteasyok.spcialsmp.listener.*;
 import com.noteasyok.spcialsmp.manager.*;
 import org.bukkit.Bukkit;
@@ -106,6 +107,9 @@ public class SpcialSmp extends JavaPlugin {
         instance = null;
         getLogger().info("§c[SpcialSmp] Plugin disabled.");
     }
+
+    UltimateCard uc = (UltimateCard) CardRegistry.getCards().get("Ultimate Card");
+if (uc != null) uc.cleanupAll();
 
     public static SpcialSmp get() {
         return instance;
