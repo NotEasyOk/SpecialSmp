@@ -30,4 +30,4 @@ cards:
   poseidon-card:
     enabled: true
   ultimate-card:
-    enabled: false
+    enabled: true
