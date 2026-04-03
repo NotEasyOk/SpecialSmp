@@ -45,6 +45,12 @@ public class RuinCard extends BaseCard implements Listener {
     }
 
     @Override public String getName() { return "Ruin Card"; }
+
+    @Override
+public String getConfigKey() {
+    return "ruin-card";
+}
+    
     @Override public int getModelData() { return 7; }
     @Override public Material getMaterial() { return Material.GRAY_DYE; }
 
