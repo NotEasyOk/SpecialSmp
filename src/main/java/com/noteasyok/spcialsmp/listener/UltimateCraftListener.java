@@ -21,6 +21,13 @@ public class UltimateCraftListener implements Listener {
         String displayName = ChatColor.stripColor(result.getItemMeta().getDisplayName());
         if (!"Ultimate Card".equals(displayName)) return;
 
+        BaseCard ultimateCard = CardRegistry.getCards().get("Ultimate Card");
+if (ultimateCard == null || !ultimateCard.isEnabled()) {
+    p.sendMessage("§cUltimate Card is currently disabled in cards.yml!");
+    e.setCancelled(true);
+    return;
+}
+
         Location loc = p.getLocation();
 
         // Crafting cancel karke materials delete karo taaki player baar-baar na le sake
