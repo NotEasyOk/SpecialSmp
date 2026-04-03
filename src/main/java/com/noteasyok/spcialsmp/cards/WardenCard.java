@@ -19,6 +19,7 @@ import java.util.Map;
 import java.util.UUID;
 
 public class WardenCard extends BaseCard {
+private static final Map<UUID, Double> pendingReset = new HashMap<>();
 
 
     @Override
@@ -39,25 +40,36 @@ public Material getMaterial() {
     /* ---------------- LEFT CLICK (Health Boost) ---------------- */
     @Override
     public void leftClick(Player p) {
-        // FIXED: checkCooldown ki jagah isCool use kiya
         if (!isCool(p, "left")) return;
 
         double baseMax = p.getAttribute(Attribute.GENERIC_MAX_HEALTH).getBaseValue();
+        pendingReset.put(p.getUniqueId(), baseMax);
+        
         p.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(100.0);
         p.setHealth(100.0);
 
-        Bukkit.getScheduler().runTaskLater(
-                SpcialSmp.get(),
-                () -> {
-                    if (!p.isOnline()) return;
-                    p.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(baseMax);
-                    if (p.getHealth() > baseMax) {
-                        p.setHealth(baseMax);
-                    }
-                },
-                20L * 10
-        );
+        Bukkit.getScheduler().runTaskLater(SpcialSmp.get(), () -> {
+            pendingReset.remove(p.getUniqueId());
+            if (!p.isOnline()) return;
+            p.getAttribute(Attribute.GENERIC_MAX_HEALTH).setBaseValue(baseMax);
+            if (p.getHealth() > baseMax) p.setHealth(baseMax);
+        }, 20L * 10);
     }
+
+    public static boolean hasPendingReset(UUID uuid) {
+        return pendingReset.containsKey(uuid);
+    }
+
+    public static double getPendingOriginalHealth(UUID uuid) {
+        return pendingReset.getOrDefault(uuid, 40.0);
+    }
+
+    public static void clearPendingReset(UUID uuid) {
+        pendingReset.remove(uuid);
+    }
+    
+    // ... baaki methods same ...
+}
 
     /* ---------------- RIGHT CLICK (SONIC BOOM) ---------------- */
     @Override
