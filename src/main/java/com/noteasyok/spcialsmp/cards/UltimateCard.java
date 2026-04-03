@@ -12,6 +12,7 @@ import org.bukkit.util.Transformation;
 import org.joml.AxisAngle4f;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.boss.BarStyle;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
