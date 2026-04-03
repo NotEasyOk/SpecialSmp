@@ -21,6 +21,20 @@ public class SpcialSmp extends JavaPlugin {
     private FileConfiguration cardsConfig;
     private File cardsConfigFile;
 
+            public void loadCardsConfig() {
+       cardsConfigFile = new File(getDataFolder(), "cards.yml");
+     if (!cardsConfigFile.exists()) {
+        saveResource("cards.yml", false);
+      }
+      cardsConfig = YamlConfiguration.loadConfiguration(cardsConfigFile);
+   }
+    public FileConfiguration getCardsConfig() {
+       return cardsConfig;
+  }
+       public void reloadCardsConfig() {
+      cardsConfig = YamlConfiguration.loadConfiguration(cardsConfigFile);
+       }
+
     @Override
     public void onEnable() {
         instance = this;
@@ -29,22 +43,6 @@ public class SpcialSmp extends JavaPlugin {
         saveDefaultConfig();
         loadCardsConfig();
         reloadConfig(); 
-
-        public void loadCardsConfig() {
-       cardsConfigFile = new File(getDataFolder(), "cards.yml");
-     if (!cardsConfigFile.exists()) {
-        saveResource("cards.yml", false);
-      }
-      cardsConfig = YamlConfiguration.loadConfiguration(cardsConfigFile);
-   }
-
-    public FileConfiguration getCardsConfig() {
-       return cardsConfig;
-  }
-
-       public void reloadCardsConfig() {
-      cardsConfig = YamlConfiguration.loadConfiguration(cardsConfigFile);
- }
 
         // --- 2. MANAGERS INITIALIZATION ---
         playerDataManager = new PlayerDataManager(this);
