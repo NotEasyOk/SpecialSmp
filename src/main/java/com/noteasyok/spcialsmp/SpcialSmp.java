@@ -18,6 +18,8 @@ public class SpcialSmp extends JavaPlugin {
     private CooldownManager cooldownManager;
     private PlayerDataManager playerDataManager;
     private StartManager startManager;
+    private FileConfiguration cardsConfig;
+    private File cardsConfigFile;
 
     @Override
     public void onEnable() {
@@ -25,7 +27,24 @@ public class SpcialSmp extends JavaPlugin {
 
         // --- 1. CONFIG INITIALIZATION ---
         saveDefaultConfig();
+        loadCardsConfig();
         reloadConfig(); 
+
+        public void loadCardsConfig() {
+       cardsConfigFile = new File(getDataFolder(), "cards.yml");
+     if (!cardsConfigFile.exists()) {
+        saveResource("cards.yml", false);
+      }
+      cardsConfig = YamlConfiguration.loadConfiguration(cardsConfigFile);
+   }
+
+    public FileConfiguration getCardsConfig() {
+       return cardsConfig;
+  }
+
+       public void reloadCardsConfig() {
+      cardsConfig = YamlConfiguration.loadConfiguration(cardsConfigFile);
+ }
 
         // --- 2. MANAGERS INITIALIZATION ---
         playerDataManager = new PlayerDataManager(this);
