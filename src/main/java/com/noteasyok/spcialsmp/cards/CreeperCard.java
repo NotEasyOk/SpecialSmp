@@ -21,6 +21,11 @@ public class CreeperCard extends BaseCard {
 
     @Override
     public String getName() { return "Creeper Card"; }
+
+    @Override
+public String getConfigKey() {
+    return "creeper-card";
+}
     
     @Override
     public int getModelData() { return 0; }
