@@ -106,11 +106,11 @@ public class SpcialSmp extends JavaPlugin {
     public void onDisable() {
         instance = null;
         getLogger().info("§c[SpcialSmp] Plugin disabled.");
-    }
 
     UltimateCard uc = (UltimateCard) CardRegistry.getCards().get("Ultimate Card");
-if (uc != null) uc.cleanupAll();
-
+    if (uc != null) uc.cleanupAll();
+    }
+    
     public static SpcialSmp get() {
         return instance;
     }
