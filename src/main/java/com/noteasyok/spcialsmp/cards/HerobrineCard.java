@@ -27,6 +27,11 @@ public class HerobrineCard extends BaseCard {
     public String getName() {
         return "Herobrine Card";
     }
+
+    @Override
+public String getConfigKey() {
+    return "herobrine-card";
+}
     
      @Override
 public int getModelData() {
