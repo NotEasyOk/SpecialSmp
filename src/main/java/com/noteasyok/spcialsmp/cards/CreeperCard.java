@@ -44,7 +44,6 @@ public String getConfigKey() {
         
         p.getWorld().createExplosion(loc, 5f, true, true, p);
     }
- }
 
     /* ================= RIGHT CLICK (Orbital Strike - Sync & Particles Fixed) ================= */
     @Override
@@ -90,7 +89,6 @@ public String getConfigKey() {
                     
                     // MASSIVE 20 POWER EXPLOSION
                     w.createExplosion(current, 20.0f, true, true, p);
-                }  
                     this.cancel();
                     return;
                 }
@@ -138,7 +136,6 @@ public void shiftRightClick(Player p) {
                         // 4.0F normal TNT power
                             
                         w.createExplosion(tnt.getLocation(), 4.0F, true, true); 
-                    }
                         
                         tnt.remove();
                         this.cancel();
