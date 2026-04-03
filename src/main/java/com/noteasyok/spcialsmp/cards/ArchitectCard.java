@@ -20,6 +20,10 @@ public class ArchitectCard extends BaseCard {
     @Override
     public String getName() { return "Architect Card"; }
     @Override
+public String getConfigKey() {
+    return "architect-card";
+}
+    @Override
     public Material getMaterial() { return Material.ECHO_SHARD; }
     @Override
     public int getModelData() { return 102; }
