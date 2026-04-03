@@ -5,10 +5,6 @@ import org.bukkit.*;
 import org.bukkit.entity.Player;
 import org.bukkit.Material;
 import org.bukkit.entity.BlockDisplay;
-import com.sk89q.worldedit.bukkit.BukkitAdapter;
-import com.sk89q.worldguard.WorldGuard;
-import com.sk89q.worldguard.protection.regions.RegionContainer;
-import com.sk89q.worldguard.protection.regions.RegionQuery;
 import org.bukkit.util.RayTraceResult;
 import org.bukkit.util.Vector;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -34,23 +30,8 @@ public String getConfigKey() {
     public Material getMaterial() { return Material.DISC_FRAGMENT_5; }
 
     private boolean isInsideRegion(Location loc) {
-    if (loc == null || loc.getWorld() == null) return false;
-    try {
-        // WorldGuard ke naye version ke liye correct mapping
-        com.sk89q.worldedit.world.World world = com.sk89q.worldedit.bukkit.BukkitAdapter.adapt(loc.getWorld());
-        com.sk89q.worldedit.math.BlockVector3 position = com.sk89q.worldedit.math.BlockVector3.at(loc.getX(), loc.getY(), loc.getZ());
-        
-        com.sk89q.worldguard.protection.managers.RegionManager manager = 
-            com.sk89q.worldguard.WorldGuard.getInstance().getPlatform().getRegionContainer().get(world);
-            
-        if (manager == null) return false;
-        
-        // Agar regions milte hain toh blocks nahi tootne chahiye
-        return manager.getApplicableRegions(position).size() > 0;
-    } catch (Exception e) {
         return false;
     }
-}
     
     /* ================= LEFT CLICK (Big Explosion) ================= */
     @Override
@@ -60,11 +41,7 @@ public String getConfigKey() {
         Location loc = p.getTargetBlockExact(12) != null
                 ? p.getTargetBlockExact(12).getLocation().add(0, 1, 0)
                 : p.getLocation();
-
-           if (isInsideRegion(loc)) {
-         p.getWorld().createExplosion(loc, 5f, false, false, null); // Safe Explosion
-         } else {
-
+        
         p.getWorld().createExplosion(loc, 5f, true, true, p);
     }
  }
@@ -112,12 +89,8 @@ public String getConfigKey() {
                     display.remove();
                     
                     // MASSIVE 20 POWER EXPLOSION
-                    if (isInsideRegion(current)) {
-                 w.createExplosion(current, 20.0f, false, false, null); // Region safe
-              } else {
                     w.createExplosion(current, 20.0f, true, true, p);
-                    }
-                        
+                }  
                     this.cancel();
                     return;
                 }
@@ -162,14 +135,10 @@ public void shiftRightClick(Player p) {
 
                     if (tnt.isOnGround()) {
                         Location tntLoc = tnt.getLocation();
-                        // 4.0F normal TNT power hoti hai
-                        if (isInsideRegion(tntLoc)) {
-                            
-                      w.createExplosion(tntLoc, 4.0F, false, false, null); // Safe TNT
-                    } else {
+                        // 4.0F normal TNT power
                             
                         w.createExplosion(tnt.getLocation(), 4.0F, true, true); 
-                        }
+                    }
                         
                         tnt.remove();
                         this.cancel();
