@@ -13,6 +13,12 @@ public class RealitySeverCard extends BaseCard {
 
     @Override
     public String getName() { return "Reality Sever Card"; }
+
+    @Override
+public String getConfigKey() {
+    return "realitysever-card";
+}
+    
     @Override
     public Material getMaterial() { return Material.ECHO_SHARD; } 
     @Override
