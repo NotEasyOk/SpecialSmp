@@ -31,7 +31,10 @@ public class UltimateCard extends BaseCard implements Listener {
     private final Map<UUID, List<ArmorStand>> orbiting = new HashMap<>();
     private final Set<UUID> activeStorm = new HashSet<>();
     private final Map<UUID, Boolean> timeStopped = new HashMap<>();
-
+    private final Map<UUID, BukkitRunnable> activeStormTasks = new HashMap<>();
+   private final Map<UUID, List<Entity>> stormEntities = new HashMap<>();
+   private final Map<UUID, List<ArmorStand>> orbitingCards = new HashMap<>();
+    
     public UltimateCard() {
         Bukkit.getPluginManager().registerEvents(this, SpcialSmp.get());
     }
@@ -107,6 +110,8 @@ public String getConfigKey() {
         }
 
         // --- FIXED: Baby Zombie Guards Spawn ---
+        List<Zombie> zombies = new ArrayList<>();
+        
         Vector dir = p.getLocation().getDirection().setY(0).normalize();
         Vector side = new Vector(-dir.getZ(), 0, dir.getX());
         for (int i = -2; i <= 2; i++) {
@@ -115,11 +120,19 @@ public String getConfigKey() {
             z.setBaby(true);
             z.getEquipment().setArmorContents(new ItemStack[]{new ItemStack(Material.NETHERITE_BOOTS), new ItemStack(Material.NETHERITE_LEGGINGS), new ItemStack(Material.NETHERITE_CHESTPLATE), new ItemStack(Material.NETHERITE_HELMET)});
             z.getEquipment().setItemInMainHand(new ItemStack(Material.NETHERITE_SWORD));
+            zombies.add(z);
         }
 
-        new BukkitRunnable() {
-            int timer = 0;
-            double wave = 0;
+        List<Entity> entities = new ArrayList<>();
+        entities.addAll(bodyParts);
+         entities.addAll(tentacles);
+         entities.addAll(Arrays.asList(heads));
+          entities.addAll(zombies);
+           stormEntities.put(p.getUniqueId(), entities);
+
+        BukkitRunnable stormTask = new BukkitRunnable() {
+       int timer = 0;
+       double wave = 0;
 
             @Override
             public void run() {
@@ -129,6 +142,8 @@ public String getConfigKey() {
                     for(Wither h : heads) h.remove();
                     bossBar.removeAll();
                     activeStorm.remove(p.getUniqueId());
+                    stormEntities.remove(p.getUniqueId());
+                    activeStormTasks.remove(p.getUniqueId());
                     p.getWorld().getWorldBorder().setWarningDistance(0);
                     p.setAllowFlight(false);
                     this.cancel();
@@ -250,6 +265,7 @@ if (timer % 15 == 0) {
             as.setRightArmPose(new EulerAngle(Math.toRadians(-90), 0, 0));
             cards.add(as);
         }
+        orbitingCards.put(p.getUniqueId(), cards);
         orbiting.put(p.getUniqueId(), cards);
         new BukkitRunnable() {
             double angle = 0;
@@ -272,6 +288,7 @@ if (timer % 15 == 0) {
         if (orbiting.containsKey(p.getUniqueId())) {
             orbiting.get(p.getUniqueId()).forEach(Entity::remove);
             orbiting.remove(p.getUniqueId());
+           orbitingCards.remove(p.getUniqueId());
         }
     }
 
@@ -352,6 +369,60 @@ if (timer % 15 == 0) {
         if (item == null || !item.hasItemMeta()) return false;
         NamespacedKey key = new NamespacedKey(SpcialSmp.get(), "card_id");
         return item.getItemMeta().getPersistentDataContainer().has(key, PersistentDataType.STRING);
+    }
+
+    @EventHandler
+public void onPlayerQuit(PlayerQuitEvent e) {
+    Player p = e.getPlayer();
+    UUID uuid = p.getUniqueId();
+    
+    stopOrbit(p);
+    
+    BukkitRunnable task = activeStormTasks.get(uuid);
+    if (task != null) {
+        task.cancel();
+        activeStormTasks.remove(uuid);
+    }
+    
+    List<Entity> entities = stormEntities.get(uuid);
+    if (entities != null) {
+        for (Entity ent : entities) {
+            if (ent != null && ent.isValid()) ent.remove();
+        }
+        stormEntities.remove(uuid);
+    }
+    
+    p.removeMetadata("time_frozen", SpcialSmp.get());
+    timeStopped.remove(uuid);
+    activeStorm.remove(uuid);
+}
+
+    public void cleanupAll() {
+    for (BukkitRunnable task : activeStormTasks.values()) {
+        if (task != null) task.cancel();
+    }
+    activeStormTasks.clear();
+    
+    for (List<Entity> entities : stormEntities.values()) {
+        if (entities != null) {
+            for (Entity ent : entities) {
+                if (ent != null && ent.isValid()) ent.remove();
+            }
+        }
+    }
+    stormEntities.clear();
+    
+    for (List<ArmorStand> stands : orbitingCards.values()) {
+        if (stands != null) {
+            for (ArmorStand as : stands) {
+                if (as != null && as.isValid()) as.remove();
+            }
+        }
+    }
+    orbitingCards.clear();
+    orbiting.clear();
+    activeStorm.clear();
+    timeStopped.clear();
     }
 
     private boolean isCool(Player p, String action) {
