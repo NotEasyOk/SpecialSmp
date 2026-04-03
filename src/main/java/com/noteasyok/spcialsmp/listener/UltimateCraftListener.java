@@ -5,6 +5,8 @@ import org.bukkit.*;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import com.noteasyok.spcialsmp.cards.BaseCard;
+import com.noteasyok.spcialsmp.manager.CardRegistry;
 import org.bukkit.event.inventory.CraftItemEvent;
 import org.bukkit.inventory.ItemStack;
 
