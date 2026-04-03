@@ -32,7 +32,7 @@ public class PoseidonCard extends BaseCard implements Listener {
 
     @Override
     public Material getMaterial() {
-        return Material.ECHO_SHARD; // Item Material
+        return Material.RED_DYE; // Item Material
     }
 
     // --- COLORFUL LORE (Item Description) ---
