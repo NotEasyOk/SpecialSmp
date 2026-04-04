@@ -5,6 +5,8 @@ import com.noteasyok.spcialsmp.cards.BaseCard;
 import org.bukkit.*;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.ShapedRecipe;
+import org.bukkit.NamespacedKey;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.inventory.RecipeChoice;
 import java.util.Map;
 
@@ -17,6 +19,27 @@ public class RecipeManager {
         }
         registerUltimateRecipe(plugin);
         // registerReviveRecipe(plugin); // LINE 19: Isko hata diya kyunki Life system nahi hai
+    }
+
+    static class CardChoice implements RecipeChoice {
+    private final String cardName;
+    private final Material fallbackMaterial;
+
+    public CardChoice(String cardName, Material fallbackMaterial) {
+        this.cardName = cardName;
+        this.fallbackMaterial = fallbackMaterial;
+    }
+
+    @Override
+    public boolean test(ItemStack item) {
+        if (item == null || item.getType() == Material.AIR) return false;
+        if (item.getType() != fallbackMaterial) return false;
+        
+        if (!item.hasItemMeta()) return false;
+        NamespacedKey key = new NamespacedKey(SpcialSmp.get(), "card_id");
+        String cardId = item.getItemMeta().getPersistentDataContainer().get(key, PersistentDataType.STRING);
+        return cardName.equals(cardId);
+    }
     }
 
     public static void registerUltimateRecipe(SpcialSmp plugin) {
@@ -54,7 +77,7 @@ public class RecipeManager {
     private static RecipeChoice getCardChoice(Map<String, BaseCard> cards, String name, Material fallback) {
         BaseCard card = cards.get(name);
         if (card != null) {
-            return new RecipeChoice.ExactChoice(card.getItemStackWithLore(name));
+            return new CardChoice(name, fallback);
         }
         return new RecipeChoice.MaterialChoice(fallback);
     }
