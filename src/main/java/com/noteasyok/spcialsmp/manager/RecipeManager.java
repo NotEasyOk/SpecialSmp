@@ -6,8 +6,6 @@ import org.bukkit.*;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.NamespacedKey;
-import org.bukkit.persistence.PersistentDataType;
-import java.lang.CloneNotSupportedException;
 import org.bukkit.inventory.RecipeChoice;
 import java.util.Map;
 
@@ -15,53 +13,18 @@ public class RecipeManager {
 
     public static void registerAllRecipes(SpcialSmp plugin) {
         if (CardRegistry.getCards().isEmpty()) {
-            Bukkit.getLogger().severe("[SpcialSmp] Recipes skip ho rahi hain kyunki CardRegistry khali hai!");
+            Bukkit.getLogger().severe("[SpcialSmp] Recipes are being skipped because CardRegistry is empty!");
             return;
         }
         registerUltimateRecipe(plugin);
-        // registerReviveRecipe(plugin); // LINE 19: Isko hata diya kyunki Life system nahi hai
     }
 
-    static class CardChoice implements RecipeChoice {
-    private final String cardName;
-    private final Material fallbackMaterial;
-
-    public CardChoice(String cardName, Material fallbackMaterial) {
-        this.cardName = cardName;
-        this.fallbackMaterial = fallbackMaterial;
-    }
-
-    @Override
-    public boolean test(ItemStack item) {
-        if (item == null || item.getType() == Material.AIR) return false;
-        if (item.getType() != fallbackMaterial) return false;
-        
-        if (!item.hasItemMeta()) return false;
-        NamespacedKey key = new NamespacedKey(SpcialSmp.get(), "card_id");
-        String cardId = item.getItemMeta().getPersistentDataContainer().get(key, PersistentDataType.STRING);
-        return cardName.equals(cardId);
-    }
-        @Override
-    public ItemStack getItemStack() {
-        return new ItemStack(fallbackMaterial);
-    }
-        
-        @Override
-    public RecipeChoice clone() {
-        try {
-            return (RecipeChoice) super.clone();
-        } catch (CloneNotSupportedException e) {
-            return new CardChoice(cardName, fallbackMaterial);
-        }
-    }
-    }
-    
     public static void registerUltimateRecipe(SpcialSmp plugin) {
         Map<String, BaseCard> cards = CardRegistry.getCards();
         
         BaseCard ultimateCard = cards.get("Ultimate Card");
         if (ultimateCard == null) {
-            Bukkit.getLogger().severe("[SpcialSmp] ERROR: Ultimate Card registry mein nahi mila!");
+            Bukkit.getLogger().severe("[SpcialSmp] ERROR: Ultimate Card not found in registry!");
             return;
         }
 
@@ -75,24 +38,17 @@ public class RecipeManager {
         ShapedRecipe recipe = new ShapedRecipe(key, ultimateItem);
         recipe.shape("ABC", "DEF", "GHI");
 
-        recipe.setIngredient('A', getCardChoice(cards, "Creeper Card", Material.DISC_FRAGMENT_5));
-        recipe.setIngredient('B', getCardChoice(cards, "Enderman Card", Material.CHORUS_FRUIT));
-        recipe.setIngredient('C', getCardChoice(cards, "Herobrine Card", Material.PURPLE_DYE));
-        recipe.setIngredient('D', getCardChoice(cards, "Zombie Card", Material.BLACK_DYE));
-        recipe.setIngredient('E', getCardChoice(cards, "Ghost Card", Material.WHITE_DYE));
-        recipe.setIngredient('F', getCardChoice(cards, "Lightning Card", Material.YELLOW_DYE));
-        recipe.setIngredient('G', getCardChoice(cards, "Ruin Card", Material.GRAY_DYE));
-        recipe.setIngredient('H', getCardChoice(cards, "Warden Card", Material.MUSIC_DISC_5));
-        recipe.setIngredient('I', getCardChoice(cards, "Nothing Card", Material.PINK_DYE));
+        // Only check material (card_id validation will be done in craft event)
+        recipe.setIngredient('A', new RecipeChoice.MaterialChoice(Material.DISC_FRAGMENT_5));
+        recipe.setIngredient('B', new RecipeChoice.MaterialChoice(Material.CHORUS_FRUIT));
+        recipe.setIngredient('C', new RecipeChoice.MaterialChoice(Material.PURPLE_DYE));
+        recipe.setIngredient('D', new RecipeChoice.MaterialChoice(Material.BLACK_DYE));
+        recipe.setIngredient('E', new RecipeChoice.MaterialChoice(Material.WHITE_DYE));
+        recipe.setIngredient('F', new RecipeChoice.MaterialChoice(Material.YELLOW_DYE));
+        recipe.setIngredient('G', new RecipeChoice.MaterialChoice(Material.GRAY_DYE));
+        recipe.setIngredient('H', new RecipeChoice.MaterialChoice(Material.MUSIC_DISC_5));
+        recipe.setIngredient('I', new RecipeChoice.MaterialChoice(Material.PINK_DYE));
 
         Bukkit.addRecipe(recipe);
     }
-
-    private static RecipeChoice getCardChoice(Map<String, BaseCard> cards, String name, Material fallback) {
-        BaseCard card = cards.get(name);
-        if (card != null) {
-            return new CardChoice(name, fallback);
-        }
-        return new RecipeChoice.MaterialChoice(fallback);
-    }
-} // LINE 58: Class sahi se band ho gayi
+            }
