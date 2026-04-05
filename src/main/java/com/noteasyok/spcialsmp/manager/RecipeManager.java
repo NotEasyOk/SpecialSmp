@@ -7,6 +7,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.NamespacedKey;
 import org.bukkit.persistence.PersistentDataType;
+import java.lang.CloneNotSupportedException;
 import org.bukkit.inventory.RecipeChoice;
 import java.util.Map;
 
@@ -40,8 +41,17 @@ public class RecipeManager {
         String cardId = item.getItemMeta().getPersistentDataContainer().get(key, PersistentDataType.STRING);
         return cardName.equals(cardId);
     }
+        
+        @Override
+    public RecipeChoice clone() {
+        try {
+            return (RecipeChoice) super.clone();
+        } catch (CloneNotSupportedException e) {
+            return new CardChoice(cardName, fallbackMaterial);
+        }
     }
-
+    }
+    
     public static void registerUltimateRecipe(SpcialSmp plugin) {
         Map<String, BaseCard> cards = CardRegistry.getCards();
         
