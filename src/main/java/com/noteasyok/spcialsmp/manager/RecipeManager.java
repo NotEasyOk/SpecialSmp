@@ -41,6 +41,10 @@ public class RecipeManager {
         String cardId = item.getItemMeta().getPersistentDataContainer().get(key, PersistentDataType.STRING);
         return cardName.equals(cardId);
     }
+        @Override
+    public ItemStack getItemStack() {
+        return new ItemStack(fallbackMaterial);
+    }
         
         @Override
     public RecipeChoice clone() {
