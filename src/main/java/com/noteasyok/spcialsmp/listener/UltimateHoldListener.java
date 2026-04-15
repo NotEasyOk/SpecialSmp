@@ -50,7 +50,7 @@ public class UltimateHoldListener implements Listener {
                     if (isUltimate(item)) {
                         // Effects dena: Level 2 (index 1) taaki player ko 'Ultimate' feel aaye
                         for (PotionEffectType type : ULTIMATE_EFFECTS) {
-                            p.addPotionEffect(new PotionEffect(type, 100, 1, false, false, true));
+                            p.addPotionEffect(new PotionEffect(type, 100, 4, false, false, true));
                         }
 
                         // Orbit Trigger logic (Sirf tab jab pehli baar pakda ho)
